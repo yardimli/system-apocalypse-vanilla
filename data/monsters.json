@@ -1,0 +1,5 @@
+[
+  { "id": "MON001", "name": "Scrap Hound", "hp": 50, "damage": 5, "xp": 20 },
+  { "id": "MON002", "name": "Rust Golem", "hp": 120, "damage": 12, "xp": 50 },
+  { "id": "MON003", "name": "Neon Stalker", "hp": 80, "damage": 20, "xp": 40 }
+]

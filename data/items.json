@@ -1,0 +1,12 @@
+[
+  { "id": "ITM001", "name": "Salvaged Parts", "type": "Resource", "description": "Basic components for repairs." },
+  { "id": "ITM002", "name": "Medical Supplies", "type": "Consumable", "description": "Used by Aegis heroes for powerful healing." },
+  { "id": "ITM003", "name": "Monster Core Shard", "type": "Resource", "description": "A fragment of a monster's essence." },
+  { "id": "ITM004", "name": "Broken Circuitry", "type": "Resource", "description": "Electronic parts for advanced repairs." },
+  { "id": "ITM005", "name": "Energy Bar", "type": "Consumable", "description": "Can be used to restore a small amount of MP." },
+  { "id": "ITM006", "name": "Clean Water", "type": "Resource", "description": "Essential for survivor well-being." },
+  { "id": "ITM007", "name": "Reinforced Steel Plate", "type": "Resource", "description": "Used to fortify buildings." },
+  { "id": "ITM008", "name": "System Shard", "type": "Resource", "description": "A rare fragment of the System itself." },
+  { "id": "ITM009", "name": "First Aid Kit", "type": "Consumable", "description": "A better version of Medical Supplies." },
+  { "id": "ITM010", "name": "Toolbox", "type": "Resource", "description": "Improves repair speed." }
+]

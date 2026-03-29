@@ -1,0 +1,45 @@
+[
+  {
+    "resultId": "STR_C01",
+    "ingredients": [
+      "STR001",
+      "STR001"
+    ],
+    "description": "2x Mana Bolt I = Mana Bolt II"
+  },
+  {
+    "resultId": "VAN_C01",
+    "ingredients": [
+      "VAN001",
+      "VAN001"
+    ],
+    "description": "2x Guardian's Presence I = Guardian's Presence II"
+  },
+  {
+    "resultId": "AEG004_II",
+    "ingredients": [
+      "AEG004",
+      "ITM002",
+      "ITM009"
+    ],
+    "description": "Healing Light + Med Supplies + First Aid = Healing Light II"
+  },
+  {
+    "resultId": "STR_C02",
+    "ingredients": [
+      "STR_C01",
+      "ITM003",
+      "ITM003"
+    ],
+    "description": "Mana Bolt II + 2x Monster Core = Core Powered Strike"
+  },
+  {
+    "resultId": "VAN_C02",
+    "ingredients": [
+      "VAN_C01",
+      "ITM007",
+      "ITM007"
+    ],
+    "description": "Guardian's Presence II + 2x Reinforced Steel = Steel Vanguard"
+  }
+]

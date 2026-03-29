@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>System Apocalypse: Idle Defender</title>
+	<link href="/src/style.css" rel="stylesheet" />
+	<script type="module" src="/src/main.js"></script>
+</head>
+<body class="bg-base-100">
+<div id="app" class="container mx-auto p-4 font-sans">
+
+	<!-- HEADER -->
+	<header id="game-header" class="navbar bg-base-300 rounded-box shadow-lg mb-4"></header>
+
+	<!-- TABS -->
+	<div id="tabs-container" role="tablist" class="tabs tabs-boxed"></div>
+
+	<!-- CONTENT AREA -->
+	<main id="content-area" class="p-4 bg-base-300 rounded-box mt-4 min-h-screen">
+	</main>
+
+</div>
+
+<!-- TEMPLATES -->
+<template id="header-template">
+	<div class="navbar-start"><div class="font-bold text-xl p-2">System Apocalypse: Idle Defender</div></div>
+	<div class="navbar-center hidden lg:flex">
+		<div class="stats bg-transparent shadow-none">
+			<div class="stat"><div class="stat-title">In-Game Time</div><div class="stat-value text-lg" data-stat="time"></div></div>
+		</div>
+	</div>
+	<div class="navbar-end">
+		<div class="stats bg-base-200 shadow">
+			<div class="stat p-2"><div class="stat-title">Bldgs (F/S/B)</div><div class="stat-value text-lg" data-stat="buildings"></div></div>
+			<div class="stat p-2"><div class="stat-title">Cars</div><div class="stat-value text-lg" data-stat="cars"></div></div>
+			<div class="stat p-2"><div class="stat-title">Monsters</div><div class="stat-value text-lg text-error" data-stat="monsters"></div></div>
+		</div>
+	</div>
+</template>
+
+<template id="hero-card-template">
+	<div class="card bg-base-200 shadow-xl">
+		<div class="card-body p-4">
+			<div class="flex justify-between items-center">
+				<h2 class="card-title text-lg" data-name></h2>
+				<div class="badge" data-class></div>
+			</div>
+			<div class="my-2"><label class="label p-0"><span class="label-text" data-xp-label></span></label><progress class="progress progress-primary w-full" data-xp-bar></progress></div>
+			<div class="my-2"><label class="label p-0"><span class="label-text" data-hp-label></span></label><progress class="progress progress-success w-full" data-hp-bar></progress></div>
+			<div class="my-2"><label class="label p-0"><span class="label-text" data-mp-label></span></label><progress class="progress progress-info w-full" data-mp-bar></progress></div>
+
+			<!-- Dynamic Action/Combat Area -->
+			<div class="w-full mt-2 min-h-[80px] bg-base-300 rounded p-2 flex flex-col justify-center" data-dynamic-area>
+			</div>
+
+			<!-- Inline Details Area (Always Visible) -->
+			<!-- Removed the hidden class and the details button -->
+			<div class="mt-2 border-t border-base-300 pt-2" data-details-container>
+				<div data-details-content></div>
+			</div>
+		</div>
+	</div>
+</template>
+</body>
+</html>

@@ -1,0 +1,106 @@
+[
+  {
+    "id": "AEG001",
+    "name": "Repair Building",
+    "class": "Aegis",
+    "type": "Manual",
+    "actionType": "repair",
+    "mpCost": 20,
+    "description": "Repairs 1 broken building."
+  },
+  {
+    "id": "AEG002",
+    "name": "Shield Building",
+    "class": "Aegis",
+    "type": "Manual",
+    "actionType": "shield",
+    "mpCost": 30,
+    "description": "Adds a shield to 1 functional building. Shielded buildings are immune to 1 attack."
+  },
+  {
+    "id": "AEG003",
+    "name": "Create Mana Battery",
+    "class": "Aegis",
+    "type": "Manual",
+    "actionType": "battery",
+    "mpCost": 40,
+    "description": "Adds 1 mana-powered car to the streets for Strikers/Vanguards to use."
+  },
+  {
+    "id": "AEG004",
+    "name": "Healing Light",
+    "class": "Aegis",
+    "type": "Manual",
+    "actionType": "heal",
+    "mpCost": 25,
+    "description": "Restores 100 HP to the most injured hero."
+  },
+  {
+    "id": "AEG004_II",
+    "name": "Healing Light II",
+    "class": "Aegis",
+    "type": "Manual",
+    "actionType": "heal",
+    "mpCost": 35,
+    "replaces": "AEG004",
+    "description": "Restores 250 HP to the most injured hero."
+  },
+  {
+    "id": "STR001",
+    "name": "Mana Bolt I",
+    "class": "Striker",
+    "type": "Auto",
+    "effect": "damage_boost",
+    "value": 5,
+    "description": "Passively increases damage dealt by 5."
+  },
+  {
+    "id": "VAN001",
+    "name": "Guardian's Presence I",
+    "class": "Vanguard",
+    "type": "Auto",
+    "effect": "damage_reduction",
+    "value": 2,
+    "description": "Passively reduces incoming damage by 2."
+  },
+  {
+    "id": "STR_C01",
+    "name": "Mana Bolt II",
+    "class": "Striker",
+    "type": "Auto",
+    "effect": "damage_boost",
+    "value": 15,
+    "replaces": "STR001",
+    "description": "Passively increases damage dealt by 15. (Crafted)"
+  },
+  {
+    "id": "VAN_C01",
+    "name": "Guardian's Presence II",
+    "class": "Vanguard",
+    "type": "Auto",
+    "effect": "damage_reduction",
+    "value": 6,
+    "replaces": "VAN001",
+    "description": "Passively reduces incoming damage by 6. (Crafted)"
+  },
+  {
+    "id": "STR_C02",
+    "name": "Core Powered Strike",
+    "class": "Striker",
+    "type": "Auto",
+    "effect": "damage_boost",
+    "value": 30,
+    "replaces": "STR_C01",
+    "description": "Massively increases damage dealt by 30. (Crafted)"
+  },
+  {
+    "id": "VAN_C02",
+    "name": "Steel Vanguard",
+    "class": "Vanguard",
+    "type": "Auto",
+    "effect": "damage_reduction",
+    "value": 12,
+    "replaces": "VAN_C01",
+    "description": "Massively reduces incoming damage by 12. (Crafted)"
+  }
+]

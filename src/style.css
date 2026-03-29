@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Configured DaisyUI v5 directly in CSS instead of tailwind.config.js [3] */
+@plugin "daisyui" {
+	themes: night --default;
+}
