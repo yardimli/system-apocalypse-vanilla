@@ -12,22 +12,23 @@ export function handleAegisAction(heroId, skillId) {
 	// Pre-check conditions to avoid wasting MP and spamming logs
 	switch (skill.actionType) {
 		case 'repair':
-			if (gameState.city.damaged > 0) {
-				gameState.city.damaged--;
-				gameState.city.functional++;
-				addToLog(`${hero.name} repaired a damaged building.`);
-				success = true;
-			} else if (gameState.city.ruined > 0) {
-				gameState.city.ruined--;
-				gameState.city.functional++;
-				addToLog(`${hero.name} repaired a ruined building.`);
+			// Find a ruined building first, otherwise a damaged one
+			let targetBldg = gameState.city.buildings.find(b => b.state === 'ruined');
+			if (!targetBldg) targetBldg = gameState.city.buildings.find(b => b.state === 'damaged');
+
+			if (targetBldg) {
+				targetBldg.state = 'functional';
+				targetBldg.hp = targetBldg.maxHp;
+				addToLog(`${hero.name} repaired Building #${targetBldg.id}.`);
 				success = true;
 			}
 			break;
 		case 'shield':
-			if (gameState.city.functional > gameState.city.shielded) {
-				gameState.city.shielded++;
-				addToLog(`${hero.name} shielded a functional building.`);
+			// Find a functional building without a shield
+			const unshieldedBldg = gameState.city.buildings.find(b => b.state === 'functional' && b.shieldHp === 0);
+			if (unshieldedBldg) {
+				unshieldedBldg.shieldHp = unshieldedBldg.maxShieldHp;
+				addToLog(`${hero.name} shielded Building #${unshieldedBldg.id}.`);
 				success = true;
 			}
 			break;

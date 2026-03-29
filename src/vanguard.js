@@ -16,6 +16,7 @@ export function processVanguard(hero) {
 		const unassigned = gameState.activeMonsters.find(m => !m.assigned);
 		if (unassigned) {
 			unassigned.assigned = true;
+			unassigned.targetBuilding = null; // Monster stops attacking the building when engaged
 			hero.targetMonster = unassigned;
 		}
 	}
@@ -41,30 +42,20 @@ export function processVanguard(hero) {
 			addToLog(`${hero.name} defeated ${monster.name} and gained ${monster.xp} XP.`);
 			hero.targetMonster = null;
 
-			// Updated Loot drop logic to include items and route health items to Aegis
+			// Updated Loot drop logic to use the shared inventory
 			if (Math.random() < 0.4) {
 				if (Math.random() < 0.5) {
 					const classSkills = gameData.skills.filter(s => s.class === hero.class && s.type === 'Auto' && !s.id.includes('_C'));
 					if (classSkills.length > 0) {
 						const dropped = classSkills[Math.floor(Math.random() * classSkills.length)];
-						hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;
+						gameState.inventory[dropped.id] = (gameState.inventory[dropped.id] || 0) + 1;
 						addToLog(`${hero.name} found a skill card: ${dropped.name}!`);
 					}
 				} else {
 					const items = gameData.items;
 					const dropped = items[Math.floor(Math.random() * items.length)];
-
-					// Route health-related items to Aegis
-					if (dropped.type === 'Consumable' || dropped.name.includes('Medical') || dropped.name.includes('First Aid')) {
-						const aegis = gameState.heroes.find(h => h.class === 'Aegis');
-						if (aegis) {
-							aegis.inventory[dropped.id] = (aegis.inventory[dropped.id] || 0) + 1;
-							addToLog(`${hero.name} found ${dropped.name} and sent it to ${aegis.name}.`);
-						}
-					} else {
-						hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;
-						addToLog(`${hero.name} found an item: ${dropped.name}!`);
-					}
+					gameState.inventory[dropped.id] = (gameState.inventory[dropped.id] || 0) + 1;
+					addToLog(`${hero.name} found an item: ${dropped.name}!`);
 				}
 			}
 

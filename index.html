@@ -32,9 +32,12 @@
 	</div>
 	<div class="navbar-end">
 		<div class="stats bg-base-200 shadow">
+			<!-- Added Population Stat -->
+			<div class="stat p-2"><div class="stat-title">Pop</div><div class="stat-value text-lg text-success" data-stat="population"></div></div>
 			<div class="stat p-2"><div class="stat-title">Bldgs (F/S/B)</div><div class="stat-value text-lg" data-stat="buildings"></div></div>
 			<div class="stat p-2"><div class="stat-title">Cars</div><div class="stat-value text-lg" data-stat="cars"></div></div>
-			<div class="stat p-2"><div class="stat-title">Monsters</div><div class="stat-value text-lg text-error" data-stat="monsters"></div></div>
+			<!-- Updated Monsters Stat to show Bldg/Hero split -->
+			<div class="stat p-2"><div class="stat-title">Atk (Bldg/Hero)</div><div class="stat-value text-lg text-error" data-stat="monsters"></div></div>
 		</div>
 	</div>
 </template>

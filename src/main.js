@@ -4,7 +4,8 @@ import { processStriker } from './striker.js';
 import { processVanguard } from './vanguard.js';
 import { addToLog } from './utils.js';
 
-const TABS = ['Heroes', 'City', 'Log'];
+// Added 'Buildings' tab
+const TABS =['Heroes', 'Buildings', 'City', 'Log'];
 let activeTab = 'Heroes';
 
 // --- DOM ELEMENTS ---
@@ -34,10 +35,21 @@ function renderHeader() {
 	};
 	timeEl.textContent = formatTime(gameState.time);
 
-	const bldgText = `F:${gameState.city.functional} | S:${gameState.city.shielded} | B:${gameState.city.damaged + gameState.city.ruined}`;
+	// Compute stats dynamically from buildings array
+	const totalPop = gameState.city.buildings.reduce((sum, b) => sum + b.population, 0);
+	const functional = gameState.city.buildings.filter(b => b.state === 'functional').length;
+	const shielded = gameState.city.buildings.filter(b => b.shieldHp > 0).length;
+	const broken = gameState.city.buildings.filter(b => b.state !== 'functional').length;
+
+	// Compute monster engagement stats
+	const attackingBldg = gameState.activeMonsters.filter(m => !m.assigned && m.targetBuilding).length;
+	const attackingHero = gameState.activeMonsters.filter(m => m.assigned).length;
+
+	const bldgText = `F:${functional} | S:${shielded} | B:${broken}`;
+	headerContainer.querySelector('[data-stat="population"]').textContent = totalPop;
 	headerContainer.querySelector('[data-stat="buildings"]').textContent = bldgText;
 	headerContainer.querySelector('[data-stat="cars"]').textContent = gameState.city.cars;
-	headerContainer.querySelector('[data-stat="monsters"]').textContent = gameState.activeMonsters.length;
+	headerContainer.querySelector('[data-stat="monsters"]').textContent = `${attackingBldg} / ${attackingHero}`;
 }
 
 function renderTabs() {
@@ -49,10 +61,20 @@ function renderTabs() {
 function renderContent() {
 	switch (activeTab) {
 		case 'Heroes':
-			if (!getEl('heroes-grid')) {
-				contentArea.innerHTML = `<div id="heroes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>`;
+			// Structure for Heroes tab to include shared inventory at the bottom
+			if (!getEl('heroes-tab-content')) {
+				contentArea.innerHTML = `
+					<div id="heroes-tab-content" class="flex flex-col gap-4">
+						<div id="heroes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+						<div class="divider">Shared Inventory</div>
+						<div id="shared-inventory" class="flex flex-wrap gap-2 bg-base-200 p-4 rounded-box shadow-inner min-h-[80px]"></div>
+					</div>
+				`;
 			}
 			renderHeroes();
+			break;
+		case 'Buildings':
+			renderBuildings();
 			break;
 		case 'City':
 			renderCity();
@@ -75,8 +97,6 @@ function renderHeroes() {
 			const clone = template.content.cloneNode(true);
 			card = clone.querySelector('.card');
 			card.id = `hero-card-${hero.id}`;
-
-			// Removed the click event listener for the details toggle button
 
 			grid.appendChild(clone);
 			card = getEl(`hero-card-${hero.id}`);
@@ -101,7 +121,6 @@ function renderHeroes() {
 		const dynamicArea = card.querySelector('[data-dynamic-area]');
 		if (hero.class === 'Aegis') {
 			const skills = hero.skills.map(id => gameData.skills.find(s => s.id === id)).filter(s => s && s.type === 'Manual');
-			// Added auto-cast checkboxes next to Aegis skills
 			dynamicArea.innerHTML = skills.map(skill => `
         <div class="flex items-center justify-between m-1 bg-base-100 p-1 rounded">
           <button class="btn btn-xs btn-primary" data-skill-id="${skill.id}" data-hero-id="${hero.id}" ${hero.mp.current < skill.mpCost ? 'disabled' : ''}>${skill.name} (${skill.mpCost} MP)</button>
@@ -127,9 +146,22 @@ function renderHeroes() {
 			}
 		}
 
-		// Always render details to keep inventory and crafting fresh
+		// Always render details to keep crafting fresh
 		renderHeroDetails(hero.id, card.querySelector('[data-details-content]'));
 	});
+
+	// Render shared inventory
+	const invContainer = getEl('shared-inventory');
+	if (invContainer) {
+		const inventoryItems = Object.entries(gameState.inventory).map(([id, qty]) => {
+			const entity = gameData.skills.find(s => s.id === id) || gameData.items.find(i => i.id === id);
+			return entity ? { ...entity, qty } : null;
+		}).filter(Boolean);
+
+		invContainer.innerHTML = inventoryItems.length > 0
+			? inventoryItems.map(s => `<div class="badge badge-outline badge-lg p-3">${s.name} x${s.qty}</div>`).join('')
+			: '<p class="text-sm text-gray-500 w-full text-center mt-4">Inventory is empty.</p>';
+	}
 }
 
 // Renders hero details inline inside the hero card
@@ -139,29 +171,18 @@ function renderHeroDetails(heroId, container) {
 
 	const ownedSkills = hero.skills.map(id => gameData.skills.find(s => s.id === id)).filter(Boolean);
 
-	// Combine skills and items for inventory display
-	const inventoryItems = Object.entries(hero.inventory).map(([id, qty]) => {
-		const entity = gameData.skills.find(s => s.id === id) || gameData.items.find(i => i.id === id);
-		return entity ? { ...entity, qty } : null;
-	}).filter(Boolean);
-
+	// Removed individual inventory display, updated crafting to check shared inventory
 	container.innerHTML = `
         <div class="grid grid-cols-1 gap-4 text-sm mt-2">
             <div class="bg-base-100 p-2 rounded">
                 <h4 class="font-bold mb-1 text-primary">Learned Skills</h4>
                 ${ownedSkills.length > 0 ? ownedSkills.map(s => `<p>&bull; <strong>${s.name}</strong>: ${s.description}</p>`).join('') : '<p>No skills learned.</p>'}
             </div>
-            <div class="bg-base-100 p-2 rounded">
-                <h4 class="font-bold mb-1 text-secondary">Inventory</h4>
-                <div class="flex flex-col gap-1">
-                    ${inventoryItems.length > 0 ? inventoryItems.map(s => `<p>&bull; ${s.name} x${s.qty}</p>`).join('') : '<p>Inventory is empty.</p>'}
-                </div>
-            </div>
         </div>
         <div class="divider my-2">Crafting</div>
         <div class="flex flex-col gap-2 text-sm">
             ${gameData.recipes.map(recipe => {
-		const canCraft = recipe.ingredients.every(ingId => (hero.inventory[ingId] || 0) >= recipe.ingredients.filter(i => i === ingId).length);
+		const canCraft = recipe.ingredients.every(ingId => (gameState.inventory[ingId] || 0) >= recipe.ingredients.filter(i => i === ingId).length);
 		const resultSkill = gameData.skills.find(s => s.id === recipe.resultId);
 
 		if (resultSkill && resultSkill.class !== hero.class) return '';
@@ -180,12 +201,13 @@ function handleCrafting(heroId, resultId) {
 	const recipe = gameData.recipes.find(r => r.resultId === resultId);
 	if (!hero || !recipe) return;
 
-	const hasIngredients = recipe.ingredients.every(ingId => (hero.inventory[ingId] || 0) >= recipe.ingredients.filter(i => i === ingId).length);
+	// Check shared inventory
+	const hasIngredients = recipe.ingredients.every(ingId => (gameState.inventory[ingId] || 0) >= recipe.ingredients.filter(i => i === ingId).length);
 
 	if (hasIngredients) {
 		recipe.ingredients.forEach(ingId => {
-			hero.inventory[ingId]--;
-			if (hero.inventory[ingId] === 0) delete hero.inventory[ingId];
+			gameState.inventory[ingId]--;
+			if (gameState.inventory[ingId] === 0) delete gameState.inventory[ingId];
 		});
 
 		const resultSkill = gameData.skills.find(s => s.id === resultId);
@@ -207,6 +229,44 @@ function handleCrafting(heroId, resultId) {
 	}
 }
 
+// Added new function to render the Buildings tab
+function renderBuildings() {
+	let grid = getEl('buildings-grid');
+	if (!grid) {
+		contentArea.innerHTML = `<div id="buildings-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>`;
+		grid = getEl('buildings-grid');
+
+		// Create DOM elements once to avoid heavy re-renders
+		gameState.city.buildings.forEach(b => {
+			const el = document.createElement('div');
+			el.id = `bldg-${b.id}`;
+			el.className = 'card bg-base-200 shadow-sm p-3 text-xs border border-base-300';
+			el.innerHTML = `
+				<div class="font-bold text-sm mb-1">Bldg #${b.id}</div>
+				<div data-state class="font-semibold"></div>
+				<div data-hp></div>
+				<div data-shield class="text-info"></div>
+				<div data-pop class="text-success mt-1"></div>
+			`;
+			grid.appendChild(el);
+		});
+	}
+
+	// Update text content for all buildings
+	gameState.city.buildings.forEach(b => {
+		const el = getEl(`bldg-${b.id}`);
+		if (!el) return;
+
+		const stateEl = el.querySelector('[data-state]');
+		stateEl.textContent = `State: ${b.state}`;
+		stateEl.className = `font-semibold ${b.state === 'functional' ? 'text-success' : b.state === 'damaged' ? 'text-warning' : 'text-error'}`;
+
+		el.querySelector('[data-hp]').textContent = `HP: ${b.hp}/${b.maxHp}`;
+		el.querySelector('[data-shield]').textContent = `Shield: ${b.shieldHp}/${b.maxShieldHp}`;
+		el.querySelector('[data-pop]').textContent = `Pop: ${b.population}/10`;
+	});
+}
+
 function renderCity() {
 	if (!getEl('city-status-container')) {
 		contentArea.innerHTML = `
@@ -220,9 +280,15 @@ function renderCity() {
             </div>
         </div>`;
 	}
-	getEl('city-func-stat').textContent = gameState.city.functional;
-	getEl('city-shield-stat').textContent = gameState.city.shielded;
-	getEl('city-broken-stat').textContent = gameState.city.damaged + gameState.city.ruined;
+
+	// Compute stats dynamically
+	const functional = gameState.city.buildings.filter(b => b.state === 'functional').length;
+	const shielded = gameState.city.buildings.filter(b => b.shieldHp > 0).length;
+	const broken = gameState.city.buildings.filter(b => b.state !== 'functional').length;
+
+	getEl('city-func-stat').textContent = functional;
+	getEl('city-shield-stat').textContent = shielded;
+	getEl('city-broken-stat').textContent = broken;
 	getEl('city-cars-stat').textContent = gameState.city.cars;
 }
 
@@ -255,7 +321,7 @@ function gameLoop() {
 			damage: Math.floor(randomMonster.damage * scale),
 			xp: Math.floor(randomMonster.xp * scale),
 			assigned: false,
-			attackCooldown: 3
+			targetBuilding: null // Added target building tracking
 		});
 		addToLog(`A ${randomMonster.name} has appeared!`);
 	}
@@ -275,8 +341,9 @@ function gameLoop() {
 					const skill = gameData.skills.find(s => s.id === skillId);
 					if (skill && hero.mp.current >= skill.mpCost) {
 						let shouldCast = false;
-						if (skill.actionType === 'repair' && (gameState.city.damaged > 0 || gameState.city.ruined > 0)) shouldCast = true;
-						if (skill.actionType === 'shield' && gameState.city.functional > gameState.city.shielded) shouldCast = true;
+						// Updated auto-cast checks to use buildings array
+						if (skill.actionType === 'repair' && gameState.city.buildings.some(b => b.state !== 'functional')) shouldCast = true;
+						if (skill.actionType === 'shield' && gameState.city.buildings.some(b => b.state === 'functional' && b.shieldHp === 0)) shouldCast = true;
 						if (skill.actionType === 'battery' && gameState.city.cars < 3) shouldCast = true; // Keep a small buffer of cars
 						if (skill.actionType === 'heal') {
 							const injured = gameState.heroes.find(h => h.hp.current < h.hp.max);
@@ -297,20 +364,40 @@ function gameLoop() {
 	// 3. Unassigned Monsters Attack City
 	gameState.activeMonsters.forEach(monster => {
 		if (!monster.assigned) {
-			monster.attackCooldown--;
-			if (monster.attackCooldown <= 0) {
-				monster.attackCooldown = 3;
-				if (gameState.city.shielded > 0) {
-					gameState.city.shielded--;
-					addToLog(`${monster.name} attacked the city! A shield was destroyed.`);
-				} else if (gameState.city.functional > 0) {
-					gameState.city.functional--;
-					gameState.city.damaged++;
-					addToLog(`${monster.name} attacked the city! A building was damaged.`);
-				} else if (gameState.city.damaged > 0) {
-					gameState.city.damaged--;
-					gameState.city.ruined++;
-					addToLog(`${monster.name} attacked the city! A damaged building was ruined.`);
+			// Find a target building if none is assigned
+			if (!monster.targetBuilding) {
+				const validTargets = gameState.city.buildings.filter(b => b.state !== 'ruined');
+				if (validTargets.length > 0) {
+					monster.targetBuilding = validTargets[Math.floor(Math.random() * validTargets.length)].id;
+				}
+			}
+
+			if (monster.targetBuilding) {
+				const bldg = gameState.city.buildings.find(b => b.id === monster.targetBuilding);
+				if (bldg && bldg.state !== 'ruined') {
+					// Attack every tick (1 damage per tick).
+					// Unshielded (10 HP) survives 10 ticks = 1 day.
+					// Shielded (70 Shield HP) survives 70 ticks = 7 days.
+					if (bldg.shieldHp > 0) {
+						bldg.shieldHp--;
+						if (bldg.shieldHp === 0) {
+							addToLog(`${monster.name} destroyed the shield on Building #${bldg.id}!`);
+						}
+					} else {
+						bldg.hp--;
+						if (bldg.hp <= 0) {
+							bldg.hp = 0;
+							bldg.state = 'ruined';
+							bldg.population = 0; // Destroyed buildings lose all residents
+							monster.targetBuilding = null; // Find new target next tick
+							addToLog(`Building #${bldg.id} was ruined by ${monster.name}!`);
+						} else if (bldg.hp <= 5 && bldg.state === 'functional') {
+							bldg.state = 'damaged';
+							addToLog(`Building #${bldg.id} was damaged by ${monster.name}!`);
+						}
+					}
+				} else {
+					monster.targetBuilding = null; // Target is ruined, find new one
 				}
 			}
 		}
@@ -318,8 +405,18 @@ function gameLoop() {
 
 	gameState.activeMonsters = gameState.activeMonsters.filter(m => m.currentHp > 0);
 
+	// 4. Population Growth (1 day = 10 ticks)
+	if (gameState.time % 10 === 0) {
+		gameState.city.buildings.forEach(b => {
+			if (b.state !== 'ruined' && b.population < 10) {
+				b.population++;
+			}
+		});
+	}
+
 	renderHeader();
 	if (activeTab === 'Heroes') renderHeroes();
+	if (activeTab === 'Buildings') renderBuildings();
 	if (activeTab === 'City') renderCity();
 	if (activeTab === 'Log') renderLog();
 }
