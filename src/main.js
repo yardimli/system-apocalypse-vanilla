@@ -3,9 +3,11 @@ import { handleAegisAction } from './aegis.js';
 import { processStriker } from './striker.js';
 import { processVanguard } from './vanguard.js';
 import { addToLog } from './utils.js';
+// NEW: Import sandbox functions
+import { renderSandbox, applySandboxChanges } from './sandbox.js';
 
-// Added 'Cars' tab
-const TABS =['Heroes', 'Buildings', 'Cars', 'City', 'Log'];
+// Added 'Sandbox' tab
+const TABS = ['Heroes', 'Buildings', 'Cars', 'City', 'Log', 'Sandbox'];
 let activeTab = 'Heroes';
 
 // --- DOM ELEMENTS ---
@@ -84,6 +86,10 @@ function renderContent() {
 			break;
 		case 'Log':
 			renderLog();
+			break;
+		case 'Sandbox':
+			// MODIFIED: Use the imported renderSandbox function
+			renderSandbox(contentArea);
 			break;
 	}
 }
@@ -492,6 +498,8 @@ function gameLoop() {
 	if (activeTab === 'Cars') renderCars();
 	if (activeTab === 'City') renderCity();
 	if (activeTab === 'Log') renderLog();
+	// MODIFIED: Use the imported renderSandbox function
+	if (activeTab === 'Sandbox') renderSandbox(contentArea);
 }
 
 // --- INITIALIZATION ---
@@ -534,6 +542,11 @@ async function init() {
 		if (e.target.matches('[data-craft-id]')) {
 			const { heroId, craftId } = e.target.dataset;
 			handleCrafting(parseInt(heroId), craftId);
+		}
+		// MODIFIED: Sandbox Apply Button Event now uses the imported function
+		if (e.target.id === 'sandbox-apply') {
+			applySandboxChanges();
+			renderContent(); // Re-render to show updated values if needed
 		}
 	});
 	

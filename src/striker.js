@@ -28,8 +28,12 @@ export function processStriker(hero) {
 	if (hero.targetMonster) {
 		const monster = hero.targetMonster;
 		
+		// Calculate 10% boost per level
+		const levelBoost = 1 + (hero.level * 0.1);
+		
 		const damageBoost = getSkillEffect(hero, 'damage_boost') || 0;
-		const damageDealt = 15 + damageBoost;
+		// Apply level boost to total damage dealt
+		const damageDealt = Math.floor((15 + damageBoost) * levelBoost);
 		monster.currentHp -= damageDealt;
 		
 		hero.hp.current -= monster.damage;

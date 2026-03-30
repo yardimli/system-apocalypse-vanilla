@@ -28,10 +28,16 @@ export function processVanguard(hero) {
 	if (hero.targetMonster) {
 		const monster = hero.targetMonster;
 		
-		const damageDealt = 8;
+		// Calculate 10% boost per level
+		const levelBoost = 1 + (hero.level * 0.1);
+		
+		// Apply level boost to total damage dealt
+		const damageDealt = Math.floor(8 * levelBoost);
 		monster.currentHp -= damageDealt;
 		
-		const damageReduction = getSkillEffect(hero, 'damage_reduction') || 0;
+		const baseDamageReduction = getSkillEffect(hero, 'damage_reduction') || 0;
+		// Apply level boost to damage reduction
+		const damageReduction = Math.floor(baseDamageReduction * levelBoost);
 		const damageTaken = Math.max(1, monster.damage - damageReduction);
 		hero.hp.current -= damageTaken;
 		

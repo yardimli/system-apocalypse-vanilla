@@ -9,10 +9,15 @@ export function handleAegisAction(heroId, skillId) {
 	
 	let success = false;
 	
+	// Calculate 10% boost per level
+	const levelBoost = 1 + (hero.level * 0.1);
+	
 	// Pre-check conditions to avoid wasting MP and spamming logs
 	switch (skill.actionType) {
 		case 'repair':
-			const repairCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
+			// Apply level boost to the number of buildings repaired
+			const baseRepairCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
+			const repairCount = Math.floor(baseRepairCount * levelBoost);
 			let repaired = 0;
 			for (let i = 0; i < repairCount; i++) {
 				let targetBldg = gameState.city.buildings.find(b => b.state === 'ruined');
@@ -30,7 +35,9 @@ export function handleAegisAction(heroId, skillId) {
 			}
 			break;
 		case 'shield':
-			const shieldCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
+			// Apply level boost to the number of buildings shielded
+			const baseShieldCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
+			const shieldCount = Math.floor(baseShieldCount * levelBoost);
 			let shielded = 0;
 			for (let i = 0; i < shieldCount; i++) {
 				const unshieldedBldg = gameState.city.buildings.find(b => b.state === 'functional' && b.shieldHp === 0);
@@ -45,7 +52,9 @@ export function handleAegisAction(heroId, skillId) {
 			}
 			break;
 		case 'battery':
-			const chargeCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
+			// Apply level boost to the number of batteries charged
+			const baseChargeCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
+			const chargeCount = Math.floor(baseChargeCount * levelBoost);
 			let charged = 0;
 			for (let i = 0; i < chargeCount; i++) {
 				const emptyCar = gameState.city.cars.find(c => c.battery <= 0);
@@ -62,7 +71,9 @@ export function handleAegisAction(heroId, skillId) {
 		case 'heal':
 			const injured = gameState.heroes.filter(h => h.hp.current < h.hp.max).sort((a, b) => a.hp.current - b.hp.current)[0];
 			if (injured) {
-				const healAmount = skill.id.includes('III') ? 500 : skill.id.includes('II') ? 250 : 100;
+				// Apply level boost to the total heal amount
+				const baseHealAmount = skill.id.includes('III') ? 500 : skill.id.includes('II') ? 250 : 100;
+				const healAmount = Math.floor(baseHealAmount * levelBoost);
 				injured.hp.current = Math.min(injured.hp.max, injured.hp.current + healAmount);
 				addToLog(`${hero.name} healed ${injured.name} for ${healAmount} HP.`);
 				success = true;
