@@ -9,13 +9,13 @@
 </head>
 <body class="bg-base-100">
 <div id="app" class="container mx-auto p-4 font-sans">
-
+	
 	<!-- HEADER -->
 	<header id="game-header" class="navbar bg-base-300 rounded-box shadow-lg mb-4"></header>
-
+	
 	<!-- TABS -->
 	<div id="tabs-container" role="tablist" class="tabs tabs-boxed"></div>
-
+	
 	<!-- CONTENT AREA -->
 	<main id="content-area" class="p-4 bg-base-300 rounded-box mt-4 min-h-screen">
 	</main>
@@ -32,12 +32,12 @@
 	</div>
 	<div class="navbar-end">
 		<div class="stats bg-base-200 shadow">
-			<!-- Added Population Stat -->
 			<div class="stat p-2"><div class="stat-title">Pop</div><div class="stat-value text-lg text-success" data-stat="population"></div></div>
 			<div class="stat p-2"><div class="stat-title">Bldgs (F/S/B)</div><div class="stat-value text-lg" data-stat="buildings"></div></div>
 			<div class="stat p-2"><div class="stat-title">Cars</div><div class="stat-value text-lg" data-stat="cars"></div></div>
-			<!-- Updated Monsters Stat to show Bldg/Hero split -->
 			<div class="stat p-2"><div class="stat-title">Atk (Bldg/Hero)</div><div class="stat-value text-lg text-error" data-stat="monsters"></div></div>
+			<!-- Added Roaming Monsters Stat -->
+			<div class="stat p-2"><div class="stat-title">Roaming</div><div class="stat-value text-lg text-warning" data-stat="roaming"></div></div>
 		</div>
 	</div>
 </template>
@@ -52,13 +52,12 @@
 			<div class="my-2"><label class="label p-0"><span class="label-text" data-xp-label></span></label><progress class="progress progress-primary w-full" data-xp-bar></progress></div>
 			<div class="my-2"><label class="label p-0"><span class="label-text" data-hp-label></span></label><progress class="progress progress-success w-full" data-hp-bar></progress></div>
 			<div class="my-2"><label class="label p-0"><span class="label-text" data-mp-label></span></label><progress class="progress progress-info w-full" data-mp-bar></progress></div>
-
+			
 			<!-- Dynamic Action/Combat Area -->
 			<div class="w-full mt-2 min-h-[80px] bg-base-300 rounded p-2 flex flex-col justify-center" data-dynamic-area>
 			</div>
-
+			
 			<!-- Inline Details Area (Always Visible) -->
-			<!-- Removed the hidden class and the details button -->
 			<div class="mt-2 border-t border-base-300 pt-2" data-details-container>
 				<div data-details-content></div>
 			</div>

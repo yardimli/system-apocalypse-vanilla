@@ -3,15 +3,19 @@ import { addToLog, getSkillEffect } from './utils.js';
 
 export function processStriker(hero) {
 	if (hero.hp.current <= 0) return;
-
-	if (!hero.hasCar && gameState.city.cars > 0) {
-		hero.hasCar = true;
-		gameState.city.cars--;
-		addToLog(`${hero.name} equipped a Mana Battery Car and is ready to fight.`);
+	
+	// Equip an available car if hero doesn't have one
+	if (!hero.carId) {
+		const availableCar = gameState.city.cars.find(c => c.battery > 0 && c.driverId === null);
+		if (availableCar) {
+			hero.carId = availableCar.id;
+			availableCar.driverId = hero.id;
+			addToLog(`${hero.name} equipped Car #${availableCar.id} and is ready to fight.`);
+		}
 	}
-
-	if (!hero.hasCar) return;
-
+	
+	if (!hero.carId) return;
+	
 	if (!hero.targetMonster) {
 		const unassigned = gameState.activeMonsters.find(m => !m.assigned);
 		if (unassigned) {
@@ -20,19 +24,23 @@ export function processStriker(hero) {
 			hero.targetMonster = unassigned;
 		}
 	}
-
+	
 	if (hero.targetMonster) {
 		const monster = hero.targetMonster;
-
+		
 		const damageBoost = getSkillEffect(hero, 'damage_boost') || 0;
 		const damageDealt = 15 + damageBoost;
 		monster.currentHp -= damageDealt;
-
+		
 		hero.hp.current -= monster.damage;
-
+		
 		if (hero.hp.current <= 0) {
 			hero.hp.current = 0;
-			hero.hasCar = false;
+			// Free the car without destroying it
+			const car = gameState.city.cars.find(c => c.id === hero.carId);
+			if (car) car.driverId = null;
+			hero.carId = null;
+			
 			monster.assigned = false;
 			hero.targetMonster = null;
 			addToLog(`${hero.name} was incapacitated by ${monster.name}!`);
@@ -40,9 +48,9 @@ export function processStriker(hero) {
 			hero.xp.current += monster.xp;
 			addToLog(`${hero.name} defeated ${monster.name} and gained ${monster.xp} XP.`);
 			hero.targetMonster = null;
-
-			// Updated Loot drop logic to use the shared inventory
-			if (Math.random() < 0.4) {
+			
+			// Increased Loot drop logic
+			if (Math.random() < 0.8) {
 				if (Math.random() < 0.5) {
 					const classSkills = gameData.skills.filter(s => s.class === hero.class && s.type === 'Auto' && !s.id.includes('_C'));
 					if (classSkills.length > 0) {
@@ -57,7 +65,7 @@ export function processStriker(hero) {
 					addToLog(`${hero.name} found an item: ${dropped.name}!`);
 				}
 			}
-
+			
 			if (hero.xp.current >= hero.xp.max) {
 				hero.level++;
 				hero.xp.current -= hero.xp.max;

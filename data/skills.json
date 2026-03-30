@@ -1,106 +1,24 @@
 [
-  {
-    "id": "AEG001",
-    "name": "Repair Building",
-    "class": "Aegis",
-    "type": "Manual",
-    "actionType": "repair",
-    "mpCost": 20,
-    "description": "Repairs 1 broken building."
-  },
-  {
-    "id": "AEG002",
-    "name": "Shield Building",
-    "class": "Aegis",
-    "type": "Manual",
-    "actionType": "shield",
-    "mpCost": 30,
-    "description": "Adds a shield to 1 functional building. Shielded buildings are immune to 1 attack."
-  },
-  {
-    "id": "AEG003",
-    "name": "Create Mana Battery",
-    "class": "Aegis",
-    "type": "Manual",
-    "actionType": "battery",
-    "mpCost": 40,
-    "description": "Adds 1 mana-powered car to the streets for Strikers/Vanguards to use."
-  },
-  {
-    "id": "AEG004",
-    "name": "Healing Light",
-    "class": "Aegis",
-    "type": "Manual",
-    "actionType": "heal",
-    "mpCost": 25,
-    "description": "Restores 100 HP to the most injured hero."
-  },
-  {
-    "id": "AEG004_II",
-    "name": "Healing Light II",
-    "class": "Aegis",
-    "type": "Manual",
-    "actionType": "heal",
-    "mpCost": 35,
-    "replaces": "AEG004",
-    "description": "Restores 250 HP to the most injured hero."
-  },
-  {
-    "id": "STR001",
-    "name": "Mana Bolt I",
-    "class": "Striker",
-    "type": "Auto",
-    "effect": "damage_boost",
-    "value": 5,
-    "description": "Passively increases damage dealt by 5."
-  },
-  {
-    "id": "VAN001",
-    "name": "Guardian's Presence I",
-    "class": "Vanguard",
-    "type": "Auto",
-    "effect": "damage_reduction",
-    "value": 2,
-    "description": "Passively reduces incoming damage by 2."
-  },
-  {
-    "id": "STR_C01",
-    "name": "Mana Bolt II",
-    "class": "Striker",
-    "type": "Auto",
-    "effect": "damage_boost",
-    "value": 15,
-    "replaces": "STR001",
-    "description": "Passively increases damage dealt by 15. (Crafted)"
-  },
-  {
-    "id": "VAN_C01",
-    "name": "Guardian's Presence II",
-    "class": "Vanguard",
-    "type": "Auto",
-    "effect": "damage_reduction",
-    "value": 6,
-    "replaces": "VAN001",
-    "description": "Passively reduces incoming damage by 6. (Crafted)"
-  },
-  {
-    "id": "STR_C02",
-    "name": "Core Powered Strike",
-    "class": "Striker",
-    "type": "Auto",
-    "effect": "damage_boost",
-    "value": 30,
-    "replaces": "STR_C01",
-    "description": "Massively increases damage dealt by 30. (Crafted)"
-  },
-  {
-    "id": "VAN_C02",
-    "name": "Steel Vanguard",
-    "class": "Vanguard",
-    "type": "Auto",
-    "effect": "damage_reduction",
-    "value": 12,
-    "replaces": "VAN_C01",
-    "description": "Massively reduces incoming damage by 12. (Crafted)"
-  }
+{ "id": "AEG001", "name": "Repair Building", "class": "Aegis", "type": "Manual", "actionType": "repair", "mpCost": 20, "description": "Repairs 1 broken building." },
+{ "id": "AEG001_II", "name": "Repair Building II", "class": "Aegis", "type": "Manual", "actionType": "repair", "mpCost": 35, "replaces": "AEG001", "description": "Repairs up to 2 broken buildings." },
+{ "id": "AEG001_III", "name": "Repair Building III", "class": "Aegis", "type": "Manual", "actionType": "repair", "mpCost": 50, "replaces": "AEG001_II", "description": "Repairs up to 3 broken buildings." },
+{ "id": "AEG002", "name": "Shield Building", "class": "Aegis", "type": "Manual", "actionType": "shield", "mpCost": 30, "description": "Adds a shield to 1 functional building." },
+{ "id": "AEG002_II", "name": "Shield Building II", "class": "Aegis", "type": "Manual", "actionType": "shield", "mpCost": 50, "replaces": "AEG002", "description": "Adds a shield to up to 2 functional buildings." },
+{ "id": "AEG002_III", "name": "Shield Building III", "class": "Aegis", "type": "Manual", "actionType": "shield", "mpCost": 70, "replaces": "AEG002_II", "description": "Adds a shield to up to 3 functional buildings." },
+{ "id": "AEG003", "name": "Charge Mana Battery", "class": "Aegis", "type": "Manual", "actionType": "battery", "mpCost": 40, "description": "Recharges 1 empty car battery (lasts 10 days)." },
+{ "id": "AEG003_II", "name": "Charge Mana Battery II", "class": "Aegis", "type": "Manual", "actionType": "battery", "mpCost": 70, "replaces": "AEG003", "description": "Recharges up to 2 empty car batteries." },
+{ "id": "AEG003_III", "name": "Charge Mana Battery III", "class": "Aegis", "type": "Manual", "actionType": "battery", "mpCost": 100, "replaces": "AEG003_II", "description": "Recharges up to 3 empty car batteries." },
+{ "id": "AEG004", "name": "Healing Light", "class": "Aegis", "type": "Manual", "actionType": "heal", "mpCost": 25, "description": "Restores 100 HP to the most injured hero." },
+{ "id": "AEG004_II", "name": "Healing Light II", "class": "Aegis", "type": "Manual", "actionType": "heal", "mpCost": 35, "replaces": "AEG004", "description": "Restores 250 HP to the most injured hero." },
+{ "id": "AEG004_III", "name": "Healing Light III", "class": "Aegis", "type": "Manual", "actionType": "heal", "mpCost": 50, "replaces": "AEG004_II", "description": "Restores 500 HP to the most injured hero." },
+{ "id": "STR001", "name": "Mana Bolt I", "class": "Striker", "type": "Auto", "effect": "damage_boost", "value": 5, "description": "Passively increases damage dealt by 5." },
+{ "id": "VAN001", "name": "Guardian's Presence I", "class": "Vanguard", "type": "Auto", "effect": "damage_reduction", "value": 2, "description": "Passively reduces incoming damage by 2." },
+{ "id": "STR_C01", "name": "Mana Bolt II", "class": "Striker", "type": "Auto", "effect": "damage_boost", "value": 15, "replaces": "STR001", "description": "Passively increases damage dealt by 15. (Crafted)" },
+{ "id": "VAN_C01", "name": "Guardian's Presence II", "class": "Vanguard", "type": "Auto", "effect": "damage_reduction", "value": 6, "replaces": "VAN001", "description": "Passively reduces incoming damage by 6. (Crafted)" },
+{ "id": "STR_C02", "name": "Core Powered Strike", "class": "Striker", "type": "Auto", "effect": "damage_boost", "value": 30, "replaces": "STR_C01", "description": "Massively increases damage dealt by 30. (Crafted)" },
+{ "id": "VAN_C02", "name": "Steel Vanguard", "class": "Vanguard", "type": "Auto", "effect": "damage_reduction", "value": 12, "replaces": "VAN_C01", "description": "Massively reduces incoming damage by 12. (Crafted)" },
+{ "id": "STR_C03", "name": "Mana Bolt III", "class": "Striker", "type": "Auto", "effect": "damage_boost", "value": 60, "replaces": "STR_C02", "description": "Increases damage dealt by 60. (Crafted)" },
+{ "id": "VAN_C03", "name": "Guardian's Presence III", "class": "Vanguard", "type": "Auto", "effect": "damage_reduction", "value": 20, "replaces": "VAN_C02", "description": "Reduces incoming damage by 20. (Crafted)" },
+{ "id": "STR_C04", "name": "Mana Bolt IV", "class": "Striker", "type": "Auto", "effect": "damage_boost", "value": 100, "replaces": "STR_C03", "description": "Increases damage dealt by 100. (Crafted)" },
+{ "id": "VAN_C04", "name": "Guardian's Presence IV", "class": "Vanguard", "type": "Auto", "effect": "damage_reduction", "value": 35, "replaces": "VAN_C03", "description": "Reduces incoming damage by 35. (Crafted)" }
 ]
