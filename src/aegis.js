@@ -15,7 +15,6 @@ export function handleAegisAction(heroId, skillId) {
 	// Pre-check conditions to avoid wasting MP and spamming logs
 	switch (skill.actionType) {
 		case 'repair':
-			// Apply level boost to the number of buildings repaired
 			const baseRepairCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
 			const repairCount = Math.floor(baseRepairCount * levelBoost);
 			let repaired = 0;
@@ -35,7 +34,6 @@ export function handleAegisAction(heroId, skillId) {
 			}
 			break;
 		case 'shield':
-			// Apply level boost to the number of buildings shielded
 			const baseShieldCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
 			const shieldCount = Math.floor(baseShieldCount * levelBoost);
 			let shielded = 0;
@@ -52,7 +50,6 @@ export function handleAegisAction(heroId, skillId) {
 			}
 			break;
 		case 'battery':
-			// Apply level boost to the number of batteries charged
 			const baseChargeCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
 			const chargeCount = Math.floor(baseChargeCount * levelBoost);
 			let charged = 0;
@@ -71,7 +68,6 @@ export function handleAegisAction(heroId, skillId) {
 		case 'heal':
 			const injured = gameState.heroes.filter(h => h.hp.current < h.hp.max).sort((a, b) => a.hp.current - b.hp.current)[0];
 			if (injured) {
-				// Apply level boost to the total heal amount
 				const baseHealAmount = skill.id.includes('III') ? 500 : skill.id.includes('II') ? 250 : 100;
 				const healAmount = Math.floor(baseHealAmount * levelBoost);
 				injured.hp.current = Math.min(injured.hp.max, injured.hp.current + healAmount);
@@ -86,15 +82,18 @@ export function handleAegisAction(heroId, skillId) {
 		hero.mp.current -= skill.mpCost;
 		hero.xp.current += 25; // Aegis gains XP per successful cast
 		
-		// Level up logic for Aegis
+		// MODIFIED: Use per-level modifiers for level up logic
 		if (hero.xp.current >= hero.xp.max) {
 			hero.level++;
 			hero.xp.current -= hero.xp.max;
 			hero.xp.max = Math.floor(hero.xp.max * 1.5);
-			hero.mp.max += 50; // Max mana increases on level up
-			hero.manaRegen = (hero.manaRegen || 1) + 1; // Mana restore speed increases
+			hero.hp.max += hero.hpMaxPerLevel;
+			hero.mp.max += hero.mpMaxPerLevel;
+			hero.hpRegen += hero.hpRegenPerLevel;
+			hero.mpRegen += hero.mpRegenPerLevel;
+			hero.hp.current = hero.hp.max;
 			hero.mp.current = hero.mp.max;
-			addToLog(`${hero.name} reached Level ${hero.level}! Mana capacity and regen increased.`);
+			addToLog(`${hero.name} reached Level ${hero.level}! Stats increased.`);
 		}
 	}
 }

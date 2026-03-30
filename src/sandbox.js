@@ -13,6 +13,8 @@ export function renderSandbox(contentArea) {
             <p class="mb-4 text-sm text-gray-400">Edit the table cells directly. Click "Apply Changes" to save.</p>
             
             <div class="flex flex-col gap-6">
+                <!-- MODIFIED: Added Heroes table driven from gameState -->
+                ${buildTableSection('Heroes', 'heroes', 'gameState')}
                 ${buildTableSection('Monsters', 'monsters')}
                 ${buildTableSection('Skills', 'skills')}
                 ${buildTableSection('Items', 'items')}
@@ -39,11 +41,12 @@ export function renderSandbox(contentArea) {
 /**
  * Builds an HTML table for a specific category of game data.
  * @param {string} title - The display title for the section.
- * @param {string} category - The key in gameData (e.g., 'monsters').
+ * @param {string} category - The key in gameData or gameState.
+ * @param {string} source - 'gameData' or 'gameState' to determine where to fetch from.
  * @returns {string} HTML string of the table.
  */
-function buildTableSection(title, category) {
-	const data = gameData[category];
+function buildTableSection(title, category, source = 'gameData') {
+	const data = source === 'gameState' ? gameState[category] : gameData[category];
 	if (!data || data.length === 0) return `<p>No data for ${title}</p>`;
 	
 	// Extract all unique keys across all objects in the array to form headers
@@ -52,7 +55,7 @@ function buildTableSection(title, category) {
 	return `
     <div class="overflow-x-auto bg-base-100 rounded-box border border-base-300">
         <h3 class="font-bold p-4 bg-base-300">${title}</h3>
-        <table class="table table-xs table-zebra w-full" data-category="${category}">
+        <table class="table table-xs table-zebra w-full" data-category="${category}" data-source="${source}">
             <thead>
                 <tr>
                     ${headers.map(h => `<th>${h}</th>`).join('')}
@@ -63,9 +66,17 @@ function buildTableSection(title, category) {
                     <tr>
                         ${headers.map(h => {
 		let val = row[h];
-		// Format arrays as comma-separated strings for easy editing
-		let displayVal = Array.isArray(val) ? val.join(', ') : (val ?? '');
 		let type = Array.isArray(val) ? 'array' : typeof val;
+		let displayVal = '';
+		
+		// MODIFIED: Handle object serialization for sandbox editing (e.g. hp/mp objects)
+		if (type === 'array') {
+			displayVal = val.join(', ');
+		} else if (type === 'object' && val !== null) {
+			displayVal = JSON.stringify(val);
+		} else {
+			displayVal = val ?? '';
+		}
 		
 		// Make cells contenteditable and store original data type
 		return `<td contenteditable="true" class="border border-base-300 p-2 outline-none focus:bg-base-200" data-key="${h}" data-type="${type}">${displayVal}</td>`;
@@ -78,7 +89,7 @@ function buildTableSection(title, category) {
 }
 
 /**
- * Reads the editable tables and applies the changes back to gameData.
+ * Reads the editable tables and applies the changes back to gameData or gameState.
  */
 export function applySandboxChanges() {
 	try {
@@ -86,6 +97,7 @@ export function applySandboxChanges() {
 		
 		tables.forEach(table => {
 			const category = table.dataset.category;
+			const source = table.dataset.source || 'gameData';
 			const newData =[];
 			
 			table.querySelectorAll('tbody tr').forEach(tr => {
@@ -107,6 +119,13 @@ export function applySandboxChanges() {
 						val = rawVal.split(',').map(s => s.trim()).filter(Boolean);
 					} else if (type === 'boolean') {
 						val = rawVal.toLowerCase() === 'true';
+					} else if (type === 'object') {
+						// MODIFIED: Parse JSON for objects like hp/mp
+						try {
+							val = JSON.parse(rawVal);
+						} catch (e) {
+							val = rawVal;
+						}
 					} else {
 						val = rawVal;
 					}
@@ -116,8 +135,18 @@ export function applySandboxChanges() {
 				newData.push(obj);
 			});
 			
-			// Update the global game data
-			gameData[category] = newData;
+			// MODIFIED: Update the global game data or game state
+			if (source === 'gameState') {
+				// Update existing objects to preserve references
+				newData.forEach(newObj => {
+					const existing = gameState[category].find(item => item.id === newObj.id);
+					if (existing) {
+						Object.assign(existing, newObj);
+					}
+				});
+			} else {
+				gameData[category] = newData;
+			}
 		});
 		
 		// Update game time

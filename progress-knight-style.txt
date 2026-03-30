@@ -177,3 +177,15 @@ there are totally 40 cars, instead of being destroyed the mana battery drains by
 in the cars tab show if car is currently being driven and which hero type is driving.
 
 ----
+
+create sandbox tab where user can edit the game parameters such as hp and mp regeneration, monster difficulty increase rate, loot drop rate, etc.
+
+----
+
+on the character sheets write current hp and mp regeration per second. in sandbox tab allow user to edit these numbers,
+the user can edit base regeneration for hp and mp
+and also edit per level modifier on max hp and max mp and regen per seconds hp and mp
+update the state.js to include hp regen
+hp and mp should only regen when not fighting
+
+----

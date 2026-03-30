@@ -3,11 +3,9 @@ import { handleAegisAction } from './aegis.js';
 import { processStriker } from './striker.js';
 import { processVanguard } from './vanguard.js';
 import { addToLog } from './utils.js';
-// NEW: Import sandbox functions
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 
-// Added 'Sandbox' tab
-const TABS = ['Heroes', 'Buildings', 'Cars', 'City', 'Log', 'Sandbox'];
+const TABS =['Heroes', 'Buildings', 'Cars', 'City', 'Log', 'Sandbox'];
 let activeTab = 'Heroes';
 
 // --- DOM ELEMENTS ---
@@ -88,7 +86,6 @@ function renderContent() {
 			renderLog();
 			break;
 		case 'Sandbox':
-			// MODIFIED: Use the imported renderSandbox function
 			renderSandbox(contentArea);
 			break;
 	}
@@ -118,11 +115,13 @@ function renderHeroes() {
 		card.querySelector('[data-xp-bar]').value = hero.xp.current;
 		card.querySelector('[data-xp-bar]').max = hero.xp.max;
 		
-		card.querySelector('[data-hp-label]').textContent = `HP: ${Math.floor(hero.hp.current)}/${hero.hp.max}`;
+		// MODIFIED: Display HP and MP regeneration per second
+		const formatRegen = (val) => Number(val.toFixed(2));
+		card.querySelector('[data-hp-label]').textContent = `HP: ${Math.floor(hero.hp.current)}/${hero.hp.max} (+${formatRegen(hero.hpRegen)}/s)`;
 		card.querySelector('[data-hp-bar]').value = hero.hp.current;
 		card.querySelector('[data-hp-bar]').max = hero.hp.max;
 		
-		card.querySelector('[data-mp-label]').textContent = `MP: ${Math.floor(hero.mp.current)}/${hero.mp.max}`;
+		card.querySelector('[data-mp-label]').textContent = `MP: ${Math.floor(hero.mp.current)}/${hero.mp.max} (+${formatRegen(hero.mpRegen)}/s)`;
 		card.querySelector('[data-mp-bar]').value = hero.mp.current;
 		card.querySelector('[data-mp-bar]').max = hero.mp.max;
 		
@@ -133,7 +132,6 @@ function renderHeroes() {
 			const autoSkills = hero.autoCast.map(id => allSkills.find(s => s.id === id)).filter(Boolean);
 			const manualSkills = allSkills.filter(s => !hero.autoCast.includes(s.id));
 			
-			// Drag and drop UI for Aegis auto-cast priority
 			dynamicArea.innerHTML = `
                 <div class="flex gap-2 w-full">
                     <div class="flex-1 bg-base-100 p-2 rounded border border-base-300 min-h-[100px]" data-drop-zone="manual" data-hero-id="${hero.id}">
@@ -196,7 +194,6 @@ function renderHeroDetails(heroId, container) {
 	
 	const ownedSkills = hero.skills.map(id => gameData.skills.find(s => s.id === id)).filter(Boolean);
 	
-	// Filter recipes to hide ones the hero has already crafted or upgraded past
 	const availableRecipes = gameData.recipes.filter(recipe => {
 		const resultSkill = gameData.skills.find(s => s.id === recipe.resultId);
 		if (!resultSkill || resultSkill.class !== hero.class) return false;
@@ -375,7 +372,7 @@ function renderLog() {
 function gameLoop() {
 	gameState.time++;
 	
-	// 1. Spawn Monsters (Difficulty scales every week = 70 ticks)
+	// 1. Spawn Monsters
 	const week = Math.floor(gameState.time / 70) + 1;
 	gameState.threatLevel = 10 + Math.floor(gameState.time / 60);
 	
@@ -398,12 +395,14 @@ function gameLoop() {
 	
 	// 2. Process Heroes
 	gameState.heroes.forEach(hero => {
-		if (hero.hp.current > 0) {
-			hero.hp.current = Math.min(hero.hp.max, hero.hp.current + 0.5);
+		// MODIFIED: HP and MP only regenerate when the hero is not fighting
+		if (!hero.targetMonster) {
+			if (hero.hp.current > 0) {
+				hero.hp.current = Math.min(hero.hp.max, hero.hp.current + hero.hpRegen);
+			}
+			hero.mp.current = Math.min(hero.mp.max, hero.mp.current + hero.mpRegen);
 		}
-		hero.mp.current = Math.min(hero.mp.max, hero.mp.current + (hero.manaRegen || 1));
 		
-		// Process Auto-Casts for Aegis based on priority array
 		if (hero.class === 'Aegis' && Array.isArray(hero.autoCast)) {
 			for (const skillId of hero.autoCast) {
 				const skill = gameData.skills.find(s => s.id === skillId);
@@ -416,7 +415,7 @@ function gameLoop() {
 					
 					if (shouldCast) {
 						handleAegisAction(hero.id, skill.id);
-						break; // Only cast the highest priority valid skill per tick
+						break;
 					}
 				}
 			}
@@ -466,16 +465,14 @@ function gameLoop() {
 	
 	gameState.activeMonsters = gameState.activeMonsters.filter(m => m.currentHp > 0);
 	
-	// 4. Daily Updates (1 day = 10 ticks)
+	// 4. Daily Updates
 	if (gameState.time % 10 === 0) {
-		// Population Growth
 		gameState.city.buildings.forEach(b => {
 			if (b.state !== 'ruined' && b.population < 10) {
 				b.population++;
 			}
 		});
 		
-		// Car Battery Drain
 		gameState.city.cars.forEach(car => {
 			if (car.driverId !== null) {
 				car.battery--;
@@ -498,14 +495,13 @@ function gameLoop() {
 	if (activeTab === 'Cars') renderCars();
 	if (activeTab === 'City') renderCity();
 	if (activeTab === 'Log') renderLog();
-	// MODIFIED: Use the imported renderSandbox function
 	if (activeTab === 'Sandbox') renderSandbox(contentArea);
 }
 
 // --- INITIALIZATION ---
 async function init() {
 	try {
-		const[items, skills, recipes, monsters] = await Promise.all([
+		const [items, skills, recipes, monsters] = await Promise.all([
 			fetch('./data/items.json').then(res => res.json()),
 			fetch('./data/skills.json').then(res => res.json()),
 			fetch('./data/recipes.json').then(res => res.json()),
@@ -543,14 +539,12 @@ async function init() {
 			const { heroId, craftId } = e.target.dataset;
 			handleCrafting(parseInt(heroId), craftId);
 		}
-		// MODIFIED: Sandbox Apply Button Event now uses the imported function
 		if (e.target.id === 'sandbox-apply') {
 			applySandboxChanges();
-			renderContent(); // Re-render to show updated values if needed
+			renderContent();
 		}
 	});
 	
-	// Drag and Drop Event Listeners for Aegis Auto-Cast Priority
 	document.body.addEventListener('dragstart', (e) => {
 		if (e.target.matches('[data-drag-skill]')) {
 			e.dataTransfer.setData('text/plain', e.target.dataset.dragSkill);
@@ -567,7 +561,7 @@ async function init() {
 	
 	document.body.addEventListener('dragover', (e) => {
 		if (e.target.closest('[data-drop-zone]')) {
-			e.preventDefault(); // Allow drop
+			e.preventDefault();
 		}
 	});
 	
@@ -580,18 +574,16 @@ async function init() {
 		const heroId = parseInt(e.dataTransfer.getData('heroId'));
 		const targetHeroId = parseInt(dropZone.dataset.heroId);
 		
-		if (heroId !== targetHeroId) return; // Disallow dragging between heroes
+		if (heroId !== targetHeroId) return;
 		
 		const hero = gameState.heroes.find(h => h.id === heroId);
 		const zoneType = dropZone.dataset.dropZone;
 		
-		// Remove the skill from current autoCast array
 		hero.autoCast = hero.autoCast.filter(id => id !== draggedSkill);
 		
 		if (zoneType === 'auto') {
 			const targetBadge = e.target.closest('[data-drag-skill]');
 			if (targetBadge && targetBadge.dataset.dragSkill !== draggedSkill) {
-				// Insert before the target badge
 				const targetIndex = hero.autoCast.indexOf(targetBadge.dataset.dragSkill);
 				if (targetIndex !== -1) {
 					hero.autoCast.splice(targetIndex, 0, draggedSkill);
@@ -599,7 +591,6 @@ async function init() {
 					hero.autoCast.push(draggedSkill);
 				}
 			} else {
-				// Append to the end
 				hero.autoCast.push(draggedSkill);
 			}
 		}

@@ -70,12 +70,15 @@ export function processStriker(hero) {
 				}
 			}
 			
+			// MODIFIED: Use per-level modifiers for level up logic
 			if (hero.xp.current >= hero.xp.max) {
 				hero.level++;
 				hero.xp.current -= hero.xp.max;
 				hero.xp.max = Math.floor(hero.xp.max * 1.5);
-				hero.hp.max += 15;
-				hero.mp.max += 10;
+				hero.hp.max += hero.hpMaxPerLevel;
+				hero.mp.max += hero.mpMaxPerLevel;
+				hero.hpRegen += hero.hpRegenPerLevel;
+				hero.mpRegen += hero.mpRegenPerLevel;
 				hero.hp.current = hero.hp.max;
 				addToLog(`${hero.name} reached Level ${hero.level}!`);
 			}
