@@ -132,107 +132,107 @@
     "name": "Mana Bolt I",
     "class": "Striker",
     "type": "Auto",
-    "effect": "damage_boost",
-    "value": 5,
+    "effect": "damage",
+    "value": "3-7",
     "xpMax": 100,
-    "description": "Passively increases damage dealt by 5."
+    "description": "Passively increases damage dealt by 3-7."
   },
   {
     "id": "VAN001",
-    "name": "Guardian's Presence I",
+    "name": "Shield Bash I",
     "class": "Vanguard",
     "type": "Auto",
-    "effect": "damage_reduction",
-    "value": 2,
+    "effect": "damage",
+    "value": "1-3",
     "xpMax": 100,
-    "description": "Passively reduces incoming damage by 2."
+    "description": "Passively increases damage dealt by 1-3."
   },
   {
     "id": "STR_C01",
     "name": "Mana Bolt II",
     "class": "Striker",
     "type": "Auto",
-    "effect": "damage_boost",
-    "value": 15,
+    "effect": "damage",
+    "value": "12-20",
     "replaces": "STR001",
     "xpMax": 250,
-    "description": "Passively increases damage dealt by 15. (Crafted)"
+    "description": "Passively increases damage dealt by 12-20. (Crafted)"
   },
   {
     "id": "VAN_C01",
-    "name": "Guardian's Presence II",
+    "name": "Shield Bash II",
     "class": "Vanguard",
     "type": "Auto",
-    "effect": "damage_reduction",
-    "value": 6,
+    "effect": "damage",
+    "value": "4-8",
     "replaces": "VAN001",
     "xpMax": 250,
-    "description": "Passively reduces incoming damage by 6. (Crafted)"
+    "description": "Passively increases damage dealt by 4-8. (Crafted)"
   },
   {
     "id": "STR_C02",
     "name": "Core Powered Strike",
     "class": "Striker",
     "type": "Auto",
-    "effect": "damage_boost",
-    "value": 30,
+    "effect": "damage",
+    "value": "25-40",
     "replaces": "STR_C01",
     "xpMax": 500,
-    "description": "Massively increases damage dealt by 30. (Crafted)"
+    "description": "Massively increases damage dealt by 25-40. (Crafted)"
   },
   {
     "id": "VAN_C02",
-    "name": "Steel Vanguard",
+    "name": "Steel Breaker",
     "class": "Vanguard",
     "type": "Auto",
-    "effect": "damage_reduction",
-    "value": 12,
+    "effect": "damage",
+    "value": "10-15",
     "replaces": "VAN_C01",
     "xpMax": 500,
-    "description": "Massively reduces incoming damage by 12. (Crafted)"
+    "description": "Massively increases damage dealt by 10-15. (Crafted)"
   },
   {
     "id": "STR_C03",
     "name": "Mana Bolt III",
     "class": "Striker",
     "type": "Auto",
-    "effect": "damage_boost",
-    "value": 60,
+    "effect": "damage",
+    "value": "50-75",
     "replaces": "STR_C02",
     "xpMax": 1000,
-    "description": "Increases damage dealt by 60. (Crafted)"
+    "description": "Increases damage dealt by 50-75. (Crafted)"
   },
   {
     "id": "VAN_C03",
-    "name": "Guardian's Presence III",
+    "name": "Shield Bash III",
     "class": "Vanguard",
     "type": "Auto",
-    "effect": "damage_reduction",
-    "value": 20,
+    "effect": "damage",
+    "value": "18-25",
     "replaces": "VAN_C02",
     "xpMax": 1000,
-    "description": "Reduces incoming damage by 20. (Crafted)"
+    "description": "Increases damage dealt by 18-25. (Crafted)"
   },
   {
     "id": "STR_C04",
     "name": "Mana Bolt IV",
     "class": "Striker",
     "type": "Auto",
-    "effect": "damage_boost",
-    "value": 100,
+    "effect": "damage",
+    "value": "80-120",
     "replaces": "STR_C03",
     "xpMax": 2000,
-    "description": "Increases damage dealt by 100. (Crafted)"
+    "description": "Increases damage dealt by 80-120. (Crafted)"
   },
   {
     "id": "VAN_C04",
-    "name": "Guardian's Presence IV",
+    "name": "Shield Bash IV",
     "class": "Vanguard",
     "type": "Auto",
-    "effect": "damage_reduction",
-    "value": 35,
+    "effect": "damage",
+    "value": "30-40",
     "replaces": "VAN_C03",
     "xpMax": 2000,
-    "description": "Reduces incoming damage by 35. (Crafted)"
+    "description": "Reduces incoming damage by 30-40. (Crafted)"
   }
 ]

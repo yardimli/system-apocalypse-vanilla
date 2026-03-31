@@ -16,7 +16,8 @@ export function handleAegisAction(heroId, skillId) {
 	switch (skill.actionType) {
 		case 'repair':
 			const baseRepairCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
-			const repairCount = Math.floor(baseRepairCount * levelBoost);
+			// MODIFIED: Use Math.ceil to round up the number of buildings affected.
+			const repairCount = Math.ceil(baseRepairCount * levelBoost);
 			let repaired = 0;
 			for (let i = 0; i < repairCount; i++) {
 				let targetBldg = gameState.city.buildings.find(b => b.state === 'ruined');
@@ -35,7 +36,8 @@ export function handleAegisAction(heroId, skillId) {
 			break;
 		case 'shield':
 			const baseShieldCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
-			const shieldCount = Math.floor(baseShieldCount * levelBoost);
+			// MODIFIED: Use Math.ceil to round up the number of buildings affected.
+			const shieldCount = Math.ceil(baseShieldCount * levelBoost);
 			let shielded = 0;
 			for (let i = 0; i < shieldCount; i++) {
 				const unshieldedBldg = gameState.city.buildings.find(b => b.state === 'functional' && b.shieldHp === 0);
@@ -51,7 +53,8 @@ export function handleAegisAction(heroId, skillId) {
 			break;
 		case 'battery':
 			const baseChargeCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
-			const chargeCount = Math.floor(baseChargeCount * levelBoost);
+			// MODIFIED: Use Math.ceil to round up the number of cars affected.
+			const chargeCount = Math.ceil(baseChargeCount * levelBoost);
 			let charged = 0;
 			for (let i = 0; i < chargeCount; i++) {
 				const emptyCar = gameState.city.cars.find(c => c.battery <= 0);
@@ -69,7 +72,8 @@ export function handleAegisAction(heroId, skillId) {
 			const injured = gameState.heroes.filter(h => h.hp.current < h.hp.max).sort((a, b) => a.hp.current - b.hp.current)[0];
 			if (injured) {
 				const baseHealAmount = skill.id.includes('III') ? 500 : skill.id.includes('II') ? 250 : 100;
-				const healAmount = Math.floor(baseHealAmount * levelBoost);
+				// MODIFIED: Use Math.ceil to round up the heal amount.
+				const healAmount = Math.ceil(baseHealAmount * levelBoost);
 				injured.hp.current = Math.min(injured.hp.max, injured.hp.current + healAmount);
 				addToLog(`${hero.name} healed ${injured.name} for ${healAmount} HP.`);
 				success = true;
@@ -104,7 +108,8 @@ export function handleAegisAction(heroId, skillId) {
 		if (hero.xp.current >= hero.xp.max) {
 			hero.level++;
 			hero.xp.current -= hero.xp.max;
-			hero.xp.max = Math.floor(hero.xp.max * 1.5);
+			// MODIFIED: Use Math.ceil for XP curve calculation.
+			hero.xp.max = Math.ceil(hero.xp.max * 1.5);
 			hero.hp.max += hero.hpMaxPerLevel;
 			hero.mp.max += hero.mpMaxPerLevel;
 			hero.hpRegen += hero.hpRegenPerLevel;

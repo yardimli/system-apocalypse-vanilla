@@ -2,7 +2,8 @@ import { gameState, gameData } from './state.js';
 import { handleAegisAction } from './aegis.js';
 import { processStriker } from './striker.js';
 import { processVanguard } from './vanguard.js';
-import { addToLog } from './utils.js';
+// MODIFIED: Imported parseRange to calculate monster damage against buildings.
+import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { findValidRecipe, handleCraftAttempt } from './crafting.js';
 import { handleItemDrop, handleUnequipArmor, handleEquipArmor } from './inventory.js';
@@ -188,13 +189,21 @@ function gameLoop() {
 			if (monster.targetBuilding) {
 				const bldg = gameState.city.buildings.find(b => b.id === monster.targetBuilding);
 				if (bldg && bldg.state !== 'ruined') {
+					// NEW: Monsters now use their damage range against buildings.
+					const monsterDamage = parseRange(monster.damage);
 					if (bldg.shieldHp > 0) {
-						bldg.shieldHp--;
+						const damageToShield = Math.min(bldg.shieldHp, monsterDamage);
+						bldg.shieldHp -= damageToShield;
+						// NEW: Log damage dealt to building shields.
+						addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToShield} damage to the shield on Building #${bldg.id}.`);
 						if (bldg.shieldHp === 0) {
 							addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) destroyed the shield on Building #${bldg.id}!`);
 						}
 					} else {
-						bldg.hp--;
+						const damageToHp = Math.min(bldg.hp, monsterDamage);
+						bldg.hp -= damageToHp;
+						// NEW: Log damage dealt to building HP.
+						addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToHp} damage to Building #${bldg.id}.`);
 						if (bldg.hp <= 0) {
 							bldg.hp = 0;
 							bldg.state = 'ruined';

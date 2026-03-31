@@ -1,5 +1,6 @@
 import { gameState, gameData } from './state.js';
-import { addToLog, getSkillEffect } from './utils.js';
+// MODIFIED: Added parseRange to imports for calculating damage from new range values.
+import { addToLog, getSkillEffect, parseRange } from './utils.js';
 
 export function processStriker(hero) {
 	if (hero.hp.current <= 0) return;
@@ -24,28 +25,32 @@ export function processStriker(hero) {
 			return;
 		}
 		
-		// Calculate 10% boost per level
+		// MODIFIED: Level boost is now applied to the final calculated damage.
 		const levelBoost = 1 + (hero.level * 0.1);
 		
-		const damageBoost = getSkillEffect(hero, 'damage_boost') || 0;
-		// Apply level boost to total damage dealt
-		const damageDealt = Math.floor((15 + damageBoost) * levelBoost);
+		// MODIFIED: Skill effect is now 'damage' instead of 'damage_boost'.
+		const damageBoost = getSkillEffect(hero, 'damage') || 0;
+		// MODIFIED: Base damage is now a random value from a hardcoded range.
+		const baseDamage = parseRange('10-20');
+		// MODIFIED: Total damage is calculated from base, skills, and level, then rounded up.
+		const damageDealt = Math.ceil((baseDamage + damageBoost) * levelBoost);
 		monster.currentHp -= damageDealt;
 		
-		// Striker only takes damage if no living Vanguard is fighting the same monster.
-		const attackers = gameState.heroes.filter(h => h.targetMonsterId === monster.id);
-		const hasLivingVanguard = attackers.some(h => h.class === 'Vanguard' && h.hp.current > 0);
+		// REMOVED: Complex logic for Vanguards tanking damage is removed for simplification.
+		// The Striker now always takes damage if engaged.
 		
-		if (!hasLivingVanguard) {
-			const armor = gameData.armor.find(a => a.id === hero.armorId);
-			const armorMitigation = armor ? armor.damageMitigation : 0;
-			const damageTaken = Math.max(1, monster.damage - armorMitigation);
-			hero.hp.current -= damageTaken;
-		}
+		// MODIFIED: Simplified damage taken calculation.
+		const armor = gameData.armor.find(a => a.id === hero.armorId);
+		// MODIFIED: Armor mitigation and monster damage are now parsed from their respective ranges.
+		const armorMitigation = armor ? parseRange(armor.damageMitigation) : 0;
+		const monsterDamage = parseRange(monster.damage);
+		const damageTaken = Math.max(1, monsterDamage - armorMitigation); // Damage taken is at least 1.
+		hero.hp.current -= damageTaken;
 		
+		// MODIFIED: The skill effect to look for is now 'damage'.
 		const activeSkill = hero.skills.find(s => {
 			const data = gameData.skills.find(d => d.id === s.id);
-			return data && data.effect === 'damage_boost';
+			return data && data.effect === 'damage';
 		});
 		if (activeSkill) {
 			activeSkill.xp += 1; // Grant 1 XP per tick of combat
@@ -84,7 +89,8 @@ export function processStriker(hero) {
 			if (hero.xp.current >= hero.xp.max) {
 				hero.level++;
 				hero.xp.current -= hero.xp.max;
-				hero.xp.max = Math.floor(hero.xp.max * 1.5);
+				// MODIFIED: Use Math.ceil for XP curve calculation.
+				hero.xp.max = Math.ceil(hero.xp.max * 1.5);
 				hero.hp.max += hero.hpMaxPerLevel;
 				hero.mp.max += hero.mpMaxPerLevel;
 				hero.hpRegen += hero.hpRegenPerLevel;
