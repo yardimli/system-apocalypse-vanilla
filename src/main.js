@@ -5,14 +5,11 @@ import { processVanguard } from './vanguard.js';
 import { addToLog } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { findValidRecipe, handleCraftAttempt } from './crafting.js';
-// MODIFIED: Import armor handlers and item drop from inventory.js
 import { handleItemDrop, handleUnequipArmor, handleEquipArmor } from './inventory.js';
-// MODIFIED: Import new render functions
 import { renderHeroes } from './heroes.js';
 import { renderMonsters } from './monsters.js';
 import { renderHeader, renderTabs, renderBuildings, renderCars, renderCity, renderLog } from './ui.js';
 
-// MODIFIED: Added 'Monsters' tab
 const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'City', 'Log', 'Sandbox'];
 let activeTab = 'Heroes';
 
@@ -20,12 +17,6 @@ let activeTab = 'Heroes';
 const getEl = (id) => document.getElementById(id);
 const tabsContainer = getEl('tabs-container');
 const contentArea = getEl('content-area');
-
-// --- ACTION HANDLERS ---
-// MODIFIED: handleUnequipArmor and handleEquipArmor moved to inventory.js
-
-// --- RENDERING FUNCTIONS ---
-// MODIFIED: All render functions have been moved to their own dedicated files (heroes.js, monsters.js, ui.js)
 
 function renderContent() {
 	switch (activeTab) {
@@ -126,9 +117,7 @@ function gameLoop() {
 	gameState.time++;
 	
 	// 1. Spawn Monsters
-	// MODIFIED: Spawning logic now uses a per-tick, per-monster spawn chance from monsters.json.
 	const currentDay = Math.floor(gameState.time / 10) + 1;
-	gameState.threatLevel = 10 + Math.floor(gameState.time / 60); // This can be used for other features.
 	
 	// Filter monsters that are eligible to spawn based on the current day.
 	const availableMonsters = gameData.monsters.filter(m => m.spawnDay <= currentDay);
@@ -137,7 +126,7 @@ function gameLoop() {
 		// Each monster has its own independent chance to spawn each tick.
 		if (Math.random() < monsterData.spawnRatio) {
 			const newMonster = {
-				id: gameState.nextMonsterId++, // MODIFIED: Use incrementing integer ID.
+				id: gameState.nextMonsterId++,
 				spawnTime: gameState.time,
 				name: monsterData.name,
 				level: monsterData.level,
@@ -154,10 +143,10 @@ function gameLoop() {
 	});
 	
 	// 2. Process Heroes
-	manageCombatAssignments(); // NEW: Centralized combat assignment logic.
+	manageCombatAssignments();
 	
 	gameState.heroes.forEach(hero => {
-		if (!hero.targetMonsterId) { // MODIFIED: Check targetMonsterId for regen.
+		if (!hero.targetMonsterId) { // Check targetMonsterId for regen.
 			if (hero.hp.current > 0) {
 				hero.hp.current = Math.min(hero.hp.max, hero.hp.current + hero.hpRegen);
 			}
@@ -188,7 +177,7 @@ function gameLoop() {
 	
 	// 3. Unassigned Monsters Attack City
 	gameState.activeMonsters.forEach(monster => {
-		if (monster.assignedTo.length === 0) { // MODIFIED: A monster attacks if no one is fighting it.
+		if (monster.assignedTo.length === 0) { // A monster attacks if no one is fighting it.
 			if (!monster.targetBuilding) {
 				const validTargets = gameState.city.buildings.filter(b => b.state !== 'ruined');
 				if (validTargets.length > 0) {
@@ -202,7 +191,7 @@ function gameLoop() {
 					if (bldg.shieldHp > 0) {
 						bldg.shieldHp--;
 						if (bldg.shieldHp === 0) {
-							addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) destroyed the shield on Building #${bldg.id}!`); // MODIFIED: Added monster ID
+							addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) destroyed the shield on Building #${bldg.id}!`);
 						}
 					} else {
 						bldg.hp--;
@@ -211,10 +200,10 @@ function gameLoop() {
 							bldg.state = 'ruined';
 							bldg.population = 0;
 							monster.targetBuilding = null;
-							addToLog(`Building #${bldg.id} was ruined by Lv.${monster.level} ${monster.name} (#${monster.id})!`); // MODIFIED: Added monster ID
+							addToLog(`Building #${bldg.id} was ruined by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
 						} else if (bldg.hp <= 5 && bldg.state === 'functional') {
 							bldg.state = 'damaged';
-							addToLog(`Building #${bldg.id} was damaged by Lv.${monster.level} ${monster.name} (#${monster.id})!`); // MODIFIED: Added monster ID
+							addToLog(`Building #${bldg.id} was damaged by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
 						}
 					}
 				} else {
@@ -251,7 +240,6 @@ function gameLoop() {
 	}
 	
 	renderHeader();
-	// MODIFIED: Calls to render functions now use the imported versions
 	if (activeTab === 'Heroes') renderHeroes();
 	if (activeTab === 'Buildings') renderBuildings(contentArea);
 	if (activeTab === 'Monsters') renderMonsters(contentArea);

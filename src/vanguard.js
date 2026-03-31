@@ -16,7 +16,7 @@ export function processVanguard(hero) {
 	
 	if (!hero.carId) return;
 	
-	// MODIFIED: Target acquisition is now handled in main.js. We just act on the assigned target.
+	// Target acquisition is handled in main.js. We just act on the assigned target.
 	if (hero.targetMonsterId) {
 		const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
 		if (!monster) { // This can happen if monster was defeated by another hero in the same tick
@@ -35,7 +35,7 @@ export function processVanguard(hero) {
 		// Apply level boost to skill damage reduction
 		const skillReduction = Math.floor(baseDamageReduction * levelBoost);
 		
-		// MODIFIED: Apply armor damage mitigation
+		// Apply armor damage mitigation
 		const armor = gameData.armor.find(a => a.id === hero.armorId);
 		const armorMitigation = armor ? armor.damageMitigation : 0;
 		
@@ -68,17 +68,14 @@ export function processVanguard(hero) {
 			if (car) car.driverId = null;
 			hero.carId = null;
 			
-			hero.targetMonsterId = null; // MODIFIED: Clear target ID.
-			addToLog(`${hero.name} was incapacitated by Lv.${monster.level} ${monster.name} (#${monster.id})!`); // MODIFIED: Added monster ID
+			hero.targetMonsterId = null;
+			addToLog(`${hero.name} was incapacitated by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
 		} else if (monster.currentHp <= 0) {
 			hero.xp.current += monster.xp;
-			// MODIFIED: Changed log to reflect teamwork and added monster ID.
 			addToLog(`${hero.name} helped defeat Lv.${monster.level} ${monster.name} (#${monster.id}) and gained ${monster.xp} XP.`);
-			hero.targetMonsterId = null; // MODIFIED: Clear target ID.
+			hero.targetMonsterId = null;
 			
-			// MODIFIED: Loot drops directly into the hero's personal inventory.
-			// MODIFIED: Removed skill card drops to keep inventory item-focused.
-			if (Math.random() < 0.8) {
+			if (Math.random() < 0.4) {
 				const items = gameData.items;
 				const dropped = items[Math.floor(Math.random() * items.length)];
 				hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;

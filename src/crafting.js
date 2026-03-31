@@ -11,7 +11,6 @@ export function findValidRecipe(hero) {
 	// Sort for consistent comparison
 	const slottedItems = [...hero.craftingSlots].sort();
 	
-	// MODIFIED: Logic simplified for item-only recipes.
 	for (const recipe of gameData.recipes) {
 		const recipeItems = [...recipe.ingredients].sort();
 		
@@ -46,11 +45,11 @@ export function handleCraftAttempt(heroId) {
 	
 	// Grant the result of the craft
 	const { resultId } = recipe;
-	// MODIFIED: Recipes can now create items or armor.
+	// Recipes can now create items or armor.
 	const resultEntity = gameData.items.find(i => i.id === resultId) || gameData.armor.find(a => a.id === resultId);
 	
 	if (resultEntity) {
-		hero.inventory[resultId] = (hero.inventory[resultId] || 0) + 1; // MODIFIED: Add to hero's personal inventory
+		hero.inventory[resultId] = (hero.inventory[resultId] || 0) + 1;
 		addToLog(`${hero.name} crafted ${resultEntity.name}!`);
 	} else {
 		// This case should ideally not happen if data is correct

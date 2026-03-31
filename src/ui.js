@@ -12,14 +12,14 @@ const tabsContainer = getEl('tabs-container');
  */
 export function renderHeader() {
 	let timeEl = headerContainer.querySelector('[data-stat="time"]');
-	let ticksEl = headerContainer.querySelector('[data-stat="ticks"]'); // MODIFIED: Added selector for ticks.
+	let ticksEl = headerContainer.querySelector('[data-stat="ticks"]');
 	
 	if (!timeEl) {
 		const template = getEl('header-template').content.cloneNode(true);
 		headerContainer.innerHTML = '';
 		headerContainer.appendChild(template);
 		timeEl = headerContainer.querySelector('[data-stat="time"]');
-		ticksEl = headerContainer.querySelector('[data-stat="ticks"]'); // MODIFIED: Added selector for ticks.
+		ticksEl = headerContainer.querySelector('[data-stat="ticks"]');
 	}
 	
 	const formatTime = (t) => {
@@ -30,7 +30,7 @@ export function renderHeader() {
 		return `Y${years}, M${months}, D${days}`;
 	};
 	timeEl.textContent = formatTime(gameState.time);
-	ticksEl.textContent = gameState.time; // MODIFIED: Display raw game time as ticks.
+	ticksEl.textContent = gameState.time;
 	
 	const totalPop = gameState.city.buildings.reduce((sum, b) => sum + b.population, 0);
 	const functional = gameState.city.buildings.filter(b => b.state === 'functional').length;

@@ -1,5 +1,5 @@
-import { gameState, gameData } from './state.js';
-import { addToLog } from './utils.js';
+import {gameState, gameData} from './state.js';
+import {addToLog} from './utils.js';
 
 export function handleAegisAction(heroId, skillId) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
@@ -56,7 +56,7 @@ export function handleAegisAction(heroId, skillId) {
 			for (let i = 0; i < chargeCount; i++) {
 				const emptyCar = gameState.city.cars.find(c => c.battery <= 0);
 				if (emptyCar) {
-					emptyCar.battery = 10; // 10 days of charge
+					emptyCar.battery = 30; // 30 days of charge
 					charged++;
 				} else break;
 			}
@@ -101,7 +101,6 @@ export function handleAegisAction(heroId, skillId) {
 			}
 		}
 		
-		// MODIFIED: Use per-level modifiers for level up logic
 		if (hero.xp.current >= hero.xp.max) {
 			hero.level++;
 			hero.xp.current -= hero.xp.max;

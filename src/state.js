@@ -19,7 +19,7 @@ for (let i = 1; i <= 40; i++) {
 export const gameState = {
 	time: 0,
 	threatLevel: 10,
-	nextMonsterId: 1, // MODIFIED: Added for unique, incrementing monster IDs.
+	nextMonsterId: 1,
 	city: {
 		buildings: initialBuildings,
 		cars: initialCars
@@ -41,7 +41,6 @@ export const gameState = {
 			hpRegenPerLevel: 0.1,
 			mpRegenPerLevel: 1.0,
 			armorId: 'ARM001',
-			// MODIFIED: Skills are now objects tracking their own XP.
 			skills:[
 				{ id: 'AEG001', xp: 0 },
 				{ id: 'AEG002', xp: 0 },
@@ -73,7 +72,7 @@ export const gameState = {
 			mpRegenPerLevel: 0.5,
 			armorId: 'ARM001',
 			carId: null,
-			targetMonsterId: null, // MODIFIED: Renamed from targetMonster to store only the ID.
+			targetMonsterId: null,
 			skills: [{ id: 'STR001', xp: 0 }],
 			craftingSlots:[],
 			inventory: {
@@ -96,7 +95,7 @@ export const gameState = {
 			mpRegenPerLevel: 0.2,
 			armorId: 'ARM001',
 			carId: null,
-			targetMonsterId: null, // MODIFIED: Renamed from targetMonster to store only the ID.
+			targetMonsterId: null,
 			skills: [{ id: 'VAN001', xp: 0 }],
 			craftingSlots:[],
 			inventory: {

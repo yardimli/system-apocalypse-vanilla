@@ -30,8 +30,8 @@ export function renderMonsters(contentArea) {
 	// Generate a card for each active monster individually
 	grid.innerHTML = gameState.activeMonsters.map(monster => {
 		let targetText = 'Roaming';
-		// MODIFIED: Determine the monster's current target for display
-		if (monster.assignedTo.length > 0) { // MODIFIED: Check assignedTo array
+		// Determine the monster's current target for display
+		if (monster.assignedTo.length > 0) { // Check assignedTo array
 			const heroNames = monster.assignedTo.map(heroId => {
 				const hero = gameState.heroes.find(h => h.id === heroId);
 				return hero ? hero.name : 'Unknown';
@@ -41,7 +41,7 @@ export function renderMonsters(contentArea) {
 			targetText = `Attacking Bldg #${monster.targetBuilding}`;
 		}
 		
-		// NEW: Calculate monster's age in days from its spawn time.
+		// Calculate monster's age in days from its spawn time.
 		const ageInDays = Math.floor((gameState.time - monster.spawnTime) / 10);
 		
 		return `

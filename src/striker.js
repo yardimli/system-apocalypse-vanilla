@@ -16,7 +16,7 @@ export function processStriker(hero) {
 	
 	if (!hero.carId) return;
 	
-	// MODIFIED: Target acquisition is now handled in main.js. We just act on the assigned target.
+	// Target acquisition is now handled in main.js. We just act on the assigned target.
 	if (hero.targetMonsterId) {
 		const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
 		if (!monster) { // This can happen if monster was defeated by another hero in the same tick
@@ -32,7 +32,7 @@ export function processStriker(hero) {
 		const damageDealt = Math.floor((15 + damageBoost) * levelBoost);
 		monster.currentHp -= damageDealt;
 		
-		// MODIFIED: Striker only takes damage if no living Vanguard is fighting the same monster.
+		// Striker only takes damage if no living Vanguard is fighting the same monster.
 		const attackers = gameState.heroes.filter(h => h.targetMonsterId === monster.id);
 		const hasLivingVanguard = attackers.some(h => h.class === 'Vanguard' && h.hp.current > 0);
 		
@@ -67,17 +67,14 @@ export function processStriker(hero) {
 			if (car) car.driverId = null;
 			hero.carId = null;
 			
-			hero.targetMonsterId = null; // MODIFIED: Clear target ID.
-			addToLog(`${hero.name} was incapacitated by Lv.${monster.level} ${monster.name} (#${monster.id})!`); // MODIFIED: Added monster ID
+			hero.targetMonsterId = null;
+			addToLog(`${hero.name} was incapacitated by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
 		} else if (monster.currentHp <= 0) {
 			hero.xp.current += monster.xp;
-			// MODIFIED: Changed log to reflect teamwork and added monster ID.
 			addToLog(`${hero.name} helped defeat Lv.${monster.level} ${monster.name} (#${monster.id}) and gained ${monster.xp} XP.`);
-			hero.targetMonsterId = null; // MODIFIED: Clear target ID.
+			hero.targetMonsterId = null;
 			
-			// MODIFIED: Loot drops directly into the hero's personal inventory.
-			// MODIFIED: Removed skill card drops to keep inventory item-focused.
-			if (Math.random() < 0.8) {
+			if (Math.random() < 0.25) {
 				const items = gameData.items;
 				const dropped = items[Math.floor(Math.random() * items.length)];
 				hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;

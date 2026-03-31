@@ -132,11 +132,11 @@ export function renderHeroes() {
 				dynamicArea.innerHTML = `<p class="text-error font-bold text-center">INCAPACITATED</p><p class="text-xs text-center">Awaiting Aegis Healing...</p>`;
 			} else if (!hero.carId) {
 				dynamicArea.innerHTML = `<p class="text-warning text-center text-sm">Waiting for Mana Battery Car...</p>`;
-			} else if (hero.targetMonsterId) { // MODIFIED: Check targetMonsterId
-				const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId); // MODIFIED: Find monster by ID
-				if (monster) { // MODIFIED: Check if monster exists before rendering
+			} else if (hero.targetMonsterId) {
+				const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
+				if (monster) {
 					dynamicArea.innerHTML = `
-                    <p class="text-sm font-bold text-error mb-1">Fighting: Lv.${monster.level} ${monster.name} (#${monster.id})</p> <!-- MODIFIED: Added monster ID -->
+                    <p class="text-sm font-bold text-error mb-1">Fighting: Lv.${monster.level} ${monster.name} (#${monster.id})</p>
                     <progress class="progress progress-error w-full" value="${monster.currentHp}" max="${monster.maxHp}"></progress>
                     <p class="text-xs text-right mt-1">${Math.floor(monster.currentHp)}/${monster.maxHp} HP</p>
                 `;
@@ -182,7 +182,6 @@ export function renderHeroes() {
 			}
 		}
 		
-		// MODIFIED: Render crafting hints
 		const hintsContainer = card.querySelector('[data-crafting-hints-list]');
 		if (hintsContainer) {
 			const craftableRecipes = getCraftableRecipes(hero);

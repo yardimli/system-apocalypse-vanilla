@@ -7,7 +7,6 @@ export function addToLog(message) {
 }
 
 export function getSkillEffect(hero, effectType) {
-	// MODIFIED: Adapted to new hero.skills structure [{id, xp}]
 	return hero.skills
 		.map(skill => gameData.skills.find(s => s.id === skill.id))
 		.filter(s => s && s.effect === effectType)

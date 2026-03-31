@@ -1,5 +1,5 @@
-import { gameState, gameData } from './state.js'; // MODIFIED: Added gameData import
-import { addToLog } from './utils.js'; // MODIFIED: Added addToLog import
+import { gameState, gameData } from './state.js';
+import { addToLog } from './utils.js';
 
 /**
  * Removes one instance of an item from a hero's inventory or crafting slots.
@@ -76,8 +76,6 @@ export function handleItemDrop(event) {
 	removeItemFromSource(sourceHero, itemId, source, itemIndex);
 	addItemToTarget(targetHero, itemId, targetZone);
 }
-
-// --- NEW: Armor handling functions moved from main.js ---
 
 /**
  * Unequips the current armor from a hero.
