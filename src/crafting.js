@@ -46,14 +46,14 @@ export function handleCraftAttempt(heroId) {
 	
 	// Grant the result of the craft
 	const { resultId } = recipe;
-	// MODIFIED: Simplified to only handle crafting items.
-	const resultItem = gameData.items.find(i => i.id === resultId);
+	// MODIFIED: Recipes can now create items or armor.
+	const resultEntity = gameData.items.find(i => i.id === resultId) || gameData.armor.find(a => a.id === resultId);
 	
-	if (resultItem) {
-		gameState.inventory[resultId] = (gameState.inventory[resultId] || 0) + 1;
-		addToLog(`${hero.name} crafted ${resultItem.name}!`);
+	if (resultEntity) {
+		hero.inventory[resultId] = (hero.inventory[resultId] || 0) + 1; // MODIFIED: Add to hero's personal inventory
+		addToLog(`${hero.name} crafted ${resultEntity.name}!`);
 	} else {
 		// This case should ideally not happen if data is correct
-		addToLog(`Crafting failed for ${hero.name}. Could not find result item ${resultId}.`);
+		addToLog(`Crafting failed for ${hero.name}. Could not find result entity ${resultId}.`);
 	}
 }

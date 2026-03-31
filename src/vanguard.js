@@ -83,21 +83,13 @@ export function processVanguard(hero) {
 			addToLog(`${hero.name} defeated Lv.${monster.level} ${monster.name} and gained ${monster.xp} XP.`);
 			hero.targetMonster = null;
 			
-			// Increased Loot drop logic
+			// MODIFIED: Loot drops directly into the hero's personal inventory.
+			// MODIFIED: Removed skill card drops to keep inventory item-focused.
 			if (Math.random() < 0.8) {
-				if (Math.random() < 0.5) {
-					const classSkills = gameData.skills.filter(s => s.class === hero.class && s.type === 'Auto' && !s.id.includes('_C'));
-					if (classSkills.length > 0) {
-						const dropped = classSkills[Math.floor(Math.random() * classSkills.length)];
-						gameState.inventory[dropped.id] = (gameState.inventory[dropped.id] || 0) + 1;
-						addToLog(`${hero.name} found a skill card: ${dropped.name}!`);
-					}
-				} else {
-					const items = gameData.items;
-					const dropped = items[Math.floor(Math.random() * items.length)];
-					gameState.inventory[dropped.id] = (gameState.inventory[dropped.id] || 0) + 1;
-					addToLog(`${hero.name} found an item: ${dropped.name}!`);
-				}
+				const items = gameData.items;
+				const dropped = items[Math.floor(Math.random() * items.length)];
+				hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;
+				addToLog(`${hero.name} found an item: ${dropped.name}!`);
 			}
 			
 			if (hero.xp.current >= hero.xp.max) {

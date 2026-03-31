@@ -5,6 +5,7 @@ import { processVanguard } from './vanguard.js';
 import { addToLog } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { findValidRecipe, handleCraftAttempt } from './crafting.js';
+import { handleItemDrop } from './inventory.js'; // NEW: Import inventory drag-drop handler
 
 const TABS =['Heroes', 'Buildings', 'Cars', 'City', 'Log', 'Sandbox'];
 let activeTab = 'Heroes';
@@ -67,8 +68,6 @@ function renderContent() {
 				contentArea.innerHTML = `
                     <div id="heroes-tab-content" class="flex flex-col gap-4">
                         <div id="heroes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-                        <div class="divider">Shared Inventory (Drag items to a hero's crafting area)</div>
-                        <div id="shared-inventory" class="flex flex-wrap gap-2 bg-base-200 p-4 rounded-box shadow-inner min-h-[80px]"></div>
                     </div>
                 `;
 			}
@@ -90,6 +89,12 @@ function renderContent() {
 			renderSandbox(contentArea);
 			break;
 	}
+}
+
+// NEW: Helper function to find an entity by its ID in either items or armor data.
+function findEntityById(id) {
+	if (!id) return null;
+	return gameData.items.find(i => i.id === id) || gameData.armor.find(a => a.id === id);
 }
 
 function renderHeroes() {
@@ -199,8 +204,8 @@ function renderHeroes() {
 			const validRecipe = findValidRecipe(hero);
 			if (validRecipe) {
 				craftButton.disabled = false;
-				// MODIFIED: Recipes now only create items.
-				const resultEntity = gameData.items.find(i => i.id === validRecipe.resultId);
+				// MODIFIED: Recipes can now create items or armor.
+				const resultEntity = findEntityById(validRecipe.resultId);
 				
 				if (resultEntity) {
 					craftButton.textContent = `Craft: ${resultEntity.name}`;
@@ -210,6 +215,31 @@ function renderHeroes() {
 			} else {
 				craftButton.disabled = true;
 				craftButton.textContent = 'Craft';
+			}
+		}
+		
+		// NEW: Render the hero's personal inventory
+		const invContainer = card.querySelector('[data-drop-zone="inventory"]');
+		if (invContainer) {
+			invContainer.dataset.heroId = hero.id; // Set hero ID on the drop zone
+			let inventoryHtml = '';
+			const inventoryItems = Object.entries(hero.inventory);
+			
+			if (inventoryItems.length > 0) {
+				inventoryItems.forEach(([id, qty]) => {
+					const entity = findEntityById(id);
+					if (entity) {
+						const isEquipped = hero.armorId === id;
+						const equippedText = isEquipped ? ' (Equipped)' : '';
+						const equippedClass = isEquipped ? 'badge-primary' : 'badge-outline';
+						for (let i = 0; i < qty; i++) {
+							inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" data-hero-id="${hero.id}" class="badge ${equippedClass} badge-lg p-3 cursor-move">${entity.name}${equippedText}</div>`;
+						}
+					}
+				});
+				invContainer.innerHTML = inventoryHtml;
+			} else {
+				invContainer.innerHTML = '<span class="text-xs text-gray-500 italic">Empty</span>';
 			}
 		}
 		
@@ -232,28 +262,6 @@ function renderHeroes() {
 			}).join('');
 		}
 	});
-	
-	const invContainer = getEl('shared-inventory');
-	if (invContainer) {
-		invContainer.dataset.dropZone = 'inventory';
-		let inventoryHtml = '';
-		const inventoryItems = Object.entries(gameState.inventory);
-		
-		if (inventoryItems.length > 0) {
-			inventoryItems.forEach(([id, qty]) => {
-				// MODIFIED: Inventory now only contains items.
-				const entity = gameData.items.find(i => i.id === id);
-				if (entity) {
-					for (let i = 0; i < qty; i++) {
-						inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" class="badge badge-outline badge-lg p-3 cursor-move">${entity.name}</div>`;
-					}
-				}
-			});
-			invContainer.innerHTML = inventoryHtml;
-		} else {
-			invContainer.innerHTML = '<p class="text-sm text-gray-500 w-full text-center mt-4">Inventory is empty.</p>';
-		}
-	}
 }
 
 function renderBuildings() {
@@ -536,9 +544,11 @@ async function init() {
 			e.dataTransfer.setData('heroId', e.target.closest('[data-hero-id]').dataset.heroId);
 			e.target.classList.add('opacity-50');
 		}
+		// MODIFIED: Dragging items from a hero's personal inventory
 		if (e.target.matches('[data-drag-item-id]')) {
 			e.dataTransfer.setData('source', 'inventory');
 			e.dataTransfer.setData('itemId', e.target.dataset.dragItemId);
+			e.dataTransfer.setData('heroId', e.target.dataset.heroId);
 			e.target.classList.add('opacity-50');
 		}
 		if (e.target.matches('[data-drag-craft-item-id]')) {
@@ -576,6 +586,16 @@ async function init() {
 		e.preventDefault();
 		dropZone.classList.remove('bg-primary/20');
 		
+		const zoneType = dropZone.dataset.dropZone;
+		
+		// NEW: Delegate item drops to the inventory handler
+		if (zoneType === 'inventory' || zoneType === 'crafting') {
+			handleItemDrop(e);
+			renderContent();
+			return;
+		}
+		
+		// MODIFIED: Kept original logic for Aegis skill drops
 		const aegisZoneType = dropZone.dataset.dropZone;
 		if (aegisZoneType === 'auto' || aegisZoneType === 'manual') {
 			const draggedSkill = e.dataTransfer.getData('text/plain');
@@ -598,49 +618,6 @@ async function init() {
 			}
 			renderContent();
 			return;
-		}
-		
-		const source = e.dataTransfer.getData('source');
-		const itemId = e.dataTransfer.getData('itemId');
-		if (!source || !itemId) return;
-		
-		if (dropZone.dataset.dropZone === 'crafting') {
-			const targetHeroId = parseInt(dropZone.dataset.heroId);
-			const hero = gameState.heroes.find(h => h.id === targetHeroId);
-			if (!hero) return;
-			
-			if (source === 'inventory') {
-				const isItem = gameData.items.some(i => i.id === itemId);
-				if (!isItem) return;
-				
-				if (gameState.inventory[itemId] > 0) {
-					gameState.inventory[itemId]--;
-					if (gameState.inventory[itemId] === 0) delete gameState.inventory[itemId];
-					hero.craftingSlots.push(itemId);
-				}
-			} else if (source === 'crafting') {
-				const sourceHeroId = parseInt(e.dataTransfer.getData('heroId'));
-				const itemIndex = parseInt(e.dataTransfer.getData('itemIndex'));
-				const sourceHero = gameState.heroes.find(h => h.id === sourceHeroId);
-				if (sourceHero) {
-					sourceHero.craftingSlots.splice(itemIndex, 1);
-					hero.craftingSlots.push(itemId);
-				}
-			}
-			renderContent();
-		}
-		
-		if (dropZone.dataset.dropZone === 'inventory') {
-			if (source === 'crafting') {
-				const sourceHeroId = parseInt(e.dataTransfer.getData('heroId'));
-				const itemIndex = parseInt(e.dataTransfer.getData('itemIndex'));
-				const hero = gameState.heroes.find(h => h.id === sourceHeroId);
-				if (hero) {
-					hero.craftingSlots.splice(itemIndex, 1);
-					gameState.inventory[itemId] = (gameState.inventory[itemId] || 0) + 1;
-				}
-			}
-			renderContent();
 		}
 	});
 	

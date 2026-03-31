@@ -47,5 +47,45 @@
       "ITM001"
     ],
     "description": "Toolbox + 5x Salvaged Parts = Aegis Power Core"
+  },
+  {
+    "resultId": "ARM002",
+    "ingredients": [
+      "ARM001",
+      "ITM001",
+      "ITM001",
+      "ITM001"
+    ],
+    "description": "Cloth Armor + 3x Salvaged Parts = Leather Armor"
+  },
+  {
+    "resultId": "ARM003",
+    "ingredients": [
+      "ARM002",
+      "ITM004",
+      "ITM004",
+      "ITM003"
+    ],
+    "description": "Leather Armor + 2x Broken Circuitry + Monster Core Shard = Chainmail Armor"
+  },
+  {
+    "resultId": "ARM004",
+    "ingredients": [
+      "ARM003",
+      "ITM007",
+      "ITM007",
+      "ITM007"
+    ],
+    "description": "Chainmail Armor + 3x Reinforced Steel Plate = Plate Armor"
+  },
+  {
+    "resultId": "ARM005",
+    "ingredients": [
+      "ARM004",
+      "ITM011",
+      "ITM012",
+      "ITM008"
+    ],
+    "description": "Plate Armor + Advanced Component + Aegis Power Core + System Shard = Aegis Power Armor"
   }
 ]

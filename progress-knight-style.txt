@@ -205,3 +205,15 @@ skills should upgrade automatically
 
 ----
 
+add recipes for armor upgrades that will require to use a lower level armor plus items,
+remove shared inventory each hero will have their inventory,
+allow dragging items from one hero's inventory to another hero,
+show armor in inventory (add equipped if hero is using it)
+add a new javascript file that will manage inventory. the drag code between inventories and from inventory to crafting area should be handled by this new javascript file.
+
+----
+
+in monsters json add a new variable that sets when the monster will start spawning as days since the game started
+add spawn ratio for each monster type that will determine the chance of that monster spawning when a monster event is triggered
+change it so all levels of monsters can spawn instead of monsters being upgraded
+add a tab that shows all monsters along with thier hp, it should list same monster multiple times and not group them

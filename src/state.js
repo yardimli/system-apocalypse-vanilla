@@ -23,12 +23,6 @@ export const gameState = {
 		buildings: initialBuildings,
 		cars: initialCars
 	},
-	// MODIFIED: Inventory now starts with items, not skills.
-	inventory: {
-		'ITM001': 5,
-		'ITM003': 2,
-		'ITM006': 3
-	},
 	activeMonsters:[],
 	heroes:[
 		{
@@ -54,7 +48,14 @@ export const gameState = {
 				{ id: 'AEG004', xp: 0 }
 			],
 			autoCast:[],
-			craftingSlots:[]
+			craftingSlots:[],
+			// NEW: Per-hero inventory. Ava gets the starting items.
+			inventory: {
+				'ARM001': 1,
+				'ITM001': 5,
+				'ITM003': 2,
+				'ITM006': 3,
+			}
 		},
 		{
 			id: 2,
@@ -75,7 +76,11 @@ export const gameState = {
 			targetMonster: null,
 			// MODIFIED: Skills are now objects tracking their own XP.
 			skills: [{ id: 'STR001', xp: 0 }],
-			craftingSlots:[]
+			craftingSlots:[],
+			// NEW: Per-hero inventory.
+			inventory: {
+				'ARM001': 1
+			}
 		},
 		{
 			id: 3,
@@ -96,7 +101,11 @@ export const gameState = {
 			targetMonster: null,
 			// MODIFIED: Skills are now objects tracking their own XP.
 			skills: [{ id: 'VAN001', xp: 0 }],
-			craftingSlots:[]
+			craftingSlots:[],
+			// NEW: Per-hero inventory.
+			inventory: {
+				'ARM001': 1
+			}
 		}
 	],
 	log:['[SYSTEM]: The Awakening has begun. Defend the city.']
