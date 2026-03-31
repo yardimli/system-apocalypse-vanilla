@@ -48,7 +48,6 @@
 				<h2 class="card-title text-lg" data-name></h2>
 				<div class="badge" data-class></div>
 			</div>
-			<!-- MODIFIED: Added armor display element -->
 			<div class="text-xs text-gray-400 mb-2" data-armor></div>
 			
 			<div class="my-2"><label class="label p-0"><span class="label-text" data-xp-label></span></label><progress class="progress progress-primary w-full" data-xp-bar></progress></div>
@@ -59,9 +58,23 @@
 			<div class="w-full mt-2 min-h-[80px] bg-base-300 rounded p-2 flex flex-col justify-center" data-dynamic-area>
 			</div>
 			
-			<!-- Inline Details Area (Always Visible) -->
-			<div class="mt-2 border-t border-base-300 pt-2" data-details-container>
-				<div data-details-content></div>
+			<!-- MODIFIED: Replaced details with an interactive crafting area -->
+			<div class="mt-2 border-t border-base-300 pt-2" data-crafting-container>
+				<div class="divider my-1">Crafting</div>
+				<div class="flex flex-col gap-2">
+					<div
+						class="bg-base-100 p-2 rounded min-h-[50px] flex flex-wrap gap-2 items-center border border-dashed border-base-300"
+						data-drop-zone="crafting"
+					>
+						<span class="text-xs text-gray-500 italic">Drag ingredients here...</span>
+					</div>
+					<button class="btn btn-sm btn-secondary" data-craft-button disabled>Craft</button>
+					<div class="text-xs text-gray-400 mt-1">
+						<h5 class="font-bold">Recipe Hints:</h5>
+						<div data-recipe-hints class="flex flex-col gap-1 max-h-24 overflow-y-auto">
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>

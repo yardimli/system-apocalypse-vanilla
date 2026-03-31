@@ -43,9 +43,10 @@ export const gameState = {
 			mpMaxPerLevel: 50,
 			hpRegenPerLevel: 0.1,
 			mpRegenPerLevel: 1.0,
-			armorId: 'ARM001', // NEW: Starting armor
+			armorId: 'ARM001',
 			skills:['AEG001', 'AEG002', 'AEG003', 'AEG004'],
-			autoCast:[]
+			autoCast:[],
+			craftingSlots:[] // NEW: Added for drag-and-drop crafting
 		},
 		{
 			id: 2,
@@ -61,10 +62,11 @@ export const gameState = {
 			mpMaxPerLevel: 10,
 			hpRegenPerLevel: 0.2,
 			mpRegenPerLevel: 0.5,
-			armorId: 'ARM001', // NEW: Starting armor
+			armorId: 'ARM001',
 			carId: null,
 			targetMonster: null,
-			skills: ['STR001']
+			skills: ['STR001'],
+			craftingSlots:[] // NEW: Added for drag-and-drop crafting
 		},
 		{
 			id: 3,
@@ -80,10 +82,11 @@ export const gameState = {
 			mpMaxPerLevel: 5,
 			hpRegenPerLevel: 0.5,
 			mpRegenPerLevel: 0.2,
-			armorId: 'ARM001', // NEW: Starting armor
+			armorId: 'ARM001',
 			carId: null,
 			targetMonster: null,
-			skills: ['VAN001']
+			skills: ['VAN001'],
+			craftingSlots:[] // NEW: Added for drag-and-drop crafting
 		}
 	],
 	log:['[SYSTEM]: The Awakening has begun. Defend the city.']
@@ -94,5 +97,5 @@ export const gameData = {
 	skills: [],
 	recipes:[],
 	monsters:[],
-	armor:[] // NEW: Armor data array
+	armor:[]
 };

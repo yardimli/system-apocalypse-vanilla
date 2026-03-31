@@ -4,6 +4,7 @@ import { processStriker } from './striker.js';
 import { processVanguard } from './vanguard.js';
 import { addToLog } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
+import { findValidRecipe, handleCraftAttempt } from './crafting.js';
 
 const TABS =['Heroes', 'Buildings', 'Cars', 'City', 'Log', 'Sandbox'];
 let activeTab = 'Heroes';
@@ -66,7 +67,7 @@ function renderContent() {
 				contentArea.innerHTML = `
                     <div id="heroes-tab-content" class="flex flex-col gap-4">
                         <div id="heroes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-                        <div class="divider">Shared Inventory</div>
+                        <div class="divider">Shared Inventory (Drag items to a hero's crafting area)</div>
                         <div id="shared-inventory" class="flex flex-wrap gap-2 bg-base-200 p-4 rounded-box shadow-inner min-h-[80px]"></div>
                     </div>
                 `;
@@ -111,7 +112,6 @@ function renderHeroes() {
 		card.querySelector('[data-class]').textContent = hero.class;
 		card.querySelector('[data-class]').className = `badge ${hero.class === 'Aegis' ? 'badge-info' : hero.class === 'Striker' ? 'badge-error' : 'badge-success'}`;
 		
-		// MODIFIED: Display equipped armor
 		const armor = gameData.armor.find(a => a.id === hero.armorId);
 		const armorText = armor ? `${armor.name} (Mitigation: ${armor.damageMitigation})` : 'No Armor';
 		card.querySelector('[data-armor]').textContent = armorText;
@@ -166,7 +166,6 @@ function renderHeroes() {
 			} else if (!hero.carId) {
 				dynamicArea.innerHTML = `<p class="text-warning text-center text-sm">Waiting for Mana Battery Car...</p>`;
 			} else if (hero.targetMonster) {
-				// MODIFIED: Display monster level
 				dynamicArea.innerHTML = `
                     <p class="text-sm font-bold text-error mb-1">Fighting: Lv.${hero.targetMonster.level} ${hero.targetMonster.name}</p>
                     <progress class="progress progress-error w-full" value="${hero.targetMonster.currentHp}" max="${hero.targetMonster.maxHp}"></progress>
@@ -177,130 +176,83 @@ function renderHeroes() {
 			}
 		}
 		
-		renderHeroDetails(hero.id, card.querySelector('[data-details-content]'));
+		const craftingContainer = card.querySelector('[data-crafting-container]');
+		if (craftingContainer) {
+			const craftDropZone = craftingContainer.querySelector('[data-drop-zone="crafting"]');
+			craftDropZone.dataset.heroId = hero.id;
+			const craftButton = craftingContainer.querySelector('[data-craft-button]');
+			craftButton.dataset.heroId = hero.id;
+			
+			if (hero.craftingSlots.length > 0) {
+				craftDropZone.innerHTML = hero.craftingSlots.map((itemId, index) => {
+					const item = gameData.items.find(i => i.id === itemId);
+					// MODIFIED: Added a check to prevent crashing if a non-item ID is in the slot.
+					if (!item) return '';
+					return `<div draggable="true" data-drag-craft-item-id="${itemId}" data-hero-id="${hero.id}" data-item-index="${index}" class="badge badge-accent cursor-move p-3">${item.name}</div>`;
+				}).join('');
+			} else {
+				craftDropZone.innerHTML = `<span class="text-xs text-gray-500 italic">Drag ingredients here...</span>`;
+			}
+			
+			const validRecipe = findValidRecipe(hero);
+			if (validRecipe) {
+				craftButton.disabled = false;
+				// MODIFIED: Correctly find the result entity from skills, armor, OR items to prevent errors.
+				const resultEntity = gameData.skills.find(s => s.id === validRecipe.resultId) ||
+					gameData.armor.find(a => a.id === validRecipe.resultId) ||
+					gameData.items.find(i => i.id === validRecipe.resultId);
+				
+				if (resultEntity) {
+					craftButton.textContent = `Craft: ${resultEntity.name}`;
+				} else {
+					craftButton.textContent = 'Craft: Unknown'; // Fallback for safety
+				}
+			} else {
+				craftButton.disabled = true;
+				craftButton.textContent = 'Craft';
+			}
+			
+			const hintsContainer = craftingContainer.querySelector('[data-recipe-hints]');
+			const availableRecipes = gameData.recipes.filter(recipe => {
+				const resultSkill = gameData.skills.find(s => s.id === recipe.resultId);
+				const resultArmor = gameData.armor.find(a => a.id === recipe.resultId);
+				
+				if (resultSkill && resultSkill.class !== hero.class) return false;
+				if (hero.skills.includes(recipe.resultId)) return false;
+				if (resultArmor && hero.armorId === recipe.resultId) return false;
+				
+				const hasAssets = recipe.ingredients
+					.filter(id => !id.startsWith('ITM'))
+					.every(assetId => hero.skills.includes(assetId) || hero.armorId === assetId);
+				
+				return hasAssets;
+			});
+			
+			hintsContainer.innerHTML = availableRecipes.length > 0
+				? availableRecipes.map(r => `<p class="truncate" title="${r.description}">&bull; ${r.description}</p>`).join('')
+				: '<p class="text-gray-500">No hints available.</p>';
+		}
 	});
 	
 	const invContainer = getEl('shared-inventory');
 	if (invContainer) {
-		const inventoryItems = Object.entries(gameState.inventory).map(([id, qty]) => {
-			const entity = gameData.skills.find(s => s.id === id) || gameData.items.find(i => i.id === id);
-			return entity ? { ...entity, qty } : null;
-		}).filter(Boolean);
+		invContainer.dataset.dropZone = 'inventory';
+		let inventoryHtml = '';
+		const inventoryItems = Object.entries(gameState.inventory);
 		
-		invContainer.innerHTML = inventoryItems.length > 0
-			? inventoryItems.map(s => `<div class="badge badge-outline badge-lg p-3">${s.name} x${s.qty}</div>`).join('')
-			: '<p class="text-sm text-gray-500 w-full text-center mt-4">Inventory is empty.</p>';
-	}
-}
-
-function renderHeroDetails(heroId, container) {
-	const hero = gameState.heroes.find(h => h.id === heroId);
-	if (!hero) return;
-	
-	const ownedSkills = hero.skills.map(id => gameData.skills.find(s => s.id === id)).filter(Boolean);
-	
-	const availableRecipes = gameData.recipes.filter(recipe => {
-		const resultSkill = gameData.skills.find(s => s.id === recipe.resultId);
-		const resultArmor = gameData.armor.find(a => a.id === recipe.resultId);
-		
-		if (resultSkill) {
-			if (resultSkill.class !== hero.class) return false;
-			if (hero.skills.includes(recipe.resultId)) return false;
-			
-			const hasUpgraded = hero.skills.some(skillId => {
-				let currentSkill = gameData.skills.find(s => s.id === skillId);
-				while (currentSkill && currentSkill.replaces) {
-					if (currentSkill.replaces === recipe.resultId) return true;
-					currentSkill = gameData.skills.find(s => s.id === currentSkill.replaces);
+		if (inventoryItems.length > 0) {
+			inventoryItems.forEach(([id, qty]) => {
+				const entity = gameData.skills.find(s => s.id === id) || gameData.items.find(i => i.id === id);
+				if (entity) {
+					for (let i = 0; i < qty; i++) {
+						inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" class="badge badge-outline badge-lg p-3 cursor-move">${entity.name}</div>`;
+					}
 				}
-				return false;
 			});
-			if (hasUpgraded) return false;
-			return true;
-		} else if (resultArmor) {
-			// MODIFIED: Filter armor recipes based on currently equipped armor
-			const requiredArmor = recipe.ingredients.find(ing => ing.startsWith('ARM'));
-			if (requiredArmor && hero.armorId !== requiredArmor) return false;
-			return true;
+			invContainer.innerHTML = inventoryHtml;
+		} else {
+			invContainer.innerHTML = '<p class="text-sm text-gray-500 w-full text-center mt-4">Inventory is empty.</p>';
 		}
-		
-		return false;
-	});
-	
-	container.innerHTML = `
-        <div class="grid grid-cols-1 gap-4 text-sm mt-2">
-            <div class="bg-base-100 p-2 rounded">
-                <h4 class="font-bold mb-1 text-primary">Learned Skills</h4>
-                ${ownedSkills.length > 0 ? ownedSkills.map(s => `<p>&bull; <strong>${s.name}</strong>: ${s.description}</p>`).join('') : '<p>No skills learned.</p>'}
-            </div>
-        </div>
-        <div class="divider my-2">Crafting</div>
-        <div class="flex flex-col gap-2 text-sm">
-            ${availableRecipes.map(recipe => {
-		// MODIFIED: Check ingredients including equipped armor
-		const canCraft = recipe.ingredients.every(ingId => {
-			const countNeeded = recipe.ingredients.filter(i => i === ingId).length;
-			const inInventory = gameState.inventory[ingId] || 0;
-			const heroHasSkill = hero.skills.includes(ingId) ? 1 : 0;
-			const heroHasArmor = hero.armorId === ingId ? 1 : 0;
-			return (inInventory + heroHasSkill + heroHasArmor) >= countNeeded;
-		});
-		
-		return `<div class="flex items-center justify-between p-2 bg-base-100 rounded">
-                            <span class="text-xs">${recipe.description}</span>
-                            <button class="btn btn-xs btn-secondary" data-craft-id="${recipe.resultId}" data-hero-id="${hero.id}" ${!canCraft ? 'disabled' : ''}>Craft</button>
-                        </div>`;
-	}).join('')}
-            ${availableRecipes.length === 0 ? '<p class="text-center text-xs text-gray-500">No new recipes available.</p>' : ''}
-        </div>
-    `;
-}
-
-function handleCrafting(heroId, resultId) {
-	const hero = gameState.heroes.find(h => h.id === heroId);
-	const recipe = gameData.recipes.find(r => r.resultId === resultId);
-	if (!hero || !recipe) return;
-	
-	// MODIFIED: Include armor in ingredient check
-	const hasIngredients = recipe.ingredients.every(ingId => {
-		const countNeeded = recipe.ingredients.filter(i => i === ingId).length;
-		const inInventory = gameState.inventory[ingId] || 0;
-		const heroHasSkill = hero.skills.includes(ingId) ? 1 : 0;
-		const heroHasArmor = hero.armorId === ingId ? 1 : 0;
-		return (inInventory + heroHasSkill + heroHasArmor) >= countNeeded;
-	});
-	
-	if (hasIngredients) {
-		recipe.ingredients.forEach(ingId => {
-			// MODIFIED: Do not consume skills or equipped armor from inventory
-			if (!hero.skills.includes(ingId) && hero.armorId !== ingId) {
-				gameState.inventory[ingId]--;
-				if (gameState.inventory[ingId] === 0) delete gameState.inventory[ingId];
-			}
-		});
-		
-		const resultSkill = gameData.skills.find(s => s.id === resultId);
-		const resultArmor = gameData.armor.find(a => a.id === resultId);
-		
-		if (resultSkill) {
-			if (resultSkill.replaces) {
-				const index = hero.skills.indexOf(resultSkill.replaces);
-				if (index !== -1) {
-					hero.skills.splice(index, 1);
-				}
-			}
-			
-			if (!hero.skills.includes(resultId)) {
-				hero.skills.push(resultId);
-			}
-			addToLog(`${hero.name} crafted ${resultSkill.name}!`);
-		} else if (resultArmor) {
-			// MODIFIED: Equip the newly crafted armor
-			hero.armorId = resultId;
-			addToLog(`${hero.name} crafted and equipped ${resultArmor.name}!`);
-		}
-		
-		renderContent();
 	}
 }
 
@@ -406,7 +358,6 @@ function gameLoop() {
 		const availableMonsters = gameData.monsters.filter(m => m.level <= week);
 		const randomMonster = availableMonsters.length > 0 ? availableMonsters[Math.floor(Math.random() * availableMonsters.length)] : gameData.monsters[0];
 		
-		// MODIFIED: Removed scale multiplier. HP and Damage are fixed based on definition. Added level property.
 		gameState.activeMonsters.push({
 			id: Math.random().toString(36).substr(2, 9),
 			name: randomMonster.name,
@@ -528,7 +479,6 @@ function gameLoop() {
 // --- INITIALIZATION ---
 async function init() {
 	try {
-		// MODIFIED: Fetch armor.json alongside other data
 		const [items, skills, recipes, monsters, armor] = await Promise.all([
 			fetch('./data/items.json').then(res => res.json()),
 			fetch('./data/skills.json').then(res => res.json()),
@@ -565,9 +515,10 @@ async function init() {
 			handleAegisAction(parseInt(heroId), skillId);
 			renderContent();
 		}
-		if (e.target.matches('[data-craft-id]')) {
-			const { heroId, craftId } = e.target.dataset;
-			handleCrafting(parseInt(heroId), craftId);
+		if (e.target.matches('[data-craft-button]')) {
+			const heroId = parseInt(e.target.dataset.heroId);
+			handleCraftAttempt(heroId);
+			renderContent();
 		}
 		if (e.target.id === 'sandbox-apply') {
 			applySandboxChanges();
@@ -575,23 +526,47 @@ async function init() {
 		}
 	});
 	
+	let draggedElement = null;
+	
 	document.body.addEventListener('dragstart', (e) => {
+		draggedElement = e.target;
+		
 		if (e.target.matches('[data-drag-skill]')) {
 			e.dataTransfer.setData('text/plain', e.target.dataset.dragSkill);
 			e.dataTransfer.setData('heroId', e.target.closest('[data-hero-id]').dataset.heroId);
 			e.target.classList.add('opacity-50');
 		}
+		if (e.target.matches('[data-drag-item-id]')) {
+			e.dataTransfer.setData('source', 'inventory');
+			e.dataTransfer.setData('itemId', e.target.dataset.dragItemId);
+			e.target.classList.add('opacity-50');
+		}
+		if (e.target.matches('[data-drag-craft-item-id]')) {
+			e.dataTransfer.setData('source', 'crafting');
+			e.dataTransfer.setData('itemId', e.target.dataset.dragCraftItemId);
+			e.dataTransfer.setData('heroId', e.target.dataset.heroId);
+			e.dataTransfer.setData('itemIndex', e.target.dataset.itemIndex);
+			e.target.classList.add('opacity-50');
+		}
 	});
 	
 	document.body.addEventListener('dragend', (e) => {
-		if (e.target.matches('[data-drag-skill]')) {
-			e.target.classList.remove('opacity-50');
+		if (draggedElement) {
+			draggedElement.classList.remove('opacity-50');
+			draggedElement = null;
 		}
 	});
 	
 	document.body.addEventListener('dragover', (e) => {
 		if (e.target.closest('[data-drop-zone]')) {
 			e.preventDefault();
+			e.target.closest('[data-drop-zone]').classList.add('bg-primary/20');
+		}
+	});
+	
+	document.body.addEventListener('dragleave', (e) => {
+		if (e.target.closest('[data-drop-zone]')) {
+			e.target.closest('[data-drop-zone]').classList.remove('bg-primary/20');
 		}
 	});
 	
@@ -599,33 +574,75 @@ async function init() {
 		const dropZone = e.target.closest('[data-drop-zone]');
 		if (!dropZone) return;
 		e.preventDefault();
+		dropZone.classList.remove('bg-primary/20');
 		
-		const draggedSkill = e.dataTransfer.getData('text/plain');
-		const heroId = parseInt(e.dataTransfer.getData('heroId'));
-		const targetHeroId = parseInt(dropZone.dataset.heroId);
-		
-		if (heroId !== targetHeroId) return;
-		
-		const hero = gameState.heroes.find(h => h.id === heroId);
-		const zoneType = dropZone.dataset.dropZone;
-		
-		hero.autoCast = hero.autoCast.filter(id => id !== draggedSkill);
-		
-		if (zoneType === 'auto') {
-			const targetBadge = e.target.closest('[data-drag-skill]');
-			if (targetBadge && targetBadge.dataset.dragSkill !== draggedSkill) {
-				const targetIndex = hero.autoCast.indexOf(targetBadge.dataset.dragSkill);
-				if (targetIndex !== -1) {
+		const aegisZoneType = dropZone.dataset.dropZone;
+		if (aegisZoneType === 'auto' || aegisZoneType === 'manual') {
+			const draggedSkill = e.dataTransfer.getData('text/plain');
+			const heroId = parseInt(e.dataTransfer.getData('heroId'));
+			const targetHeroId = parseInt(dropZone.dataset.heroId);
+			
+			if (heroId !== targetHeroId || !draggedSkill) return;
+			
+			const hero = gameState.heroes.find(h => h.id === heroId);
+			hero.autoCast = hero.autoCast.filter(id => id !== draggedSkill);
+			
+			if (aegisZoneType === 'auto') {
+				const targetBadge = e.target.closest('[data-drag-skill]');
+				if (targetBadge && targetBadge.dataset.dragSkill !== draggedSkill) {
+					const targetIndex = hero.autoCast.indexOf(targetBadge.dataset.dragSkill);
 					hero.autoCast.splice(targetIndex, 0, draggedSkill);
 				} else {
 					hero.autoCast.push(draggedSkill);
 				}
-			} else {
-				hero.autoCast.push(draggedSkill);
 			}
+			renderContent();
+			return;
 		}
 		
-		renderContent();
+		const source = e.dataTransfer.getData('source');
+		const itemId = e.dataTransfer.getData('itemId');
+		if (!source || !itemId) return;
+		
+		if (dropZone.dataset.dropZone === 'crafting') {
+			const targetHeroId = parseInt(dropZone.dataset.heroId);
+			const hero = gameState.heroes.find(h => h.id === targetHeroId);
+			if (!hero) return;
+			
+			if (source === 'inventory') {
+				// MODIFIED: Add validation to ensure only items (not skills) can be dropped here.
+				const isItem = gameData.items.some(i => i.id === itemId);
+				if (!isItem) return; // If it's not a real item, do nothing.
+				
+				if (gameState.inventory[itemId] > 0) {
+					gameState.inventory[itemId]--;
+					if (gameState.inventory[itemId] === 0) delete gameState.inventory[itemId];
+					hero.craftingSlots.push(itemId);
+				}
+			} else if (source === 'crafting') {
+				const sourceHeroId = parseInt(e.dataTransfer.getData('heroId'));
+				const itemIndex = parseInt(e.dataTransfer.getData('itemIndex'));
+				const sourceHero = gameState.heroes.find(h => h.id === sourceHeroId);
+				if (sourceHero) {
+					sourceHero.craftingSlots.splice(itemIndex, 1);
+					hero.craftingSlots.push(itemId);
+				}
+			}
+			renderContent();
+		}
+		
+		if (dropZone.dataset.dropZone === 'inventory') {
+			if (source === 'crafting') {
+				const sourceHeroId = parseInt(e.dataTransfer.getData('heroId'));
+				const itemIndex = parseInt(e.dataTransfer.getData('itemIndex'));
+				const hero = gameState.heroes.find(h => h.id === sourceHeroId);
+				if (hero) {
+					hero.craftingSlots.splice(itemIndex, 1);
+					gameState.inventory[itemId] = (gameState.inventory[itemId] || 0) + 1;
+				}
+			}
+			renderContent();
+		}
 	});
 	
 	setInterval(gameLoop, 1000);
