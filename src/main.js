@@ -126,48 +126,32 @@ function gameLoop() {
 	gameState.time++;
 	
 	// 1. Spawn Monsters
-	// MODIFIED: Spawning logic now uses spawnDay and spawnRatio from monster data.
+	// MODIFIED: Spawning logic now uses a per-tick, per-monster spawn chance from monsters.json.
 	const currentDay = Math.floor(gameState.time / 10) + 1;
-	gameState.threatLevel = 10 + Math.floor(gameState.time / 60);
+	gameState.threatLevel = 10 + Math.floor(gameState.time / 60); // This can be used for other features.
 	
-	if (Math.random() < (gameState.threatLevel / 100)) {
-		// Filter monsters that are eligible to spawn based on the current day.
-		const availableMonsters = gameData.monsters.filter(m => m.spawnDay <= currentDay);
-		
-		if (availableMonsters.length > 0) {
-			// Use spawnRatio for weighted random selection.
-			const totalRatio = availableMonsters.reduce((sum, m) => sum + m.spawnRatio, 0);
-			let randomWeight = Math.random() * totalRatio;
-			let chosenMonster = null;
-			
-			for (const monster of availableMonsters) {
-				randomWeight -= monster.spawnRatio;
-				if (randomWeight <= 0) {
-					chosenMonster = monster;
-					break;
-				}
-			}
-			// Fallback in case of floating point inaccuracies
-			if (!chosenMonster) {
-				chosenMonster = availableMonsters[availableMonsters.length - 1];
-			}
-			
+	// Filter monsters that are eligible to spawn based on the current day.
+	const availableMonsters = gameData.monsters.filter(m => m.spawnDay <= currentDay);
+	
+	availableMonsters.forEach(monsterData => {
+		// Each monster has its own independent chance to spawn each tick.
+		if (Math.random() < monsterData.spawnRatio) {
 			const newMonster = {
-				id: `M-${Math.random().toString(36).substr(2, 9)}`, // MODIFIED: Added prefix for clarity
-				spawnTime: gameState.time, // NEW: Track when the monster spawned
-				name: chosenMonster.name,
-				level: chosenMonster.level,
-				maxHp: chosenMonster.hp,
-				currentHp: chosenMonster.hp,
-				damage: chosenMonster.damage,
-				xp: chosenMonster.xp,
-				assignedTo: [], // MODIFIED: Changed from 'assigned' to track multiple heroes
+				id: gameState.nextMonsterId++, // MODIFIED: Use incrementing integer ID.
+				spawnTime: gameState.time,
+				name: monsterData.name,
+				level: monsterData.level,
+				maxHp: monsterData.hp,
+				currentHp: monsterData.hp,
+				damage: monsterData.damage,
+				xp: monsterData.xp,
+				assignedTo: [],
 				targetBuilding: null
 			};
 			gameState.activeMonsters.push(newMonster);
-			addToLog(`A Lv.${chosenMonster.level} ${chosenMonster.name} (#${newMonster.id}) has appeared!`); // MODIFIED: Added monster ID to log
+			addToLog(`A Lv.${monsterData.level} ${monsterData.name} (#${newMonster.id}) has appeared!`);
 		}
-	}
+	});
 	
 	// 2. Process Heroes
 	manageCombatAssignments(); // NEW: Centralized combat assignment logic.

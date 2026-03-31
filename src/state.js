@@ -19,6 +19,7 @@ for (let i = 1; i <= 40; i++) {
 export const gameState = {
 	time: 0,
 	threatLevel: 10,
+	nextMonsterId: 1, // MODIFIED: Added for unique, incrementing monster IDs.
 	city: {
 		buildings: initialBuildings,
 		cars: initialCars
