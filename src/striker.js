@@ -36,7 +36,12 @@ export function processStriker(hero) {
 		const damageDealt = Math.floor((15 + damageBoost) * levelBoost);
 		monster.currentHp -= damageDealt;
 		
-		hero.hp.current -= monster.damage;
+		// MODIFIED: Apply armor damage mitigation
+		const armor = gameData.armor.find(a => a.id === hero.armorId);
+		const armorMitigation = armor ? armor.damageMitigation : 0;
+		const damageTaken = Math.max(1, monster.damage - armorMitigation);
+		
+		hero.hp.current -= damageTaken;
 		
 		if (hero.hp.current <= 0) {
 			hero.hp.current = 0;
@@ -47,10 +52,12 @@ export function processStriker(hero) {
 			
 			monster.assigned = false;
 			hero.targetMonster = null;
-			addToLog(`${hero.name} was incapacitated by ${monster.name}!`);
+			// MODIFIED: Added monster level to log
+			addToLog(`${hero.name} was incapacitated by Lv.${monster.level} ${monster.name}!`);
 		} else if (monster.currentHp <= 0) {
 			hero.xp.current += monster.xp;
-			addToLog(`${hero.name} defeated ${monster.name} and gained ${monster.xp} XP.`);
+			// MODIFIED: Added monster level to log
+			addToLog(`${hero.name} defeated Lv.${monster.level} ${monster.name} and gained ${monster.xp} XP.`);
 			hero.targetMonster = null;
 			
 			// Increased Loot drop logic
@@ -70,7 +77,6 @@ export function processStriker(hero) {
 				}
 			}
 			
-			// MODIFIED: Use per-level modifiers for level up logic
 			if (hero.xp.current >= hero.xp.max) {
 				hero.level++;
 				hero.xp.current -= hero.xp.max;

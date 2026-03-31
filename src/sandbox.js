@@ -13,12 +13,13 @@ export function renderSandbox(contentArea) {
             <p class="mb-4 text-sm text-gray-400">Edit the table cells directly. Click "Apply Changes" to save.</p>
             
             <div class="flex flex-col gap-6">
-                <!-- MODIFIED: Added Heroes table driven from gameState -->
                 ${buildTableSection('Heroes', 'heroes', 'gameState')}
                 ${buildTableSection('Monsters', 'monsters')}
                 ${buildTableSection('Skills', 'skills')}
                 ${buildTableSection('Items', 'items')}
                 ${buildTableSection('Recipes', 'recipes')}
+                <!-- MODIFIED: Added Armor table to sandbox -->
+                ${buildTableSection('Armor', 'armor')}
             </div>
 
             <div class="mt-6 flex gap-4 items-end">
@@ -69,7 +70,6 @@ function buildTableSection(title, category, source = 'gameData') {
 		let type = Array.isArray(val) ? 'array' : typeof val;
 		let displayVal = '';
 		
-		// MODIFIED: Handle object serialization for sandbox editing (e.g. hp/mp objects)
 		if (type === 'array') {
 			displayVal = val.join(', ');
 		} else if (type === 'object' && val !== null) {
@@ -120,7 +120,6 @@ export function applySandboxChanges() {
 					} else if (type === 'boolean') {
 						val = rawVal.toLowerCase() === 'true';
 					} else if (type === 'object') {
-						// MODIFIED: Parse JSON for objects like hp/mp
 						try {
 							val = JSON.parse(rawVal);
 						} catch (e) {
@@ -135,7 +134,6 @@ export function applySandboxChanges() {
 				newData.push(obj);
 			});
 			
-			// MODIFIED: Update the global game data or game state
 			if (source === 'gameState') {
 				// Update existing objects to preserve references
 				newData.forEach(newObj => {

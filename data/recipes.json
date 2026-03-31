@@ -1,4 +1,3 @@
-[
 { "resultId": "STR_C01", "ingredients": [ "STR001", "STR001" ], "description": "2x Mana Bolt I = Mana Bolt II" },
 { "resultId": "VAN_C01", "ingredients":[ "VAN001", "VAN001" ], "description": "2x Guardian's Presence I = Guardian's Presence II" },
 { "resultId": "AEG004_II", "ingredients":[ "AEG004", "ITM002", "ITM009" ], "description": "Healing Light + Med Supplies + First Aid = Healing Light II" },
@@ -14,5 +13,9 @@
 { "resultId": "STR_C03", "ingredients":[ "STR_C02", "ITM003", "ITM003", "ITM003" ], "description": "Core Powered Strike + 3x Monster Core = Mana Bolt III" },
 { "resultId": "STR_C04", "ingredients":[ "STR_C03", "ITM008", "ITM008" ], "description": "Mana Bolt III + 2x System Shard = Mana Bolt IV" },
 { "resultId": "VAN_C03", "ingredients":[ "VAN_C02", "ITM007", "ITM007", "ITM007" ], "description": "Steel Vanguard + 3x Reinforced Steel = Guardian's Presence III" },
-{ "resultId": "VAN_C04", "ingredients":[ "VAN_C03", "ITM008", "ITM008" ], "description": "Guardian's Presence III + 2x System Shard = Guardian's Presence IV" }
+{ "resultId": "VAN_C04", "ingredients":[ "VAN_C03", "ITM008", "ITM008" ], "description": "Guardian's Presence III + 2x System Shard = Guardian's Presence IV" },
+{ "resultId": "ARM002", "ingredients":["ARM001", "ITM001", "ITM001"], "description": "Cloth Armor + 2x Salvaged Parts = Leather Armor" },
+{ "resultId": "ARM003", "ingredients":["ARM002", "ITM007", "ITM007"], "description": "Leather Armor + 2x Reinforced Steel = Chainmail Armor" },
+{ "resultId": "ARM004", "ingredients":["ARM003", "ITM007", "ITM007", "ITM003"], "description": "Chainmail Armor + 2x Reinforced Steel + Monster Core = Plate Armor" },
+{ "resultId": "ARM005", "ingredients":["ARM004", "ITM008", "ITM008", "ITM004"], "description": "Plate Armor + 2x System Shard + Broken Circuitry = Power Armor" }
 ]

@@ -111,11 +111,15 @@ function renderHeroes() {
 		card.querySelector('[data-class]').textContent = hero.class;
 		card.querySelector('[data-class]').className = `badge ${hero.class === 'Aegis' ? 'badge-info' : hero.class === 'Striker' ? 'badge-error' : 'badge-success'}`;
 		
+		// MODIFIED: Display equipped armor
+		const armor = gameData.armor.find(a => a.id === hero.armorId);
+		const armorText = armor ? `${armor.name} (Mitigation: ${armor.damageMitigation})` : 'No Armor';
+		card.querySelector('[data-armor]').textContent = armorText;
+		
 		card.querySelector('[data-xp-label]').textContent = `XP: ${hero.xp.current}/${hero.xp.max}`;
 		card.querySelector('[data-xp-bar]').value = hero.xp.current;
 		card.querySelector('[data-xp-bar]').max = hero.xp.max;
 		
-		// MODIFIED: Display HP and MP regeneration per second
 		const formatRegen = (val) => Number(val.toFixed(2));
 		card.querySelector('[data-hp-label]').textContent = `HP: ${Math.floor(hero.hp.current)}/${hero.hp.max} (+${formatRegen(hero.hpRegen)}/s)`;
 		card.querySelector('[data-hp-bar]').value = hero.hp.current;
@@ -162,8 +166,9 @@ function renderHeroes() {
 			} else if (!hero.carId) {
 				dynamicArea.innerHTML = `<p class="text-warning text-center text-sm">Waiting for Mana Battery Car...</p>`;
 			} else if (hero.targetMonster) {
+				// MODIFIED: Display monster level
 				dynamicArea.innerHTML = `
-                    <p class="text-sm font-bold text-error mb-1">Fighting: ${hero.targetMonster.name}</p>
+                    <p class="text-sm font-bold text-error mb-1">Fighting: Lv.${hero.targetMonster.level} ${hero.targetMonster.name}</p>
                     <progress class="progress progress-error w-full" value="${hero.targetMonster.currentHp}" max="${hero.targetMonster.maxHp}"></progress>
                     <p class="text-xs text-right mt-1">${Math.floor(hero.targetMonster.currentHp)}/${hero.targetMonster.maxHp} HP</p>
                 `;
@@ -196,21 +201,30 @@ function renderHeroDetails(heroId, container) {
 	
 	const availableRecipes = gameData.recipes.filter(recipe => {
 		const resultSkill = gameData.skills.find(s => s.id === recipe.resultId);
-		if (!resultSkill || resultSkill.class !== hero.class) return false;
+		const resultArmor = gameData.armor.find(a => a.id === recipe.resultId);
 		
-		if (hero.skills.includes(recipe.resultId)) return false;
+		if (resultSkill) {
+			if (resultSkill.class !== hero.class) return false;
+			if (hero.skills.includes(recipe.resultId)) return false;
+			
+			const hasUpgraded = hero.skills.some(skillId => {
+				let currentSkill = gameData.skills.find(s => s.id === skillId);
+				while (currentSkill && currentSkill.replaces) {
+					if (currentSkill.replaces === recipe.resultId) return true;
+					currentSkill = gameData.skills.find(s => s.id === currentSkill.replaces);
+				}
+				return false;
+			});
+			if (hasUpgraded) return false;
+			return true;
+		} else if (resultArmor) {
+			// MODIFIED: Filter armor recipes based on currently equipped armor
+			const requiredArmor = recipe.ingredients.find(ing => ing.startsWith('ARM'));
+			if (requiredArmor && hero.armorId !== requiredArmor) return false;
+			return true;
+		}
 		
-		const hasUpgraded = hero.skills.some(skillId => {
-			let currentSkill = gameData.skills.find(s => s.id === skillId);
-			while (currentSkill && currentSkill.replaces) {
-				if (currentSkill.replaces === recipe.resultId) return true;
-				currentSkill = gameData.skills.find(s => s.id === currentSkill.replaces);
-			}
-			return false;
-		});
-		if (hasUpgraded) return false;
-		
-		return true;
+		return false;
 	});
 	
 	container.innerHTML = `
@@ -223,11 +237,13 @@ function renderHeroDetails(heroId, container) {
         <div class="divider my-2">Crafting</div>
         <div class="flex flex-col gap-2 text-sm">
             ${availableRecipes.map(recipe => {
+		// MODIFIED: Check ingredients including equipped armor
 		const canCraft = recipe.ingredients.every(ingId => {
 			const countNeeded = recipe.ingredients.filter(i => i === ingId).length;
 			const inInventory = gameState.inventory[ingId] || 0;
 			const heroHasSkill = hero.skills.includes(ingId) ? 1 : 0;
-			return (inInventory + heroHasSkill) >= countNeeded;
+			const heroHasArmor = hero.armorId === ingId ? 1 : 0;
+			return (inInventory + heroHasSkill + heroHasArmor) >= countNeeded;
 		});
 		
 		return `<div class="flex items-center justify-between p-2 bg-base-100 rounded">
@@ -245,35 +261,45 @@ function handleCrafting(heroId, resultId) {
 	const recipe = gameData.recipes.find(r => r.resultId === resultId);
 	if (!hero || !recipe) return;
 	
+	// MODIFIED: Include armor in ingredient check
 	const hasIngredients = recipe.ingredients.every(ingId => {
 		const countNeeded = recipe.ingredients.filter(i => i === ingId).length;
 		const inInventory = gameState.inventory[ingId] || 0;
 		const heroHasSkill = hero.skills.includes(ingId) ? 1 : 0;
-		return (inInventory + heroHasSkill) >= countNeeded;
+		const heroHasArmor = hero.armorId === ingId ? 1 : 0;
+		return (inInventory + heroHasSkill + heroHasArmor) >= countNeeded;
 	});
 	
 	if (hasIngredients) {
 		recipe.ingredients.forEach(ingId => {
-			if (!hero.skills.includes(ingId)) {
+			// MODIFIED: Do not consume skills or equipped armor from inventory
+			if (!hero.skills.includes(ingId) && hero.armorId !== ingId) {
 				gameState.inventory[ingId]--;
 				if (gameState.inventory[ingId] === 0) delete gameState.inventory[ingId];
 			}
 		});
 		
 		const resultSkill = gameData.skills.find(s => s.id === resultId);
+		const resultArmor = gameData.armor.find(a => a.id === resultId);
 		
-		if (resultSkill.replaces) {
-			const index = hero.skills.indexOf(resultSkill.replaces);
-			if (index !== -1) {
-				hero.skills.splice(index, 1);
+		if (resultSkill) {
+			if (resultSkill.replaces) {
+				const index = hero.skills.indexOf(resultSkill.replaces);
+				if (index !== -1) {
+					hero.skills.splice(index, 1);
+				}
 			}
+			
+			if (!hero.skills.includes(resultId)) {
+				hero.skills.push(resultId);
+			}
+			addToLog(`${hero.name} crafted ${resultSkill.name}!`);
+		} else if (resultArmor) {
+			// MODIFIED: Equip the newly crafted armor
+			hero.armorId = resultId;
+			addToLog(`${hero.name} crafted and equipped ${resultArmor.name}!`);
 		}
 		
-		if (!hero.skills.includes(resultId)) {
-			hero.skills.push(resultId);
-		}
-		
-		addToLog(`${hero.name} crafted ${resultSkill.name}!`);
 		renderContent();
 	}
 }
@@ -379,14 +405,16 @@ function gameLoop() {
 	if (Math.random() < (gameState.threatLevel / 100)) {
 		const availableMonsters = gameData.monsters.filter(m => m.level <= week);
 		const randomMonster = availableMonsters.length > 0 ? availableMonsters[Math.floor(Math.random() * availableMonsters.length)] : gameData.monsters[0];
-		const scale = 1 + (gameState.time / 300);
+		
+		// MODIFIED: Removed scale multiplier. HP and Damage are fixed based on definition. Added level property.
 		gameState.activeMonsters.push({
 			id: Math.random().toString(36).substr(2, 9),
 			name: randomMonster.name,
-			maxHp: Math.floor(randomMonster.hp * scale),
-			currentHp: Math.floor(randomMonster.hp * scale),
-			damage: Math.floor(randomMonster.damage * scale),
-			xp: Math.floor(randomMonster.xp * scale),
+			level: randomMonster.level,
+			maxHp: randomMonster.hp,
+			currentHp: randomMonster.hp,
+			damage: randomMonster.damage,
+			xp: randomMonster.xp,
 			assigned: false,
 			targetBuilding: null
 		});
@@ -395,7 +423,6 @@ function gameLoop() {
 	
 	// 2. Process Heroes
 	gameState.heroes.forEach(hero => {
-		// MODIFIED: HP and MP only regenerate when the hero is not fighting
 		if (!hero.targetMonster) {
 			if (hero.hp.current > 0) {
 				hero.hp.current = Math.min(hero.hp.max, hero.hp.current + hero.hpRegen);
@@ -441,7 +468,7 @@ function gameLoop() {
 					if (bldg.shieldHp > 0) {
 						bldg.shieldHp--;
 						if (bldg.shieldHp === 0) {
-							addToLog(`${monster.name} destroyed the shield on Building #${bldg.id}!`);
+							addToLog(`Lv.${monster.level} ${monster.name} destroyed the shield on Building #${bldg.id}!`);
 						}
 					} else {
 						bldg.hp--;
@@ -450,10 +477,10 @@ function gameLoop() {
 							bldg.state = 'ruined';
 							bldg.population = 0;
 							monster.targetBuilding = null;
-							addToLog(`Building #${bldg.id} was ruined by ${monster.name}!`);
+							addToLog(`Building #${bldg.id} was ruined by Lv.${monster.level} ${monster.name}!`);
 						} else if (bldg.hp <= 5 && bldg.state === 'functional') {
 							bldg.state = 'damaged';
-							addToLog(`Building #${bldg.id} was damaged by ${monster.name}!`);
+							addToLog(`Building #${bldg.id} was damaged by Lv.${monster.level} ${monster.name}!`);
 						}
 					}
 				} else {
@@ -501,16 +528,19 @@ function gameLoop() {
 // --- INITIALIZATION ---
 async function init() {
 	try {
-		const [items, skills, recipes, monsters] = await Promise.all([
+		// MODIFIED: Fetch armor.json alongside other data
+		const [items, skills, recipes, monsters, armor] = await Promise.all([
 			fetch('./data/items.json').then(res => res.json()),
 			fetch('./data/skills.json').then(res => res.json()),
 			fetch('./data/recipes.json').then(res => res.json()),
-			fetch('./data/monsters.json').then(res => res.json())
+			fetch('./data/monsters.json').then(res => res.json()),
+			fetch('./data/armor.json').then(res => res.json())
 		]);
 		gameData.items = items;
 		gameData.skills = skills;
 		gameData.recipes = recipes;
 		gameData.monsters = monsters;
+		gameData.armor = armor;
 	} catch (error) {
 		console.error('Failed to load game data:', error);
 		contentArea.innerHTML = `<p class="text-error">Error: Could not load game data. Please check the console.</p>`;

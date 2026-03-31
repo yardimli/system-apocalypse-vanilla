@@ -36,9 +36,16 @@ export function processVanguard(hero) {
 		monster.currentHp -= damageDealt;
 		
 		const baseDamageReduction = getSkillEffect(hero, 'damage_reduction') || 0;
-		// Apply level boost to damage reduction
-		const damageReduction = Math.floor(baseDamageReduction * levelBoost);
-		const damageTaken = Math.max(1, monster.damage - damageReduction);
+		// Apply level boost to skill damage reduction
+		const skillReduction = Math.floor(baseDamageReduction * levelBoost);
+		
+		// MODIFIED: Apply armor damage mitigation
+		const armor = gameData.armor.find(a => a.id === hero.armorId);
+		const armorMitigation = armor ? armor.damageMitigation : 0;
+		
+		const totalMitigation = skillReduction + armorMitigation;
+		const damageTaken = Math.max(1, monster.damage - totalMitigation);
+		
 		hero.hp.current -= damageTaken;
 		
 		if (hero.hp.current <= 0) {
@@ -50,10 +57,12 @@ export function processVanguard(hero) {
 			
 			monster.assigned = false;
 			hero.targetMonster = null;
-			addToLog(`${hero.name} was incapacitated by ${monster.name}!`);
+			// MODIFIED: Added monster level to log
+			addToLog(`${hero.name} was incapacitated by Lv.${monster.level} ${monster.name}!`);
 		} else if (monster.currentHp <= 0) {
 			hero.xp.current += monster.xp;
-			addToLog(`${hero.name} defeated ${monster.name} and gained ${monster.xp} XP.`);
+			// MODIFIED: Added monster level to log
+			addToLog(`${hero.name} defeated Lv.${monster.level} ${monster.name} and gained ${monster.xp} XP.`);
 			hero.targetMonster = null;
 			
 			// Increased Loot drop logic
@@ -73,7 +82,6 @@ export function processVanguard(hero) {
 				}
 			}
 			
-			// MODIFIED: Use per-level modifiers for level up logic
 			if (hero.xp.current >= hero.xp.max) {
 				hero.level++;
 				hero.xp.current -= hero.xp.max;

@@ -27,7 +27,7 @@ export const gameState = {
 		'STR001': 2,
 		'VAN001': 2
 	},
-	activeMonsters: [],
+	activeMonsters:[],
 	heroes:[
 		{
 			id: 1,
@@ -37,12 +37,13 @@ export const gameState = {
 			xp: { current: 0, max: 100 },
 			hp: { current: 150, max: 150 },
 			mp: { current: 200, max: 200 },
-			hpRegen: 0.5, // NEW: Base HP regen
-			mpRegen: 2.0, // MODIFIED: Renamed from manaRegen and set base value
-			hpMaxPerLevel: 10, // NEW: Max HP increase per level
-			mpMaxPerLevel: 50, // NEW: Max MP increase per level
-			hpRegenPerLevel: 0.1, // NEW: HP regen increase per level
-			mpRegenPerLevel: 1.0, // NEW: MP regen increase per level
+			hpRegen: 0.5,
+			mpRegen: 2.0,
+			hpMaxPerLevel: 10,
+			mpMaxPerLevel: 50,
+			hpRegenPerLevel: 0.1,
+			mpRegenPerLevel: 1.0,
+			armorId: 'ARM001', // NEW: Starting armor
 			skills:['AEG001', 'AEG002', 'AEG003', 'AEG004'],
 			autoCast:[]
 		},
@@ -54,12 +55,13 @@ export const gameState = {
 			xp: { current: 0, max: 100 },
 			hp: { current: 100, max: 100 },
 			mp: { current: 100, max: 100 },
-			hpRegen: 1.0, // NEW: Base HP regen
-			mpRegen: 1.0, // MODIFIED: Renamed from manaRegen
-			hpMaxPerLevel: 15, // NEW: Max HP increase per level
-			mpMaxPerLevel: 10, // NEW: Max MP increase per level
-			hpRegenPerLevel: 0.2, // NEW: HP regen increase per level
-			mpRegenPerLevel: 0.5, // NEW: MP regen increase per level
+			hpRegen: 1.0,
+			mpRegen: 1.0,
+			hpMaxPerLevel: 15,
+			mpMaxPerLevel: 10,
+			hpRegenPerLevel: 0.2,
+			mpRegenPerLevel: 0.5,
+			armorId: 'ARM001', // NEW: Starting armor
 			carId: null,
 			targetMonster: null,
 			skills: ['STR001']
@@ -72,23 +74,25 @@ export const gameState = {
 			xp: { current: 0, max: 100 },
 			hp: { current: 250, max: 250 },
 			mp: { current: 50, max: 50 },
-			hpRegen: 2.0, // NEW: Base HP regen
-			mpRegen: 0.5, // MODIFIED: Renamed from manaRegen
-			hpMaxPerLevel: 30, // NEW: Max HP increase per level
-			mpMaxPerLevel: 5, // NEW: Max MP increase per level
-			hpRegenPerLevel: 0.5, // NEW: HP regen increase per level
-			mpRegenPerLevel: 0.2, // NEW: MP regen increase per level
+			hpRegen: 2.0,
+			mpRegen: 0.5,
+			hpMaxPerLevel: 30,
+			mpMaxPerLevel: 5,
+			hpRegenPerLevel: 0.5,
+			mpRegenPerLevel: 0.2,
+			armorId: 'ARM001', // NEW: Starting armor
 			carId: null,
 			targetMonster: null,
 			skills: ['VAN001']
 		}
 	],
-	log: ['[SYSTEM]: The Awakening has begun. Defend the city.']
+	log:['[SYSTEM]: The Awakening has begun. Defend the city.']
 };
 
 export const gameData = {
 	items: [],
 	skills: [],
 	recipes:[],
-	monsters:[]
+	monsters:[],
+	armor:[] // NEW: Armor data array
 };

@@ -1,0 +1,7 @@
+[
+  { "id": "ARM001", "name": "Cloth Armor", "damageMitigation": 2, "level": 1 },
+  { "id": "ARM002", "name": "Leather Armor", "damageMitigation": 5, "level": 2 },
+  { "id": "ARM003", "name": "Chainmail Armor", "damageMitigation": 10, "level": 3 },
+  { "id": "ARM004", "name": "Plate Armor", "damageMitigation": 20, "level": 4 },
+  { "id": "ARM005", "name": "Aegis Power Armor", "damageMitigation": 35, "level": 5 }
+]
