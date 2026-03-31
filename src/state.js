@@ -23,9 +23,11 @@ export const gameState = {
 		buildings: initialBuildings,
 		cars: initialCars
 	},
+	// MODIFIED: Inventory now starts with items, not skills.
 	inventory: {
-		'STR001': 2,
-		'VAN001': 2
+		'ITM001': 5,
+		'ITM003': 2,
+		'ITM006': 3
 	},
 	activeMonsters:[],
 	heroes:[
@@ -44,9 +46,15 @@ export const gameState = {
 			hpRegenPerLevel: 0.1,
 			mpRegenPerLevel: 1.0,
 			armorId: 'ARM001',
-			skills:['AEG001', 'AEG002', 'AEG003', 'AEG004'],
+			// MODIFIED: Skills are now objects tracking their own XP.
+			skills:[
+				{ id: 'AEG001', xp: 0 },
+				{ id: 'AEG002', xp: 0 },
+				{ id: 'AEG003', xp: 0 },
+				{ id: 'AEG004', xp: 0 }
+			],
 			autoCast:[],
-			craftingSlots:[] // NEW: Added for drag-and-drop crafting
+			craftingSlots:[]
 		},
 		{
 			id: 2,
@@ -65,8 +73,9 @@ export const gameState = {
 			armorId: 'ARM001',
 			carId: null,
 			targetMonster: null,
-			skills: ['STR001'],
-			craftingSlots:[] // NEW: Added for drag-and-drop crafting
+			// MODIFIED: Skills are now objects tracking their own XP.
+			skills: [{ id: 'STR001', xp: 0 }],
+			craftingSlots:[]
 		},
 		{
 			id: 3,
@@ -85,8 +94,9 @@ export const gameState = {
 			armorId: 'ARM001',
 			carId: null,
 			targetMonster: null,
-			skills: ['VAN001'],
-			craftingSlots:[] // NEW: Added for drag-and-drop crafting
+			// MODIFIED: Skills are now objects tracking their own XP.
+			skills: [{ id: 'VAN001', xp: 0 }],
+			craftingSlots:[]
 		}
 	],
 	log:['[SYSTEM]: The Awakening has begun. Defend the city.']

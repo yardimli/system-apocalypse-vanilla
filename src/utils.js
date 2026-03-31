@@ -1,4 +1,3 @@
-// src/utils.js
 import { gameState, gameData } from './state.js';
 
 export function addToLog(message) {
@@ -8,8 +7,9 @@ export function addToLog(message) {
 }
 
 export function getSkillEffect(hero, effectType) {
+	// MODIFIED: Adapted to new hero.skills structure [{id, xp}]
 	return hero.skills
-		.map(id => gameData.skills.find(s => s.id === id))
+		.map(skill => gameData.skills.find(s => s.id === skill.id))
 		.filter(s => s && s.effect === effectType)
 		.reduce((sum, s) => sum + s.value, 0);
 }

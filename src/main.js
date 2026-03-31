@@ -132,9 +132,12 @@ function renderHeroes() {
 		const dynamicArea = card.querySelector('[data-dynamic-area]');
 		
 		if (hero.class === 'Aegis') {
-			const allSkills = hero.skills.map(id => gameData.skills.find(s => s.id === id)).filter(s => s && s.type === 'Manual');
-			const autoSkills = hero.autoCast.map(id => allSkills.find(s => s.id === id)).filter(Boolean);
-			const manualSkills = allSkills.filter(s => !hero.autoCast.includes(s.id));
+			// MODIFIED: Adapt to new hero.skills structure [{id, xp}]
+			const allSkillData = hero.skills.map(s => gameData.skills.find(gs => gs.id === s.id));
+			const allManualSkills = allSkillData.filter(s => s && s.type === 'Manual');
+			
+			const autoSkills = hero.autoCast.map(id => allManualSkills.find(s => s.id === id)).filter(Boolean);
+			const manualSkills = allManualSkills.filter(s => !hero.autoCast.includes(s.id));
 			
 			dynamicArea.innerHTML = `
                 <div class="flex gap-2 w-full">
@@ -186,7 +189,6 @@ function renderHeroes() {
 			if (hero.craftingSlots.length > 0) {
 				craftDropZone.innerHTML = hero.craftingSlots.map((itemId, index) => {
 					const item = gameData.items.find(i => i.id === itemId);
-					// MODIFIED: Added a check to prevent crashing if a non-item ID is in the slot.
 					if (!item) return '';
 					return `<div draggable="true" data-drag-craft-item-id="${itemId}" data-hero-id="${hero.id}" data-item-index="${index}" class="badge badge-accent cursor-move p-3">${item.name}</div>`;
 				}).join('');
@@ -197,10 +199,8 @@ function renderHeroes() {
 			const validRecipe = findValidRecipe(hero);
 			if (validRecipe) {
 				craftButton.disabled = false;
-				// MODIFIED: Correctly find the result entity from skills, armor, OR items to prevent errors.
-				const resultEntity = gameData.skills.find(s => s.id === validRecipe.resultId) ||
-					gameData.armor.find(a => a.id === validRecipe.resultId) ||
-					gameData.items.find(i => i.id === validRecipe.resultId);
+				// MODIFIED: Recipes now only create items.
+				const resultEntity = gameData.items.find(i => i.id === validRecipe.resultId);
 				
 				if (resultEntity) {
 					craftButton.textContent = `Craft: ${resultEntity.name}`;
@@ -211,26 +211,25 @@ function renderHeroes() {
 				craftButton.disabled = true;
 				craftButton.textContent = 'Craft';
 			}
-			
-			const hintsContainer = craftingContainer.querySelector('[data-recipe-hints]');
-			const availableRecipes = gameData.recipes.filter(recipe => {
-				const resultSkill = gameData.skills.find(s => s.id === recipe.resultId);
-				const resultArmor = gameData.armor.find(a => a.id === recipe.resultId);
+		}
+		
+		// NEW: Render the hero's skills and their XP progress
+		const skillsListContainer = card.querySelector('[data-skills-list]');
+		if (skillsListContainer) {
+			skillsListContainer.innerHTML = hero.skills.map(heroSkill => {
+				const skillData = gameData.skills.find(s => s.id === heroSkill.id);
+				if (!skillData) return '';
 				
-				if (resultSkill && resultSkill.class !== hero.class) return false;
-				if (hero.skills.includes(recipe.resultId)) return false;
-				if (resultArmor && hero.armorId === recipe.resultId) return false;
-				
-				const hasAssets = recipe.ingredients
-					.filter(id => !id.startsWith('ITM'))
-					.every(assetId => hero.skills.includes(assetId) || hero.armorId === assetId);
-				
-				return hasAssets;
-			});
-			
-			hintsContainer.innerHTML = availableRecipes.length > 0
-				? availableRecipes.map(r => `<p class="truncate" title="${r.description}">&bull; ${r.description}</p>`).join('')
-				: '<p class="text-gray-500">No hints available.</p>';
+				return `
+					<div class="text-xs">
+						<div class="flex justify-between items-center">
+							<span>${skillData.name}</span>
+							<span class="text-gray-400">${heroSkill.xp} / ${skillData.xpMax}</span>
+						</div>
+						<progress class="progress progress-secondary w-full" value="${heroSkill.xp}" max="${skillData.xpMax}"></progress>
+					</div>
+				`;
+			}).join('');
 		}
 	});
 	
@@ -242,7 +241,8 @@ function renderHeroes() {
 		
 		if (inventoryItems.length > 0) {
 			inventoryItems.forEach(([id, qty]) => {
-				const entity = gameData.skills.find(s => s.id === id) || gameData.items.find(i => i.id === id);
+				// MODIFIED: Inventory now only contains items.
+				const entity = gameData.items.find(i => i.id === id);
 				if (entity) {
 					for (let i = 0; i < qty; i++) {
 						inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" class="badge badge-outline badge-lg p-3 cursor-move">${entity.name}</div>`;
@@ -610,9 +610,8 @@ async function init() {
 			if (!hero) return;
 			
 			if (source === 'inventory') {
-				// MODIFIED: Add validation to ensure only items (not skills) can be dropped here.
 				const isItem = gameData.items.some(i => i.id === itemId);
-				if (!isItem) return; // If it's not a real item, do nothing.
+				if (!isItem) return;
 				
 				if (gameState.inventory[itemId] > 0) {
 					gameState.inventory[itemId]--;

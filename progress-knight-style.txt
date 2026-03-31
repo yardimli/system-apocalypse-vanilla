@@ -194,3 +194,14 @@ the hp and damage of monsters should not change and should always be as it is de
 for the heros add a new json called armor there should be levels of armor starting from cloth going all the way to plate. each one should be a full set and have damage mitigation properties. armor will be crafted similar to any other item, every upgrade will need the previous levels armor as part of the ingredients.
 
 ----
+
+when the game starts the craft button is enabled for the heros Striker and Vanguard it shouldnt
+update recipes so they all are made from combining items, and are only for creating new items. no recipe should create a skill.
+start inventory with some random items, no skills should be available in the inventory
+for each heros show the skills they know along with the mini xp bar for the skill.
+skills should have their own mini xp bar that fills as the player casts that skill and upgrades when the hero has cast it enough times
+for Striker and Vanguard the casts are automatic
+skills should upgrade automatically
+
+----
+

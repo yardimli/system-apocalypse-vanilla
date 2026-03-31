@@ -58,7 +58,7 @@
 			<div class="w-full mt-2 min-h-[80px] bg-base-300 rounded p-2 flex flex-col justify-center" data-dynamic-area>
 			</div>
 			
-			<!-- MODIFIED: Replaced details with an interactive crafting area -->
+			<!-- Crafting Area -->
 			<div class="mt-2 border-t border-base-300 pt-2" data-crafting-container>
 				<div class="divider my-1">Crafting</div>
 				<div class="flex flex-col gap-2">
@@ -69,11 +69,14 @@
 						<span class="text-xs text-gray-500 italic">Drag ingredients here...</span>
 					</div>
 					<button class="btn btn-sm btn-secondary" data-craft-button disabled>Craft</button>
-					<div class="text-xs text-gray-400 mt-1">
-						<h5 class="font-bold">Recipe Hints:</h5>
-						<div data-recipe-hints class="flex flex-col gap-1 max-h-24 overflow-y-auto">
-						</div>
-					</div>
+				</div>
+			</div>
+			
+			<!-- NEW: Skill Progression Area -->
+			<div class="mt-2 border-t border-base-300 pt-2" data-skills-container>
+				<div class="divider my-1">Skills</div>
+				<div class="flex flex-col gap-2 max-h-32 overflow-y-auto" data-skills-list>
+					<!-- Skill items will be rendered here by JS -->
 				</div>
 			</div>
 		</div>

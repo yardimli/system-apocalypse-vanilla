@@ -1,22 +1,51 @@
 [
-{ "resultId": "STR_C01", "ingredients": [ "STR001", "STR001" ], "description": "2x Mana Bolt I = Mana Bolt II" },
-{ "resultId": "VAN_C01", "ingredients":[ "VAN001", "VAN001" ], "description": "2x Guardian's Presence I = Guardian's Presence II" },
-{ "resultId": "AEG004_II", "ingredients":[ "AEG004", "ITM002", "ITM009" ], "description": "Healing Light + Med Supplies + First Aid = Healing Light II" },
-{ "resultId": "STR_C02", "ingredients":[ "STR_C01", "ITM003", "ITM003" ], "description": "Mana Bolt II + 2x Monster Core = Core Powered Strike" },
-{ "resultId": "VAN_C02", "ingredients":[ "VAN_C01", "ITM007", "ITM007" ], "description": "Guardian's Presence II + 2x Reinforced Steel = Steel Vanguard" },
-{ "resultId": "AEG001_II", "ingredients":[ "AEG001", "ITM004", "ITM010" ], "description": "Repair I + Broken Circuitry + Toolbox = Repair II" },
-{ "resultId": "AEG001_III", "ingredients":[ "AEG001_II", "ITM008", "ITM008" ], "description": "Repair II + 2x System Shard = Repair III" },
-{ "resultId": "AEG002_II", "ingredients":[ "AEG002", "ITM007", "ITM007" ], "description": "Shield I + 2x Reinforced Steel = Shield II" },
-{ "resultId": "AEG002_III", "ingredients":[ "AEG002_II", "ITM008", "ITM008" ], "description": "Shield II + 2x System Shard = Shield III" },
-{ "resultId": "AEG003_II", "ingredients":[ "AEG003", "ITM004", "ITM004" ], "description": "Battery I + 2x Broken Circuitry = Battery II" },
-{ "resultId": "AEG003_III", "ingredients":[ "AEG003_II", "ITM008", "ITM008" ], "description": "Battery II + 2x System Shard = Battery III" },
-{ "resultId": "AEG004_III", "ingredients":[ "AEG004_II", "ITM009", "ITM009" ], "description": "Healing Light II + 2x First Aid Kit = Healing Light III" },
-{ "resultId": "STR_C03", "ingredients":[ "STR_C02", "ITM003", "ITM003", "ITM003" ], "description": "Core Powered Strike + 3x Monster Core = Mana Bolt III" },
-{ "resultId": "STR_C04", "ingredients":[ "STR_C03", "ITM008", "ITM008" ], "description": "Mana Bolt III + 2x System Shard = Mana Bolt IV" },
-{ "resultId": "VAN_C03", "ingredients":[ "VAN_C02", "ITM007", "ITM007", "ITM007" ], "description": "Steel Vanguard + 3x Reinforced Steel = Guardian's Presence III" },
-{ "resultId": "VAN_C04", "ingredients":[ "VAN_C03", "ITM008", "ITM008" ], "description": "Guardian's Presence III + 2x System Shard = Guardian's Presence IV" },
-{ "resultId": "ARM002", "ingredients":["ARM001", "ITM001", "ITM001"], "description": "Cloth Armor + 2x Salvaged Parts = Leather Armor" },
-{ "resultId": "ARM003", "ingredients":["ARM002", "ITM007", "ITM007"], "description": "Leather Armor + 2x Reinforced Steel = Chainmail Armor" },
-{ "resultId": "ARM004", "ingredients":["ARM003", "ITM007", "ITM007", "ITM003"], "description": "Chainmail Armor + 2x Reinforced Steel + Monster Core = Plate Armor" },
-{ "resultId": "ARM005", "ingredients":["ARM004", "ITM008", "ITM008", "ITM004"], "description": "Plate Armor + 2x System Shard + Broken Circuitry = Power Armor" }
+  {
+    "resultId": "ITM004",
+    "ingredients": [
+      "ITM001",
+      "ITM001"
+    ],
+    "description": "2x Salvaged Parts = Broken Circuitry"
+  },
+  {
+    "resultId": "ITM007",
+    "ingredients": [
+      "ITM004",
+      "ITM004",
+      "ITM003"
+    ],
+    "description": "2x Broken Circuitry + Monster Core Shard = Reinforced Steel Plate"
+  },
+  {
+    "resultId": "ITM011",
+    "ingredients": [
+      "ITM007",
+      "ITM007",
+      "ITM008"
+    ],
+    "description": "2x Reinforced Steel Plate + System Shard = Advanced Component"
+  },
+  {
+    "resultId": "ITM009",
+    "ingredients": [
+      "ITM002",
+      "ITM002",
+      "ITM002",
+      "ITM002",
+      "ITM002"
+    ],
+    "description": "5x Medical Supplies = First Aid Kit"
+  },
+  {
+    "resultId": "ITM012",
+    "ingredients": [
+      "ITM010",
+      "ITM001",
+      "ITM001",
+      "ITM001",
+      "ITM001",
+      "ITM001"
+    ],
+    "description": "Toolbox + 5x Salvaged Parts = Aegis Power Core"
+  }
 ]

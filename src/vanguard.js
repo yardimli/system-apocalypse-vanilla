@@ -48,6 +48,24 @@ export function processVanguard(hero) {
 		
 		hero.hp.current -= damageTaken;
 		
+		// NEW: Grant XP to passive skill and check for level up
+		const activeSkill = hero.skills.find(s => {
+			const data = gameData.skills.find(d => d.id === s.id);
+			return data && data.effect === 'damage_reduction';
+		});
+		if (activeSkill) {
+			activeSkill.xp += 1; // Grant 1 XP per tick of combat
+			const skillData = gameData.skills.find(s => s.id === activeSkill.id);
+			if (skillData && activeSkill.xp >= skillData.xpMax) {
+				const upgradeSkill = gameData.skills.find(s => s.replaces === activeSkill.id);
+				if (upgradeSkill) {
+					activeSkill.id = upgradeSkill.id;
+					activeSkill.xp = 0;
+					addToLog(`${hero.name}'s ${skillData.name} has upgraded to ${upgradeSkill.name}!`);
+				}
+			}
+		}
+		
 		if (hero.hp.current <= 0) {
 			hero.hp.current = 0;
 			// Free the car without destroying it

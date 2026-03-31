@@ -82,6 +82,26 @@ export function handleAegisAction(heroId, skillId) {
 		hero.mp.current -= skill.mpCost;
 		hero.xp.current += 25; // Aegis gains XP per successful cast
 		
+		// NEW: Grant XP to the used skill and check for level up
+		const heroSkill = hero.skills.find(s => s.id === skillId);
+		if (heroSkill) {
+			heroSkill.xp += 10; // Grant 10 XP per cast
+			const skillData = gameData.skills.find(s => s.id === skillId);
+			if (skillData && heroSkill.xp >= skillData.xpMax) {
+				const upgradeSkill = gameData.skills.find(s => s.replaces === skillId);
+				if (upgradeSkill) {
+					heroSkill.id = upgradeSkill.id;
+					heroSkill.xp = 0;
+					// If the upgraded skill was in auto-cast, update the ID there too
+					const autoCastIndex = hero.autoCast.indexOf(skillId);
+					if (autoCastIndex > -1) {
+						hero.autoCast[autoCastIndex] = upgradeSkill.id;
+					}
+					addToLog(`${hero.name}'s ${skillData.name} has upgraded to ${upgradeSkill.name}!`);
+				}
+			}
+		}
+		
 		// MODIFIED: Use per-level modifiers for level up logic
 		if (hero.xp.current >= hero.xp.max) {
 			hero.level++;

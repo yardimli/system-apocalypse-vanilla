@@ -2,9 +2,8 @@ import { gameState, gameData } from './state.js';
 import { addToLog } from './utils.js';
 
 /**
- * Checks if a hero's current crafting slots and assets match a valid recipe.
- * The items in the hero's crafting slot must exactly match the item requirements of a recipe.
- * The hero must also possess any required skills or armor.
+ * Checks if a hero's current crafting slots match a valid recipe.
+ * Recipes are now item-only.
  * @param {object} hero - The hero object from gameState.
  * @returns {object|null} The matched recipe object or null.
  */
@@ -12,21 +11,12 @@ export function findValidRecipe(hero) {
 	// Sort for consistent comparison
 	const slottedItems = [...hero.craftingSlots].sort();
 	
+	// MODIFIED: Logic simplified for item-only recipes.
 	for (const recipe of gameData.recipes) {
-		const recipeItems = recipe.ingredients.filter(id => id.startsWith('ITM')).sort();
+		const recipeItems = [...recipe.ingredients].sort();
 		
-		// Check 1: Slotted inventory items must exactly match the recipe's item ingredients.
-		if (slottedItems.length !== recipeItems.length || !slottedItems.every((val, index) => val === recipeItems[index])) {
-			continue;
-		}
-		
-		// Check 2: Hero must have the required non-item assets (skills, armor).
-		const recipeAssets = recipe.ingredients.filter(id => !id.startsWith('ITM'));
-		const hasAllAssets = recipeAssets.every(assetId => {
-			return hero.skills.includes(assetId) || hero.armorId === assetId;
-		});
-		
-		if (hasAllAssets) {
+		// Check: Slotted inventory items must exactly match the recipe's item ingredients.
+		if (slottedItems.length > 0 && slottedItems.length === recipeItems.length && slottedItems.every((val, index) => val === recipeItems[index])) {
 			return recipe; // Found a valid recipe
 		}
 	}
@@ -48,38 +38,22 @@ export function handleCraftAttempt(heroId) {
 		return;
 	}
 	
-	// Consume ingredients from global inventory
-	const itemsToConsume = recipe.ingredients.filter(id => id.startsWith('ITM'));
-	itemsToConsume.forEach(itemId => {
-		if (gameState.inventory[itemId]) {
-			gameState.inventory[itemId]--;
-			if (gameState.inventory[itemId] === 0) {
-				delete gameState.inventory[itemId];
-			}
-		}
-	});
+	// This function does not consume items from crafting slots, as they are already
+	// considered "consumed" from the main inventory when dragged. This just grants the result.
 	
 	// Clear the hero's crafting slots
-	hero.craftingSlots =[];
+	hero.craftingSlots = [];
 	
 	// Grant the result of the craft
 	const { resultId } = recipe;
-	const resultSkill = gameData.skills.find(s => s.id === resultId);
-	const resultArmor = gameData.armor.find(a => a.id === resultId);
+	// MODIFIED: Simplified to only handle crafting items.
 	const resultItem = gameData.items.find(i => i.id === resultId);
 	
-	if (resultSkill) {
-		if (resultSkill.replaces) {
-			const index = hero.skills.indexOf(resultSkill.replaces);
-			if (index !== -1) hero.skills.splice(index, 1);
-		}
-		if (!hero.skills.includes(resultId)) hero.skills.push(resultId);
-		addToLog(`${hero.name} crafted ${resultSkill.name}!`);
-	} else if (resultArmor) {
-		hero.armorId = resultId;
-		addToLog(`${hero.name} crafted and equipped ${resultArmor.name}!`);
-	} else if (resultItem) {
+	if (resultItem) {
 		gameState.inventory[resultId] = (gameState.inventory[resultId] || 0) + 1;
 		addToLog(`${hero.name} crafted ${resultItem.name}!`);
+	} else {
+		// This case should ideally not happen if data is correct
+		addToLog(`Crafting failed for ${hero.name}. Could not find result item ${resultId}.`);
 	}
 }
