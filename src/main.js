@@ -5,7 +5,7 @@ import { processVanguard } from './vanguard.js';
 import { addToLog } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { findValidRecipe, handleCraftAttempt } from './crafting.js';
-import { handleItemDrop } from './inventory.js'; // NEW: Import inventory drag-drop handler
+import { handleItemDrop } from './inventory.js';
 
 const TABS =['Heroes', 'Buildings', 'Cars', 'City', 'Log', 'Sandbox'];
 let activeTab = 'Heroes';
@@ -15,6 +15,48 @@ const getEl = (id) => document.getElementById(id);
 const headerContainer = getEl('game-header');
 const tabsContainer = getEl('tabs-container');
 const contentArea = getEl('content-area');
+
+// --- ACTION HANDLERS ---
+
+/**
+ * Unequips the current armor from a hero.
+ * @param {number} heroId - The ID of the hero.
+ */
+function handleUnequipArmor(heroId) {
+	const hero = gameState.heroes.find(h => h.id === heroId);
+	if (!hero || !hero.armorId) return;
+	
+	const armor = gameData.armor.find(a => a.id === hero.armorId);
+	if (armor) {
+		hero.armorId = null;
+		addToLog(`${hero.name} unequipped ${armor.name}.`);
+	}
+}
+
+/**
+ * Equips a piece of armor to a hero from their inventory.
+ * @param {number} heroId - The ID of the hero.
+ * @param {string} armorId - The ID of the armor to equip.
+ */
+function handleEquipArmor(heroId, armorId) {
+	const hero = gameState.heroes.find(h => h.id === heroId);
+	// Prevent equipping if it's already equipped or the hero doesn't have it
+	if (!hero || !armorId || hero.armorId === armorId || !hero.inventory[armorId]) return;
+	
+	const armorToEquip = gameData.armor.find(a => a.id === armorId);
+	if (!armorToEquip) return; // Ensure it's a valid armor item
+	
+	const oldArmorId = hero.armorId;
+	hero.armorId = armorId;
+	
+	const oldArmor = oldArmorId ? gameData.armor.find(a => a.id === oldArmorId) : null;
+	
+	if (oldArmor) {
+		addToLog(`${hero.name} swapped ${oldArmor.name} for ${armorToEquip.name}.`);
+	} else {
+		addToLog(`${hero.name} equipped ${armorToEquip.name}.`);
+	}
+}
 
 // --- RENDERING FUNCTIONS ---
 function renderHeader() {
@@ -91,7 +133,6 @@ function renderContent() {
 	}
 }
 
-// NEW: Helper function to find an entity by its ID in either items or armor data.
 function findEntityById(id) {
 	if (!id) return null;
 	return gameData.items.find(i => i.id === id) || gameData.armor.find(a => a.id === id);
@@ -117,9 +158,18 @@ function renderHeroes() {
 		card.querySelector('[data-class]').textContent = hero.class;
 		card.querySelector('[data-class]').className = `badge ${hero.class === 'Aegis' ? 'badge-info' : hero.class === 'Striker' ? 'badge-error' : 'badge-success'}`;
 		
+		const armorTextEl = card.querySelector('[data-armor-text]');
+		const unequipButton = card.querySelector('[data-unequip-button]');
 		const armor = gameData.armor.find(a => a.id === hero.armorId);
-		const armorText = armor ? `${armor.name} (Mitigation: ${armor.damageMitigation})` : 'No Armor';
-		card.querySelector('[data-armor]').textContent = armorText;
+		
+		if (armor) {
+			armorTextEl.textContent = `${armor.name} (Mitigation: ${armor.damageMitigation})`;
+			unequipButton.classList.remove('hidden');
+			unequipButton.dataset.heroId = hero.id;
+		} else {
+			armorTextEl.textContent = 'No Armor';
+			unequipButton.classList.add('hidden');
+		}
 		
 		card.querySelector('[data-xp-label]').textContent = `XP: ${hero.xp.current}/${hero.xp.max}`;
 		card.querySelector('[data-xp-bar]').value = hero.xp.current;
@@ -137,7 +187,6 @@ function renderHeroes() {
 		const dynamicArea = card.querySelector('[data-dynamic-area]');
 		
 		if (hero.class === 'Aegis') {
-			// MODIFIED: Adapt to new hero.skills structure [{id, xp}]
 			const allSkillData = hero.skills.map(s => gameData.skills.find(gs => gs.id === s.id));
 			const allManualSkills = allSkillData.filter(s => s && s.type === 'Manual');
 			
@@ -193,9 +242,10 @@ function renderHeroes() {
 			
 			if (hero.craftingSlots.length > 0) {
 				craftDropZone.innerHTML = hero.craftingSlots.map((itemId, index) => {
-					const item = gameData.items.find(i => i.id === itemId);
-					if (!item) return '';
-					return `<div draggable="true" data-drag-craft-item-id="${itemId}" data-hero-id="${hero.id}" data-item-index="${index}" class="badge badge-accent cursor-move p-3">${item.name}</div>`;
+					// MODIFIED: Use findEntityById to correctly find armor or items.
+					const entity = findEntityById(itemId);
+					if (!entity) return '';
+					return `<div draggable="true" data-drag-craft-item-id="${itemId}" data-hero-id="${hero.id}" data-item-index="${index}" class="badge badge-accent cursor-move p-3">${entity.name}</div>`;
 				}).join('');
 			} else {
 				craftDropZone.innerHTML = `<span class="text-xs text-gray-500 italic">Drag ingredients here...</span>`;
@@ -204,13 +254,12 @@ function renderHeroes() {
 			const validRecipe = findValidRecipe(hero);
 			if (validRecipe) {
 				craftButton.disabled = false;
-				// MODIFIED: Recipes can now create items or armor.
 				const resultEntity = findEntityById(validRecipe.resultId);
 				
 				if (resultEntity) {
 					craftButton.textContent = `Craft: ${resultEntity.name}`;
 				} else {
-					craftButton.textContent = 'Craft: Unknown'; // Fallback for safety
+					craftButton.textContent = 'Craft: Unknown';
 				}
 			} else {
 				craftButton.disabled = true;
@@ -218,10 +267,9 @@ function renderHeroes() {
 			}
 		}
 		
-		// NEW: Render the hero's personal inventory
 		const invContainer = card.querySelector('[data-drop-zone="inventory"]');
 		if (invContainer) {
-			invContainer.dataset.heroId = hero.id; // Set hero ID on the drop zone
+			invContainer.dataset.heroId = hero.id;
 			let inventoryHtml = '';
 			const inventoryItems = Object.entries(hero.inventory);
 			
@@ -229,11 +277,20 @@ function renderHeroes() {
 				inventoryItems.forEach(([id, qty]) => {
 					const entity = findEntityById(id);
 					if (entity) {
+						let count = qty;
 						const isEquipped = hero.armorId === id;
-						const equippedText = isEquipped ? ' (Equipped)' : '';
-						const equippedClass = isEquipped ? 'badge-primary' : 'badge-outline';
-						for (let i = 0; i < qty; i++) {
-							inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" data-hero-id="${hero.id}" class="badge ${equippedClass} badge-lg p-3 cursor-move">${entity.name}${equippedText}</div>`;
+						const isArmor = gameData.armor.some(a => a.id === id);
+						
+						if (isEquipped) {
+							const equipAttribute = isArmor ? `data-equip-item-id="${id}"` : '';
+							inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" data-hero-id="${hero.id}" ${equipAttribute} class="badge badge-primary badge-lg p-3 cursor-move">${entity.name} (Equipped)</div>`;
+							count--;
+						}
+						
+						for (let i = 0; i < count; i++) {
+							const equipAttribute = isArmor ? `data-equip-item-id="${id}"` : '';
+							const cursorClass = isArmor ? 'cursor-pointer' : 'cursor-move';
+							inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" data-hero-id="${hero.id}" ${equipAttribute} class="badge badge-outline badge-lg p-3 ${cursorClass}">${entity.name}</div>`;
 						}
 					}
 				});
@@ -243,7 +300,6 @@ function renderHeroes() {
 			}
 		}
 		
-		// NEW: Render the hero's skills and their XP progress
 		const skillsListContainer = card.querySelector('[data-skills-list]');
 		if (skillsListContainer) {
 			skillsListContainer.innerHTML = hero.skills.map(heroSkill => {
@@ -528,6 +584,17 @@ async function init() {
 			handleCraftAttempt(heroId);
 			renderContent();
 		}
+		if (e.target.matches('[data-unequip-button]')) {
+			const heroId = parseInt(e.target.dataset.heroId, 10);
+			handleUnequipArmor(heroId);
+			renderContent();
+		}
+		if (e.target.matches('[data-equip-item-id]')) {
+			const heroId = parseInt(e.target.dataset.heroId, 10);
+			const armorId = e.target.dataset.equipItemId;
+			handleEquipArmor(heroId, armorId);
+			renderContent();
+		}
 		if (e.target.id === 'sandbox-apply') {
 			applySandboxChanges();
 			renderContent();
@@ -544,7 +611,6 @@ async function init() {
 			e.dataTransfer.setData('heroId', e.target.closest('[data-hero-id]').dataset.heroId);
 			e.target.classList.add('opacity-50');
 		}
-		// MODIFIED: Dragging items from a hero's personal inventory
 		if (e.target.matches('[data-drag-item-id]')) {
 			e.dataTransfer.setData('source', 'inventory');
 			e.dataTransfer.setData('itemId', e.target.dataset.dragItemId);
@@ -588,14 +654,12 @@ async function init() {
 		
 		const zoneType = dropZone.dataset.dropZone;
 		
-		// NEW: Delegate item drops to the inventory handler
 		if (zoneType === 'inventory' || zoneType === 'crafting') {
 			handleItemDrop(e);
 			renderContent();
 			return;
 		}
 		
-		// MODIFIED: Kept original logic for Aegis skill drops
 		const aegisZoneType = dropZone.dataset.dropZone;
 		if (aegisZoneType === 'auto' || aegisZoneType === 'manual') {
 			const draggedSkill = e.dataTransfer.getData('text/plain');

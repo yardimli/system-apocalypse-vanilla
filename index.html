@@ -48,7 +48,11 @@
 				<h2 class="card-title text-lg" data-name></h2>
 				<div class="badge" data-class></div>
 			</div>
-			<div class="text-xs text-gray-400 mb-2" data-armor></div>
+			<!-- MODIFIED: Armor display now includes an unequip button -->
+			<div class="flex justify-between items-center text-xs text-gray-400 mb-2" data-armor-container>
+				<span data-armor-text></span>
+				<button class="btn btn-xs btn-outline btn-error hidden" data-unequip-button>Unequip</button>
+			</div>
 			
 			<div class="my-2"><label class="label p-0"><span class="label-text" data-xp-label></span></label><progress class="progress progress-primary w-full" data-xp-bar></progress></div>
 			<div class="my-2"><label class="label p-0"><span class="label-text" data-hp-label></span></label><progress class="progress progress-success w-full" data-hp-bar></progress></div>
