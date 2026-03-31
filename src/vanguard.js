@@ -48,7 +48,6 @@ export function processVanguard(hero) {
 		
 		hero.hp.current -= damageTaken;
 		
-		// NEW: Grant XP to passive skill and check for level up
 		const activeSkill = hero.skills.find(s => {
 			const data = gameData.skills.find(d => d.id === s.id);
 			return data && data.effect === 'damage_reduction';

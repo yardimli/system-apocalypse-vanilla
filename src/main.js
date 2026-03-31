@@ -5,103 +5,27 @@ import { processVanguard } from './vanguard.js';
 import { addToLog } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { findValidRecipe, handleCraftAttempt } from './crafting.js';
-import { handleItemDrop } from './inventory.js';
+// MODIFIED: Import armor handlers and item drop from inventory.js
+import { handleItemDrop, handleUnequipArmor, handleEquipArmor } from './inventory.js';
+// MODIFIED: Import new render functions
+import { renderHeroes } from './heroes.js';
+import { renderMonsters } from './monsters.js';
+import { renderHeader, renderTabs, renderBuildings, renderCars, renderCity, renderLog } from './ui.js';
 
-const TABS =['Heroes', 'Buildings', 'Cars', 'City', 'Log', 'Sandbox'];
+// MODIFIED: Added 'Monsters' tab
+const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'City', 'Log', 'Sandbox'];
 let activeTab = 'Heroes';
 
 // --- DOM ELEMENTS ---
 const getEl = (id) => document.getElementById(id);
-const headerContainer = getEl('game-header');
 const tabsContainer = getEl('tabs-container');
 const contentArea = getEl('content-area');
 
 // --- ACTION HANDLERS ---
-
-/**
- * Unequips the current armor from a hero.
- * @param {number} heroId - The ID of the hero.
- */
-function handleUnequipArmor(heroId) {
-	const hero = gameState.heroes.find(h => h.id === heroId);
-	if (!hero || !hero.armorId) return;
-	
-	const armor = gameData.armor.find(a => a.id === hero.armorId);
-	if (armor) {
-		hero.armorId = null;
-		addToLog(`${hero.name} unequipped ${armor.name}.`);
-	}
-}
-
-/**
- * Equips a piece of armor to a hero from their inventory.
- * @param {number} heroId - The ID of the hero.
- * @param {string} armorId - The ID of the armor to equip.
- */
-function handleEquipArmor(heroId, armorId) {
-	const hero = gameState.heroes.find(h => h.id === heroId);
-	// Prevent equipping if it's already equipped or the hero doesn't have it
-	if (!hero || !armorId || hero.armorId === armorId || !hero.inventory[armorId]) return;
-	
-	const armorToEquip = gameData.armor.find(a => a.id === armorId);
-	if (!armorToEquip) return; // Ensure it's a valid armor item
-	
-	const oldArmorId = hero.armorId;
-	hero.armorId = armorId;
-	
-	const oldArmor = oldArmorId ? gameData.armor.find(a => a.id === oldArmorId) : null;
-	
-	if (oldArmor) {
-		addToLog(`${hero.name} swapped ${oldArmor.name} for ${armorToEquip.name}.`);
-	} else {
-		addToLog(`${hero.name} equipped ${armorToEquip.name}.`);
-	}
-}
+// MODIFIED: handleUnequipArmor and handleEquipArmor moved to inventory.js
 
 // --- RENDERING FUNCTIONS ---
-function renderHeader() {
-	let timeEl = headerContainer.querySelector('[data-stat="time"]');
-	
-	if (!timeEl) {
-		const template = getEl('header-template').content.cloneNode(true);
-		headerContainer.innerHTML = '';
-		headerContainer.appendChild(template);
-		timeEl = headerContainer.querySelector('[data-stat="time"]');
-	}
-	
-	const formatTime = (t) => {
-		const totalDays = Math.floor(t / 10);
-		const years = Math.floor(totalDays / 360) + 1;
-		const months = Math.floor((totalDays % 360) / 30) + 1;
-		const days = (totalDays % 30) + 1;
-		return `Y${years}, M${months}, D${days}`;
-	};
-	timeEl.textContent = formatTime(gameState.time);
-	
-	const totalPop = gameState.city.buildings.reduce((sum, b) => sum + b.population, 0);
-	const functional = gameState.city.buildings.filter(b => b.state === 'functional').length;
-	const shielded = gameState.city.buildings.filter(b => b.shieldHp > 0).length;
-	const broken = gameState.city.buildings.filter(b => b.state !== 'functional').length;
-	
-	const attackingBldg = gameState.activeMonsters.filter(m => !m.assigned && m.targetBuilding).length;
-	const attackingHero = gameState.activeMonsters.filter(m => m.assigned).length;
-	const roaming = gameState.activeMonsters.filter(m => !m.assigned && !m.targetBuilding).length;
-	
-	const activeCars = gameState.city.cars.filter(c => c.battery > 0).length;
-	
-	const bldgText = `F:${functional} | S:${shielded} | B:${broken}`;
-	headerContainer.querySelector('[data-stat="population"]').textContent = totalPop;
-	headerContainer.querySelector('[data-stat="buildings"]').textContent = bldgText;
-	headerContainer.querySelector('[data-stat="cars"]').textContent = `${activeCars}/40`;
-	headerContainer.querySelector('[data-stat="monsters"]').textContent = `${attackingBldg} / ${attackingHero}`;
-	headerContainer.querySelector('[data-stat="roaming"]').textContent = roaming;
-}
-
-function renderTabs() {
-	tabsContainer.innerHTML = TABS.map(tab => `
-        <a role="tab" class="tab ${tab === activeTab ? 'tab-active' : ''}" data-tab="${tab}">${tab}</a>
-    `).join('');
-}
+// MODIFIED: All render functions have been moved to their own dedicated files (heroes.js, monsters.js, ui.js)
 
 function renderContent() {
 	switch (activeTab) {
@@ -116,16 +40,19 @@ function renderContent() {
 			renderHeroes();
 			break;
 		case 'Buildings':
-			renderBuildings();
+			renderBuildings(contentArea);
 			break;
 		case 'Cars':
-			renderCars();
+			renderCars(contentArea);
+			break;
+		case 'Monsters':
+			renderMonsters(contentArea);
 			break;
 		case 'City':
-			renderCity();
+			renderCity(contentArea);
 			break;
 		case 'Log':
-			renderLog();
+			renderLog(contentArea);
 			break;
 		case 'Sandbox':
 			renderSandbox(contentArea);
@@ -133,307 +60,50 @@ function renderContent() {
 	}
 }
 
-function findEntityById(id) {
-	if (!id) return null;
-	return gameData.items.find(i => i.id === id) || gameData.armor.find(a => a.id === id);
-}
-
-function renderHeroes() {
-	const grid = getEl('heroes-grid');
-	if (!grid) return;
-	const template = getEl('hero-card-template');
-	
-	gameState.heroes.forEach(hero => {
-		let card = getEl(`hero-card-${hero.id}`);
-		
-		if (!card) {
-			const clone = template.content.cloneNode(true);
-			card = clone.querySelector('.card');
-			card.id = `hero-card-${hero.id}`;
-			grid.appendChild(clone);
-			card = getEl(`hero-card-${hero.id}`);
-		}
-		
-		card.querySelector('[data-name]').textContent = `${hero.name} | Lv. ${hero.level}`;
-		card.querySelector('[data-class]').textContent = hero.class;
-		card.querySelector('[data-class]').className = `badge ${hero.class === 'Aegis' ? 'badge-info' : hero.class === 'Striker' ? 'badge-error' : 'badge-success'}`;
-		
-		const armorTextEl = card.querySelector('[data-armor-text]');
-		const unequipButton = card.querySelector('[data-unequip-button]');
-		const armor = gameData.armor.find(a => a.id === hero.armorId);
-		
-		if (armor) {
-			armorTextEl.textContent = `${armor.name} (Mitigation: ${armor.damageMitigation})`;
-			unequipButton.classList.remove('hidden');
-			unequipButton.dataset.heroId = hero.id;
-		} else {
-			armorTextEl.textContent = 'No Armor';
-			unequipButton.classList.add('hidden');
-		}
-		
-		card.querySelector('[data-xp-label]').textContent = `XP: ${hero.xp.current}/${hero.xp.max}`;
-		card.querySelector('[data-xp-bar]').value = hero.xp.current;
-		card.querySelector('[data-xp-bar]').max = hero.xp.max;
-		
-		const formatRegen = (val) => Number(val.toFixed(2));
-		card.querySelector('[data-hp-label]').textContent = `HP: ${Math.floor(hero.hp.current)}/${hero.hp.max} (+${formatRegen(hero.hpRegen)}/s)`;
-		card.querySelector('[data-hp-bar]').value = hero.hp.current;
-		card.querySelector('[data-hp-bar]').max = hero.hp.max;
-		
-		card.querySelector('[data-mp-label]').textContent = `MP: ${Math.floor(hero.mp.current)}/${hero.mp.max} (+${formatRegen(hero.mpRegen)}/s)`;
-		card.querySelector('[data-mp-bar]').value = hero.mp.current;
-		card.querySelector('[data-mp-bar]').max = hero.mp.max;
-		
-		const dynamicArea = card.querySelector('[data-dynamic-area]');
-		
-		if (hero.class === 'Aegis') {
-			const allSkillData = hero.skills.map(s => gameData.skills.find(gs => gs.id === s.id));
-			const allManualSkills = allSkillData.filter(s => s && s.type === 'Manual');
-			
-			const autoSkills = hero.autoCast.map(id => allManualSkills.find(s => s.id === id)).filter(Boolean);
-			const manualSkills = allManualSkills.filter(s => !hero.autoCast.includes(s.id));
-			
-			dynamicArea.innerHTML = `
-                <div class="flex gap-2 w-full">
-                    <div class="flex-1 bg-base-100 p-2 rounded border border-base-300 min-h-[100px]" data-drop-zone="manual" data-hero-id="${hero.id}">
-                        <h4 class="text-xs font-bold mb-2 text-center text-gray-400">Manual Skills</h4>
-                        <div class="flex flex-col gap-1">
-                            ${manualSkills.map(skill => `
-                                <div draggable="true" data-drag-skill="${skill.id}" class="badge badge-outline cursor-move w-full justify-between p-3">
-                                    <span>${skill.name}</span>
-                                    <button class="btn btn-xs btn-ghost" data-skill-id="${skill.id}" data-hero-id="${hero.id}" ${hero.mp.current < skill.mpCost ? 'disabled' : ''}>Cast</button>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    <div class="flex-1 bg-base-100 p-2 rounded border border-primary min-h-[100px]" data-drop-zone="auto" data-hero-id="${hero.id}">
-                        <h4 class="text-xs font-bold mb-2 text-center text-primary">Auto Priority</h4>
-                        <div class="flex flex-col gap-1">
-                            ${autoSkills.map(skill => `
-                                <div draggable="true" data-drag-skill="${skill.id}" class="badge badge-primary cursor-move w-full p-3">${skill.name}</div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-                <p class="text-[10px] text-center mt-1 text-gray-500">Drag skills between boxes to set auto-cast priority.</p>
-            `;
-		} else {
-			if (hero.hp.current <= 0) {
-				dynamicArea.innerHTML = `<p class="text-error font-bold text-center">INCAPACITATED</p><p class="text-xs text-center">Awaiting Aegis Healing...</p>`;
-			} else if (!hero.carId) {
-				dynamicArea.innerHTML = `<p class="text-warning text-center text-sm">Waiting for Mana Battery Car...</p>`;
-			} else if (hero.targetMonster) {
-				dynamicArea.innerHTML = `
-                    <p class="text-sm font-bold text-error mb-1">Fighting: Lv.${hero.targetMonster.level} ${hero.targetMonster.name}</p>
-                    <progress class="progress progress-error w-full" value="${hero.targetMonster.currentHp}" max="${hero.targetMonster.maxHp}"></progress>
-                    <p class="text-xs text-right mt-1">${Math.floor(hero.targetMonster.currentHp)}/${hero.targetMonster.maxHp} HP</p>
-                `;
-			} else {
-				dynamicArea.innerHTML = `<p class="text-success text-center text-sm">Patrolling in Car #${hero.carId}. No targets.</p>`;
-			}
-		}
-		
-		const craftingContainer = card.querySelector('[data-crafting-container]');
-		if (craftingContainer) {
-			const craftDropZone = craftingContainer.querySelector('[data-drop-zone="crafting"]');
-			craftDropZone.dataset.heroId = hero.id;
-			const craftButton = craftingContainer.querySelector('[data-craft-button]');
-			craftButton.dataset.heroId = hero.id;
-			
-			if (hero.craftingSlots.length > 0) {
-				craftDropZone.innerHTML = hero.craftingSlots.map((itemId, index) => {
-					// MODIFIED: Use findEntityById to correctly find armor or items.
-					const entity = findEntityById(itemId);
-					if (!entity) return '';
-					return `<div draggable="true" data-drag-craft-item-id="${itemId}" data-hero-id="${hero.id}" data-item-index="${index}" class="badge badge-accent cursor-move p-3">${entity.name}</div>`;
-				}).join('');
-			} else {
-				craftDropZone.innerHTML = `<span class="text-xs text-gray-500 italic">Drag ingredients here...</span>`;
-			}
-			
-			const validRecipe = findValidRecipe(hero);
-			if (validRecipe) {
-				craftButton.disabled = false;
-				const resultEntity = findEntityById(validRecipe.resultId);
-				
-				if (resultEntity) {
-					craftButton.textContent = `Craft: ${resultEntity.name}`;
-				} else {
-					craftButton.textContent = 'Craft: Unknown';
-				}
-			} else {
-				craftButton.disabled = true;
-				craftButton.textContent = 'Craft';
-			}
-		}
-		
-		const invContainer = card.querySelector('[data-drop-zone="inventory"]');
-		if (invContainer) {
-			invContainer.dataset.heroId = hero.id;
-			let inventoryHtml = '';
-			const inventoryItems = Object.entries(hero.inventory);
-			
-			if (inventoryItems.length > 0) {
-				inventoryItems.forEach(([id, qty]) => {
-					const entity = findEntityById(id);
-					if (entity) {
-						let count = qty;
-						const isEquipped = hero.armorId === id;
-						const isArmor = gameData.armor.some(a => a.id === id);
-						
-						if (isEquipped) {
-							const equipAttribute = isArmor ? `data-equip-item-id="${id}"` : '';
-							inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" data-hero-id="${hero.id}" ${equipAttribute} class="badge badge-primary badge-lg p-3 cursor-move">${entity.name} (Equipped)</div>`;
-							count--;
-						}
-						
-						for (let i = 0; i < count; i++) {
-							const equipAttribute = isArmor ? `data-equip-item-id="${id}"` : '';
-							const cursorClass = isArmor ? 'cursor-pointer' : 'cursor-move';
-							inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" data-hero-id="${hero.id}" ${equipAttribute} class="badge badge-outline badge-lg p-3 ${cursorClass}">${entity.name}</div>`;
-						}
-					}
-				});
-				invContainer.innerHTML = inventoryHtml;
-			} else {
-				invContainer.innerHTML = '<span class="text-xs text-gray-500 italic">Empty</span>';
-			}
-		}
-		
-		const skillsListContainer = card.querySelector('[data-skills-list]');
-		if (skillsListContainer) {
-			skillsListContainer.innerHTML = hero.skills.map(heroSkill => {
-				const skillData = gameData.skills.find(s => s.id === heroSkill.id);
-				if (!skillData) return '';
-				
-				return `
-					<div class="text-xs">
-						<div class="flex justify-between items-center">
-							<span>${skillData.name}</span>
-							<span class="text-gray-400">${heroSkill.xp} / ${skillData.xpMax}</span>
-						</div>
-						<progress class="progress progress-secondary w-full" value="${heroSkill.xp}" max="${skillData.xpMax}"></progress>
-					</div>
-				`;
-			}).join('');
-		}
-	});
-}
-
-function renderBuildings() {
-	let grid = getEl('buildings-grid');
-	if (!grid) {
-		contentArea.innerHTML = `<div id="buildings-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>`;
-		grid = getEl('buildings-grid');
-		
-		gameState.city.buildings.forEach(b => {
-			const el = document.createElement('div');
-			el.id = `bldg-${b.id}`;
-			el.className = 'card bg-base-200 shadow-sm p-3 text-xs border border-base-300';
-			el.innerHTML = `
-                <div class="font-bold text-sm mb-1">Bldg #${b.id}</div>
-                <div data-state class="font-semibold"></div>
-                <div data-hp></div>
-                <div data-shield class="text-info"></div>
-                <div data-pop class="text-success mt-1"></div>
-            `;
-			grid.appendChild(el);
-		});
-	}
-	
-	gameState.city.buildings.forEach(b => {
-		const el = getEl(`bldg-${b.id}`);
-		if (!el) return;
-		
-		const stateEl = el.querySelector('[data-state]');
-		stateEl.textContent = `State: ${b.state}`;
-		stateEl.className = `font-semibold ${b.state === 'functional' ? 'text-success' : b.state === 'damaged' ? 'text-warning' : 'text-error'}`;
-		
-		el.querySelector('[data-hp]').textContent = `HP: ${b.hp}/${b.maxHp}`;
-		el.querySelector('[data-shield]').textContent = `Shield: ${b.shieldHp}/${b.maxShieldHp}`;
-		el.querySelector('[data-pop]').textContent = `Pop: ${b.population}/10`;
-	});
-}
-
-function renderCars() {
-	if (!getEl('cars-grid')) {
-		contentArea.innerHTML = `<div id="cars-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4"></div>`;
-	}
-	const grid = getEl('cars-grid');
-	grid.innerHTML = gameState.city.cars.map(car => {
-		const driver = car.driverId ? gameState.heroes.find(h => h.id === car.driverId) : null;
-		const driverText = driver ? `${driver.name} (${driver.class})` : 'None';
-		return `
-            <div class="card bg-base-200 shadow-sm p-3 text-xs border ${car.battery > 0 ? 'border-success' : 'border-error'}">
-                <div class="font-bold mb-1">Car #${car.id}</div>
-                <div>Battery: ${car.battery}/10</div>
-                <div class="truncate text-gray-400 mt-1">Driver: ${driverText}</div>
-            </div>
-        `;
-	}).join('');
-}
-
-function renderCity() {
-	if (!getEl('city-status-container')) {
-		contentArea.innerHTML = `
-        <div id="city-status-container" class="card bg-base-200 shadow-xl p-6">
-            <h2 class="text-2xl font-bold mb-4">City Status</h2>
-            <div class="stats stats-vertical lg:stats-horizontal shadow mb-4">
-                <div class="stat"><div class="stat-title">Functional</div><div class="stat-value text-success" id="city-func-stat"></div></div>
-                <div class="stat"><div class="stat-title">Shielded</div><div class="stat-value text-info" id="city-shield-stat"></div></div>
-                <div class="stat"><div class="stat-title">Broken</div><div class="stat-value text-error" id="city-broken-stat"></div></div>
-                <div class="stat"><div class="stat-title">Active Cars</div><div class="stat-value text-warning" id="city-cars-stat"></div></div>
-            </div>
-        </div>`;
-	}
-	
-	const functional = gameState.city.buildings.filter(b => b.state === 'functional').length;
-	const shielded = gameState.city.buildings.filter(b => b.shieldHp > 0).length;
-	const broken = gameState.city.buildings.filter(b => b.state !== 'functional').length;
-	const activeCars = gameState.city.cars.filter(c => c.battery > 0).length;
-	
-	getEl('city-func-stat').textContent = functional;
-	getEl('city-shield-stat').textContent = shielded;
-	getEl('city-broken-stat').textContent = broken;
-	getEl('city-cars-stat').textContent = `${activeCars}/40`;
-}
-
-function renderLog() {
-	if (!getEl('log-container')) {
-		contentArea.innerHTML = `
-        <div class="card bg-base-200 shadow-xl p-6">
-            <h2 class="text-2xl font-bold mb-4">Game Log</h2>
-            <div id="log-container" class="bg-base-100 rounded-box p-4 h-96 overflow-y-scroll flex flex-col-reverse font-mono text-sm">
-            </div>
-        </div>`;
-	}
-	getEl('log-container').innerHTML = gameState.log.map(entry => `<p>${entry}</p>`).join('');
-}
-
 // --- GAME LOOP ---
 function gameLoop() {
 	gameState.time++;
 	
 	// 1. Spawn Monsters
-	const week = Math.floor(gameState.time / 70) + 1;
+	// MODIFIED: Spawning logic now uses spawnDay and spawnRatio from monster data.
+	const currentDay = Math.floor(gameState.time / 10) + 1;
 	gameState.threatLevel = 10 + Math.floor(gameState.time / 60);
 	
 	if (Math.random() < (gameState.threatLevel / 100)) {
-		const availableMonsters = gameData.monsters.filter(m => m.level <= week);
-		const randomMonster = availableMonsters.length > 0 ? availableMonsters[Math.floor(Math.random() * availableMonsters.length)] : gameData.monsters[0];
+		// Filter monsters that are eligible to spawn based on the current day.
+		const availableMonsters = gameData.monsters.filter(m => m.spawnDay <= currentDay);
 		
-		gameState.activeMonsters.push({
-			id: Math.random().toString(36).substr(2, 9),
-			name: randomMonster.name,
-			level: randomMonster.level,
-			maxHp: randomMonster.hp,
-			currentHp: randomMonster.hp,
-			damage: randomMonster.damage,
-			xp: randomMonster.xp,
-			assigned: false,
-			targetBuilding: null
-		});
-		addToLog(`A Lv.${randomMonster.level} ${randomMonster.name} has appeared!`);
+		if (availableMonsters.length > 0) {
+			// Use spawnRatio for weighted random selection.
+			const totalRatio = availableMonsters.reduce((sum, m) => sum + m.spawnRatio, 0);
+			let randomWeight = Math.random() * totalRatio;
+			let chosenMonster = null;
+			
+			for (const monster of availableMonsters) {
+				randomWeight -= monster.spawnRatio;
+				if (randomWeight <= 0) {
+					chosenMonster = monster;
+					break;
+				}
+			}
+			// Fallback in case of floating point inaccuracies
+			if (!chosenMonster) {
+				chosenMonster = availableMonsters[availableMonsters.length - 1];
+			}
+			
+			gameState.activeMonsters.push({
+				id: Math.random().toString(36).substr(2, 9), // Unique ID for this instance
+				name: chosenMonster.name,
+				level: chosenMonster.level,
+				maxHp: chosenMonster.hp,
+				currentHp: chosenMonster.hp,
+				damage: chosenMonster.damage,
+				xp: chosenMonster.xp,
+				assigned: false,
+				targetBuilding: null
+			});
+			addToLog(`A Lv.${chosenMonster.level} ${chosenMonster.name} has appeared!`);
+		}
 	}
 	
 	// 2. Process Heroes
@@ -532,11 +202,13 @@ function gameLoop() {
 	}
 	
 	renderHeader();
+	// MODIFIED: Calls to render functions now use the imported versions
 	if (activeTab === 'Heroes') renderHeroes();
-	if (activeTab === 'Buildings') renderBuildings();
-	if (activeTab === 'Cars') renderCars();
-	if (activeTab === 'City') renderCity();
-	if (activeTab === 'Log') renderLog();
+	if (activeTab === 'Buildings') renderBuildings(contentArea);
+	if (activeTab === 'Monsters') renderMonsters(contentArea);
+	if (activeTab === 'Cars') renderCars(contentArea);
+	if (activeTab === 'City') renderCity(contentArea);
+	if (activeTab === 'Log') renderLog(contentArea);
 	if (activeTab === 'Sandbox') renderSandbox(contentArea);
 }
 
@@ -562,13 +234,13 @@ async function init() {
 	}
 	
 	renderHeader();
-	renderTabs();
+	renderTabs(activeTab, TABS);
 	renderContent();
 	
 	tabsContainer.addEventListener('click', (e) => {
 		if (e.target.matches('[data-tab]')) {
 			activeTab = e.target.dataset.tab;
-			renderTabs();
+			renderTabs(activeTab, TABS);
 			renderContent();
 		}
 	});

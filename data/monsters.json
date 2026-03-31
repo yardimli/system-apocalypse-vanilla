@@ -1,10 +1,10 @@
 [
-{ "id": "MON001", "name": "Scrap Hound", "hp": 50, "damage": 5, "xp": 20, "level": 1 },
-{ "id": "MON002", "name": "Rust Golem", "hp": 120, "damage": 12, "xp": 50, "level": 1 },
-{ "id": "MON003", "name": "Neon Stalker", "hp": 80, "damage": 20, "xp": 40, "level": 1 },
-{ "id": "MON004", "name": "Cyber Wolf", "hp": 150, "damage": 25, "xp": 80, "level": 2 },
-{ "id": "MON005", "name": "Titan Mech", "hp": 300, "damage": 40, "xp": 150, "level": 2 },
-{ "id": "MON006", "name": "Plasma Wraith", "hp": 200, "damage": 60, "xp": 120, "level": 2 },
-{ "id": "MON007", "name": "Apex Predator", "hp": 500, "damage": 80, "xp": 300, "level": 3 },
-{ "id": "MON008", "name": "Doom Bringer", "hp": 800, "damage": 120, "xp": 500, "level": 3 }
+  { "id": "MON001", "name": "Scrap Hound", "hp": 50, "damage": 5, "xp": 20, "level": 1, "spawnDay": 1, "spawnRatio": 10 },
+  { "id": "MON002", "name": "Rust Golem", "hp": 120, "damage": 12, "xp": 50, "level": 1, "spawnDay": 3, "spawnRatio": 5 },
+  { "id": "MON003", "name": "Neon Stalker", "hp": 80, "damage": 20, "xp": 40, "level": 1, "spawnDay": 15, "spawnRatio": 7 },
+  { "id": "MON004", "name": "Cyber Wolf", "hp": 150, "damage": 25, "xp": 80, "level": 2, "spawnDay": 30, "spawnRatio": 8 },
+  { "id": "MON005", "name": "Titan Mech", "hp": 300, "damage": 40, "xp": 150, "level": 2, "spawnDay": 40, "spawnRatio": 4 },
+  { "id": "MON006", "name": "Plasma Wraith", "hp": 200, "damage": 60, "xp": 120, "level": 2, "spawnDay": 50, "spawnRatio": 6 },
+  { "id": "MON007", "name": "Apex Predator", "hp": 500, "damage": 80, "xp": 300, "level": 3, "spawnDay": 100, "spawnRatio": 3 },
+  { "id": "MON008", "name": "Doom Bringer", "hp": 800, "damage": 120, "xp": 500, "level": 3, "spawnDay": 150, "spawnRatio": 1 }
 ]

@@ -216,4 +216,12 @@ add a new javascript file that will manage inventory. the drag code between inve
 in monsters json add a new variable that sets when the monster will start spawning as days since the game started
 add spawn ratio for each monster type that will determine the chance of that monster spawning when a monster event is triggered
 change it so all levels of monsters can spawn instead of monsters being upgraded
-add a tab that shows all monsters along with thier hp, it should list same monster multiple times and not group them
+add a tab that shows all monsters along with thier hp, it should list same monster multiple times and not group them,
+in monster list show what monster is attacking, hero or building along with building number or hero name
+
+----
+
+allow multiple hero's to fight the same monster
+the vanguard should be the one that is taking the damage as long as it is alive
+if the vanguard is attacking a monster and the striker is attacking another the striker should disengage and switch to attacking the same monster as the vanguard
+

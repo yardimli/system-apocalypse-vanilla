@@ -82,7 +82,6 @@ export function handleAegisAction(heroId, skillId) {
 		hero.mp.current -= skill.mpCost;
 		hero.xp.current += 25; // Aegis gains XP per successful cast
 		
-		// NEW: Grant XP to the used skill and check for level up
 		const heroSkill = hero.skills.find(s => s.id === skillId);
 		if (heroSkill) {
 			heroSkill.xp += 10; // Grant 10 XP per cast

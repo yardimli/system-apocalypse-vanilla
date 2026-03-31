@@ -49,7 +49,6 @@ export const gameState = {
 			],
 			autoCast:[],
 			craftingSlots:[],
-			// NEW: Per-hero inventory. Ava gets the starting items.
 			inventory: {
 				'ARM001': 1,
 				'ITM001': 5,
@@ -74,10 +73,8 @@ export const gameState = {
 			armorId: 'ARM001',
 			carId: null,
 			targetMonster: null,
-			// MODIFIED: Skills are now objects tracking their own XP.
 			skills: [{ id: 'STR001', xp: 0 }],
 			craftingSlots:[],
-			// NEW: Per-hero inventory.
 			inventory: {
 				'ARM001': 1
 			}
@@ -99,10 +96,8 @@ export const gameState = {
 			armorId: 'ARM001',
 			carId: null,
 			targetMonster: null,
-			// MODIFIED: Skills are now objects tracking their own XP.
 			skills: [{ id: 'VAN001', xp: 0 }],
 			craftingSlots:[],
-			// NEW: Per-hero inventory.
 			inventory: {
 				'ARM001': 1
 			}
