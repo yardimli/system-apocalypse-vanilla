@@ -224,4 +224,14 @@ in monster list show what monster is attacking, hero or building along with buil
 allow multiple hero's to fight the same monster
 the vanguard should be the one that is taking the damage as long as it is alive
 if the vanguard is attacking a monster and the striker is attacking another the striker should disengage and switch to attacking the same monster as the vanguard
+spawned monsters should have an id and in the hero's panels show the id of the monster they are fighting,
+in the logs show the monster id as well
+in the monsters tab show the monster id
+also keep track of how many days the monster has been alive and show it in the monster tab
 
+----
+
+hero's should use first aid kit in their inventory to self heal when their health is bellow 60%
+in the inventory for consumables show how many hp they will restore
+add a new item for mana restoration and have the heros use it when their mana is bellow 60%
+hero's can use any consumable in their inventory by clicking on it as well

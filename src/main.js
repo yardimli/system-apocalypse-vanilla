@@ -60,6 +60,67 @@ function renderContent() {
 	}
 }
 
+/**
+ * NEW: Manages combat assignments for Strikers and Vanguards.
+ * Vanguards taunt monsters, and Strikers prioritize those taunted monsters.
+ */
+function manageCombatAssignments() {
+	const combatHeroes = gameState.heroes.filter(h =>
+		(h.class === 'Striker' || h.class === 'Vanguard') &&
+		h.hp.current > 0 &&
+		h.carId
+	);
+	
+	// Clear targets for heroes whose monster is already defeated
+	combatHeroes.forEach(hero => {
+		if (hero.targetMonsterId && !gameState.activeMonsters.some(m => m.id === hero.targetMonsterId)) {
+			hero.targetMonsterId = null;
+		}
+	});
+	
+	const vanguards = combatHeroes.filter(h => h.class === 'Vanguard');
+	const strikers = combatHeroes.filter(h => h.class === 'Striker');
+	
+	// 1. Vanguards find targets if they are idle
+	vanguards.forEach(vanguard => {
+		if (!vanguard.targetMonsterId) {
+			// Prefer monsters not engaged by anyone
+			const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
+			if (target) {
+				vanguard.targetMonsterId = target.id;
+			}
+		}
+	});
+	
+	// 2. Strikers prioritize Vanguard targets
+	const vanguardTargets = vanguards
+		.map(v => gameState.activeMonsters.find(m => m.id === v.targetMonsterId))
+		.filter(Boolean);
+	
+	strikers.forEach(striker => {
+		const isTargetingVanguardMonster = vanguardTargets.some(m => m.id === striker.targetMonsterId);
+		
+		if (vanguardTargets.length > 0 && !isTargetingVanguardMonster) {
+			// If Vanguards have targets, Strikers MUST assist.
+			striker.targetMonsterId = vanguardTargets[0].id; // Assist the first Vanguard's target.
+		} else if (vanguardTargets.length === 0 && !striker.targetMonsterId) {
+			// No Vanguards fighting, Striker is idle. Find a target.
+			const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
+			if (target) {
+				striker.targetMonsterId = target.id;
+			}
+		}
+	});
+	
+	// Sync monster 'assignedTo' arrays based on final hero targets
+	gameState.activeMonsters.forEach(m => {
+		m.assignedTo = gameState.heroes
+			.filter(h => h.targetMonsterId === m.id)
+			.map(h => h.id);
+	});
+}
+
+
 // --- GAME LOOP ---
 function gameLoop() {
 	gameState.time++;
@@ -91,24 +152,28 @@ function gameLoop() {
 				chosenMonster = availableMonsters[availableMonsters.length - 1];
 			}
 			
-			gameState.activeMonsters.push({
-				id: Math.random().toString(36).substr(2, 9), // Unique ID for this instance
+			const newMonster = {
+				id: `M-${Math.random().toString(36).substr(2, 9)}`, // MODIFIED: Added prefix for clarity
+				spawnTime: gameState.time, // NEW: Track when the monster spawned
 				name: chosenMonster.name,
 				level: chosenMonster.level,
 				maxHp: chosenMonster.hp,
 				currentHp: chosenMonster.hp,
 				damage: chosenMonster.damage,
 				xp: chosenMonster.xp,
-				assigned: false,
+				assignedTo: [], // MODIFIED: Changed from 'assigned' to track multiple heroes
 				targetBuilding: null
-			});
-			addToLog(`A Lv.${chosenMonster.level} ${chosenMonster.name} has appeared!`);
+			};
+			gameState.activeMonsters.push(newMonster);
+			addToLog(`A Lv.${chosenMonster.level} ${chosenMonster.name} (#${newMonster.id}) has appeared!`); // MODIFIED: Added monster ID to log
 		}
 	}
 	
 	// 2. Process Heroes
+	manageCombatAssignments(); // NEW: Centralized combat assignment logic.
+	
 	gameState.heroes.forEach(hero => {
-		if (!hero.targetMonster) {
+		if (!hero.targetMonsterId) { // MODIFIED: Check targetMonsterId for regen.
 			if (hero.hp.current > 0) {
 				hero.hp.current = Math.min(hero.hp.max, hero.hp.current + hero.hpRegen);
 			}
@@ -139,7 +204,7 @@ function gameLoop() {
 	
 	// 3. Unassigned Monsters Attack City
 	gameState.activeMonsters.forEach(monster => {
-		if (!monster.assigned) {
+		if (monster.assignedTo.length === 0) { // MODIFIED: A monster attacks if no one is fighting it.
 			if (!monster.targetBuilding) {
 				const validTargets = gameState.city.buildings.filter(b => b.state !== 'ruined');
 				if (validTargets.length > 0) {
@@ -153,7 +218,7 @@ function gameLoop() {
 					if (bldg.shieldHp > 0) {
 						bldg.shieldHp--;
 						if (bldg.shieldHp === 0) {
-							addToLog(`Lv.${monster.level} ${monster.name} destroyed the shield on Building #${bldg.id}!`);
+							addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) destroyed the shield on Building #${bldg.id}!`); // MODIFIED: Added monster ID
 						}
 					} else {
 						bldg.hp--;
@@ -162,10 +227,10 @@ function gameLoop() {
 							bldg.state = 'ruined';
 							bldg.population = 0;
 							monster.targetBuilding = null;
-							addToLog(`Building #${bldg.id} was ruined by Lv.${monster.level} ${monster.name}!`);
+							addToLog(`Building #${bldg.id} was ruined by Lv.${monster.level} ${monster.name} (#${monster.id})!`); // MODIFIED: Added monster ID
 						} else if (bldg.hp <= 5 && bldg.state === 'functional') {
 							bldg.state = 'damaged';
-							addToLog(`Building #${bldg.id} was damaged by Lv.${monster.level} ${monster.name}!`);
+							addToLog(`Building #${bldg.id} was damaged by Lv.${monster.level} ${monster.name} (#${monster.id})!`); // MODIFIED: Added monster ID
 						}
 					}
 				} else {

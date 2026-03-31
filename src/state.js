@@ -72,7 +72,7 @@ export const gameState = {
 			mpRegenPerLevel: 0.5,
 			armorId: 'ARM001',
 			carId: null,
-			targetMonster: null,
+			targetMonsterId: null, // MODIFIED: Renamed from targetMonster to store only the ID.
 			skills: [{ id: 'STR001', xp: 0 }],
 			craftingSlots:[],
 			inventory: {
@@ -84,7 +84,7 @@ export const gameState = {
 			name: 'Roc',
 			class: 'Vanguard',
 			level: 1,
-			xp: { current: 0, max: 100 },
+			xp: { current: 0, max: 250 },
 			hp: { current: 250, max: 250 },
 			mp: { current: 50, max: 50 },
 			hpRegen: 2.0,
@@ -95,7 +95,7 @@ export const gameState = {
 			mpRegenPerLevel: 0.2,
 			armorId: 'ARM001',
 			carId: null,
-			targetMonster: null,
+			targetMonsterId: null, // MODIFIED: Renamed from targetMonster to store only the ID.
 			skills: [{ id: 'VAN001', xp: 0 }],
 			craftingSlots:[],
 			inventory: {

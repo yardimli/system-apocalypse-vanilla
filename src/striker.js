@@ -16,17 +16,13 @@ export function processStriker(hero) {
 	
 	if (!hero.carId) return;
 	
-	if (!hero.targetMonster) {
-		const unassigned = gameState.activeMonsters.find(m => !m.assigned);
-		if (unassigned) {
-			unassigned.assigned = true;
-			unassigned.targetBuilding = null; // Monster stops attacking the building when engaged
-			hero.targetMonster = unassigned;
+	// MODIFIED: Target acquisition is now handled in main.js. We just act on the assigned target.
+	if (hero.targetMonsterId) {
+		const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
+		if (!monster) { // This can happen if monster was defeated by another hero in the same tick
+			hero.targetMonsterId = null;
+			return;
 		}
-	}
-	
-	if (hero.targetMonster) {
-		const monster = hero.targetMonster;
 		
 		// Calculate 10% boost per level
 		const levelBoost = 1 + (hero.level * 0.1);
@@ -36,12 +32,16 @@ export function processStriker(hero) {
 		const damageDealt = Math.floor((15 + damageBoost) * levelBoost);
 		monster.currentHp -= damageDealt;
 		
-		// MODIFIED: Apply armor damage mitigation
-		const armor = gameData.armor.find(a => a.id === hero.armorId);
-		const armorMitigation = armor ? armor.damageMitigation : 0;
-		const damageTaken = Math.max(1, monster.damage - armorMitigation);
+		// MODIFIED: Striker only takes damage if no living Vanguard is fighting the same monster.
+		const attackers = gameState.heroes.filter(h => h.targetMonsterId === monster.id);
+		const hasLivingVanguard = attackers.some(h => h.class === 'Vanguard' && h.hp.current > 0);
 		
-		hero.hp.current -= damageTaken;
+		if (!hasLivingVanguard) {
+			const armor = gameData.armor.find(a => a.id === hero.armorId);
+			const armorMitigation = armor ? armor.damageMitigation : 0;
+			const damageTaken = Math.max(1, monster.damage - armorMitigation);
+			hero.hp.current -= damageTaken;
+		}
 		
 		const activeSkill = hero.skills.find(s => {
 			const data = gameData.skills.find(d => d.id === s.id);
@@ -67,15 +67,13 @@ export function processStriker(hero) {
 			if (car) car.driverId = null;
 			hero.carId = null;
 			
-			monster.assigned = false;
-			hero.targetMonster = null;
-			// MODIFIED: Added monster level to log
-			addToLog(`${hero.name} was incapacitated by Lv.${monster.level} ${monster.name}!`);
+			hero.targetMonsterId = null; // MODIFIED: Clear target ID.
+			addToLog(`${hero.name} was incapacitated by Lv.${monster.level} ${monster.name} (#${monster.id})!`); // MODIFIED: Added monster ID
 		} else if (monster.currentHp <= 0) {
 			hero.xp.current += monster.xp;
-			// MODIFIED: Added monster level to log
-			addToLog(`${hero.name} defeated Lv.${monster.level} ${monster.name} and gained ${monster.xp} XP.`);
-			hero.targetMonster = null;
+			// MODIFIED: Changed log to reflect teamwork and added monster ID.
+			addToLog(`${hero.name} helped defeat Lv.${monster.level} ${monster.name} (#${monster.id}) and gained ${monster.xp} XP.`);
+			hero.targetMonsterId = null; // MODIFIED: Clear target ID.
 			
 			// MODIFIED: Loot drops directly into the hero's personal inventory.
 			// MODIFIED: Removed skill card drops to keep inventory item-focused.

@@ -1,5 +1,5 @@
 [
-  { "id": "MON001", "name": "Scrap Hound", "hp": 50, "damage": 5, "xp": 20, "level": 1, "spawnDay": 1, "spawnRatio": 10 },
+  { "id": "MON001", "name": "Scrap Hound", "hp": 50, "damage": 5, "xp": 20, "level": 1, "spawnDay": 1, "spawnRatio": 30 },
   { "id": "MON002", "name": "Rust Golem", "hp": 120, "damage": 12, "xp": 50, "level": 1, "spawnDay": 3, "spawnRatio": 5 },
   { "id": "MON003", "name": "Neon Stalker", "hp": 80, "damage": 20, "xp": 40, "level": 1, "spawnDay": 15, "spawnRatio": 7 },
   { "id": "MON004", "name": "Cyber Wolf", "hp": 150, "damage": 25, "xp": 80, "level": 2, "spawnDay": 30, "spawnRatio": 8 },

@@ -132,12 +132,18 @@ export function renderHeroes() {
 				dynamicArea.innerHTML = `<p class="text-error font-bold text-center">INCAPACITATED</p><p class="text-xs text-center">Awaiting Aegis Healing...</p>`;
 			} else if (!hero.carId) {
 				dynamicArea.innerHTML = `<p class="text-warning text-center text-sm">Waiting for Mana Battery Car...</p>`;
-			} else if (hero.targetMonster) {
-				dynamicArea.innerHTML = `
-                    <p class="text-sm font-bold text-error mb-1">Fighting: Lv.${hero.targetMonster.level} ${hero.targetMonster.name}</p>
-                    <progress class="progress progress-error w-full" value="${hero.targetMonster.currentHp}" max="${hero.targetMonster.maxHp}"></progress>
-                    <p class="text-xs text-right mt-1">${Math.floor(hero.targetMonster.currentHp)}/${hero.targetMonster.maxHp} HP</p>
+			} else if (hero.targetMonsterId) { // MODIFIED: Check targetMonsterId
+				const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId); // MODIFIED: Find monster by ID
+				if (monster) { // MODIFIED: Check if monster exists before rendering
+					dynamicArea.innerHTML = `
+                    <p class="text-sm font-bold text-error mb-1">Fighting: Lv.${monster.level} ${monster.name} (#${monster.id})</p> <!-- MODIFIED: Added monster ID -->
+                    <progress class="progress progress-error w-full" value="${monster.currentHp}" max="${monster.maxHp}"></progress>
+                    <p class="text-xs text-right mt-1">${Math.floor(monster.currentHp)}/${monster.maxHp} HP</p>
                 `;
+				} else {
+					// This case can happen if a monster is defeated but the hero's target ID hasn't been cleared yet.
+					dynamicArea.innerHTML = `<p class="text-success text-center text-sm">Patrolling in Car #${hero.carId}. No targets.</p>`;
+				}
 			} else {
 				dynamicArea.innerHTML = `<p class="text-success text-center text-sm">Patrolling in Car #${hero.carId}. No targets.</p>`;
 			}
