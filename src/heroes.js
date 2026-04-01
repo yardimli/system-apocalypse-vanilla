@@ -259,6 +259,22 @@ export function renderHeroes() {
 			}
 		}
 		
+		// NEW: Render auto-use toggles and set their state.
+		const autoUseContainer = card.querySelector('[data-auto-use-container]');
+		if (autoUseContainer) {
+			const hpToggle = autoUseContainer.querySelector('[data-auto-use-type="hp"]');
+			const mpToggle = autoUseContainer.querySelector('[data-auto-use-type="mp"]');
+			
+			if (hpToggle) {
+				hpToggle.checked = !!hero.autoUse?.hp;
+				hpToggle.dataset.heroId = hero.id;
+			}
+			if (mpToggle) {
+				mpToggle.checked = !!hero.autoUse?.mp;
+				mpToggle.dataset.heroId = hero.id;
+			}
+		}
+		
 		const skillsListContainer = card.querySelector('[data-skills-list]');
 		if (skillsListContainer) {
 			skillsListContainer.innerHTML = hero.skills.map(heroSkill => {

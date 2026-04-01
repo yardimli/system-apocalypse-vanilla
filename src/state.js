@@ -48,12 +48,17 @@ export const gameState = {
 				{ id: 'AEG004', xp: 0 }
 			],
 			autoCast:[],
+			// MODIFIED: Added auto-use settings for consumables.
+			autoUse: { hp: false, mp: false },
 			craftingSlots:[],
 			inventory: {
 				'ARM001': 1,
 				'ITM001': 5,
 				'ITM003': 2,
 				'ITM006': 3,
+				// MODIFIED: Added starting consumables for all heroes.
+				'ITM016': 4, // 4x Lesser Healing Salve
+				'ITM017': 2 // 2x Lesser Mana Vial
 			}
 		},
 		{
@@ -74,9 +79,14 @@ export const gameState = {
 			carId: null,
 			targetMonsterId: null,
 			skills: [{ id: 'STR001', xp: 0 }],
+			// MODIFIED: Added auto-use settings for consumables.
+			autoUse: { hp: false, mp: false },
 			craftingSlots:[],
 			inventory: {
-				'ARM001': 1
+				'ARM001': 1,
+				// MODIFIED: Added starting consumables for all heroes.
+				'ITM016': 4,
+				'ITM017': 2
 			}
 		},
 		{
@@ -97,9 +107,14 @@ export const gameState = {
 			carId: null,
 			targetMonsterId: null,
 			skills: [{ id: 'VAN001', xp: 0 }],
+			// MODIFIED: Added auto-use settings for consumables.
+			autoUse: { hp: false, mp: false },
 			craftingSlots:[],
 			inventory: {
-				'ARM001': 1
+				'ARM001': 1,
+				// MODIFIED: Added starting consumables for all heroes.
+				'ITM016': 4,
+				'ITM017': 2
 			}
 		}
 	],

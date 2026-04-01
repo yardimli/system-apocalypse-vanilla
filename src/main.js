@@ -154,28 +154,40 @@ function gameLoop() {
 			hero.mp.current = Math.min(hero.mp.max, hero.mp.current + hero.mpRegen);
 		}
 		
-		// NEW: Auto-consume items if health or mana is low.
-		if (hero.hp.current > 0 && hero.hp.current / hero.hp.max < 0.6) {
-			// Prioritize better healing items first.
-			const hpItems = ['ITM009', 'ITM002'];
-			for (const itemId of hpItems) {
-				if (hero.inventory[itemId]) {
-					if (handleUseConsumable(hero.id, itemId)) {
-						break; // Stop after using one item.
-					}
-				}
+		// MODIFIED: Smart auto-consumption of items based on hero settings to avoid waste.
+		if (hero.autoUse?.hp && hero.hp.current < hero.hp.max) {
+			const missingHp = hero.hp.max - hero.hp.current;
+			
+			// Find all HP consumables the hero has.
+			const availableHpItems = Object.keys(hero.inventory)
+				.map(itemId => gameData.items.find(i => i.id === itemId && hero.inventory[itemId] > 0))
+				.filter(item => item && item.type === 'Consumable' && item.effect?.type === 'heal_hp');
+			
+			// Find the best item to use (strongest one that won't be wasted).
+			const bestItemToUse = availableHpItems
+				.filter(item => missingHp >= item.effect.value)
+				.sort((a, b) => b.effect.value - a.effect.value)[0];
+			
+			if (bestItemToUse) {
+				handleUseConsumable(hero.id, bestItemToUse.id);
 			}
 		}
 		
-		if (hero.mp.current / hero.mp.max < 0.6) {
-			// Prioritize better mana items first.
-			const mpItems = ['ITM013', 'ITM005'];
-			for (const itemId of mpItems) {
-				if (hero.inventory[itemId]) {
-					if (handleUseConsumable(hero.id, itemId)) {
-						break; // Stop after using one item.
-					}
-				}
+		if (hero.autoUse?.mp && hero.mp.current < hero.mp.max) {
+			const missingMp = hero.mp.max - hero.mp.current;
+			
+			// Find all MP consumables the hero has.
+			const availableMpItems = Object.keys(hero.inventory)
+				.map(itemId => gameData.items.find(i => i.id === itemId && hero.inventory[itemId] > 0))
+				.filter(item => item && item.type === 'Consumable' && item.effect?.type === 'heal_mp');
+			
+			// Find the best item to use (strongest one that won't be wasted).
+			const bestItemToUse = availableMpItems
+				.filter(item => missingMp >= item.effect.value)
+				.sort((a, b) => b.effect.value - a.effect.value)[0];
+			
+			if (bestItemToUse) {
+				handleUseConsumable(hero.id, bestItemToUse.id);
 			}
 		}
 		
@@ -355,6 +367,19 @@ async function init() {
 		if (e.target.id === 'sandbox-apply') {
 			applySandboxChanges();
 			renderContent();
+		}
+	});
+	
+	// NEW: Add a separate event listener for 'change' events, ideal for checkboxes/toggles.
+	document.body.addEventListener('change', (e) => {
+		if (e.target.matches('[data-auto-use-type]')) {
+			const heroId = parseInt(e.target.dataset.heroId, 10);
+			const type = e.target.dataset.autoUseType;
+			const hero = gameState.heroes.find(h => h.id === heroId);
+			if (hero && hero.autoUse) {
+				hero.autoUse[type] = e.target.checked;
+				addToLog(`${hero.name} auto-use for ${type.toUpperCase()} items ${e.target.checked ? 'enabled' : 'disabled'}.`);
+			}
 		}
 	});
 	
