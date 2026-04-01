@@ -67,30 +67,7 @@ export function processVanguard(hero) {
 			hero.targetMonsterId = null;
 			addToLog(`${hero.name} was incapacitated by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
 		} else if (monster.currentHp <= 0) {
-			hero.xp.current += monster.xp;
-			addToLog(`${hero.name} helped defeat Lv.${monster.level} ${monster.name} (#${monster.id}) and gained ${monster.xp} XP.`);
 			hero.targetMonsterId = null;
-			
-			if (Math.random() < 0.4) {
-				const possibleDrops = gameData.items.filter(item => item.level === monster.level);
-				if (possibleDrops.length > 0) {
-					const dropped = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
-					hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;
-					addToLog(`${hero.name} found an item: ${dropped.name}!`);
-				}
-			}
-			
-			if (hero.xp.current >= hero.xp.max) {
-				hero.level++;
-				hero.xp.current -= hero.xp.max;
-				hero.xp.max = Math.ceil(hero.xp.max * 1.5);
-				hero.hp.max += hero.hpMaxPerLevel;
-				hero.mp.max += hero.mpMaxPerLevel;
-				hero.hpRegen += hero.hpRegenPerLevel;
-				hero.mpRegen += hero.mpRegenPerLevel;
-				hero.hp.current = hero.hp.max;
-				addToLog(`${hero.name} reached Level ${hero.level}!`);
-			}
 		}
 	}
 }

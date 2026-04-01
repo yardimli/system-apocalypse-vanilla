@@ -45,8 +45,11 @@
 <template id="hero-card-template">
 	<div class="card bg-base-200 shadow-xl">
 		<div class="card-body p-4">
-			<div class="flex justify-between items-center">
-				<h2 class="card-title text-lg" data-name></h2>
+			<div class="flex justify-between items-start">
+				<div>
+					<h2 class="card-title text-lg" data-name></h2>
+					<div class="text-sm font-bold text-warning" data-tokens></div>
+				</div>
 				<div class="badge" data-class></div>
 			</div>
 			<div class="text-xs text-gray-400 mb-2" data-armor-container>
@@ -69,11 +72,19 @@
 				</div>
 			</div>
 			
+			<!-- System Shop Area -->
+			<div class="mt-2 border-t border-base-300 pt-2" data-shop-container>
+				<div class="divider my-1">System Shop</div>
+				<div class="flex flex-col gap-1 text-xs max-h-32 overflow-y-auto" data-shop-list>
+					<!-- Shop items will be rendered here by JS -->
+				</div>
+			</div>
+			
 			<!-- Personal Inventory Area -->
 			<div class="mt-2 border-t border-base-300 pt-2">
 				<div class="divider my-1">Inventory</div>
 				<div
-					class="bg-base-100 p-2 rounded min-h-[50px] flex flex-wrap gap-2 items-center border border-dashed border-base-300"
+					class="bg-base-100 p-2 rounded min-h-[50px] flex flex-col gap-1 border border-dashed border-base-300 max-h-40 overflow-y-auto"
 					data-inventory-container
 					data-hero-id=""
 				></div>

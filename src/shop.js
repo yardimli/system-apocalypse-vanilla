@@ -1,0 +1,77 @@
+import { gameState, gameData } from './state.js';
+import { addToLog } from './utils.js';
+import { autoEquipBestArmor } from './heroes.js';
+
+/**
+ * Finds an entity (item or armor) by its ID from the game data.
+ * @param {string} id - The ID of the entity to find.
+ * @returns {object|null} The found entity or null.
+ */
+function findEntityById(id) {
+	if (!id) return null;
+	return gameData.items.find(i => i.id === id) || gameData.armor.find(a => a.id === id);
+}
+
+/**
+ * Handles a hero buying an item from the System Shop.
+ * @param {number} heroId - The ID of the hero buying the item.
+ * @param {string} itemId - The ID of the item to buy.
+ */
+export function handleBuyItem(heroId, itemId) {
+	const hero = gameState.heroes.find(h => h.id === heroId);
+	const shopEntry = gameData.system_shop.find(item => item.itemId === itemId);
+	const itemData = findEntityById(itemId);
+	
+	if (!hero || !shopEntry || !itemData) {
+		addToLog('Shop Error: Hero or item not found.');
+		return;
+	}
+	
+	if (hero.tokens < shopEntry.price) {
+		addToLog(`${hero.name} does not have enough tokens to buy ${itemData.name}.`);
+		return;
+	}
+	
+	// Process transaction
+	hero.tokens -= shopEntry.price;
+	hero.inventory[itemId] = (hero.inventory[itemId] || 0) + 1;
+	
+	addToLog(`${hero.name} bought ${itemData.name} for ${shopEntry.price} tokens.`);
+	
+	// If the bought item was armor, run auto-equip logic
+	if (gameData.armor.some(a => a.id === itemId)) {
+		autoEquipBestArmor(hero);
+	}
+}
+
+/**
+ * Handles a hero selling an item from their inventory.
+ * @param {number} heroId - The ID of the hero selling the item.
+ * @param {string} itemId - The ID of the item to sell.
+ */
+export function handleSellItem(heroId, itemId) {
+	const hero = gameState.heroes.find(h => h.id === heroId);
+	const itemData = findEntityById(itemId);
+	
+	if (!hero || !itemData || !hero.inventory[itemId] || hero.inventory[itemId] <= 0) {
+		addToLog('Shop Error: Hero or item not found in inventory.');
+		return;
+	}
+	
+	// Cannot sell equipped armor
+	if (hero.armorId === itemId) {
+		addToLog(`Cannot sell equipped armor. Unequip ${itemData.name} first.`);
+		return;
+	}
+	
+	const sellPrice = itemData.sellPrice || 0;
+	
+	// Process transaction
+	hero.inventory[itemId]--;
+	if (hero.inventory[itemId] === 0) {
+		delete hero.inventory[itemId];
+	}
+	hero.tokens += sellPrice;
+	
+	addToLog(`${hero.name} sold ${itemData.name} for ${sellPrice} tokens.`);
+}

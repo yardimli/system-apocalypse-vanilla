@@ -1,0 +1,16 @@
+[
+  { "itemId": "ITM016", "price": 15 },
+  { "itemId": "ITM017", "price": 12 },
+  { "itemId": "ITM018", "price": 60 },
+  { "itemId": "ITM019", "price": 40 },
+  { "itemId": "ITM020", "price": 150 },
+  { "itemId": "ITM021", "price": 120 },
+  { "itemId": "ARM001", "price": 20 },
+  { "itemId": "ARM002", "price": 100 },
+  { "itemId": "ARM002_V", "price": 180 },
+  { "itemId": "ARM003", "price": 300 },
+  { "itemId": "ARM003_V", "price": 500 },
+  { "itemId": "ARM004", "price": 800 },
+  { "itemId": "ARM004_V", "price": 1200 },
+  { "itemId": "ARM005", "price": 2000 }
+]

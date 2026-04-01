@@ -100,6 +100,7 @@ export function renderHeroes() {
 		}
 		
 		card.querySelector('[data-name]').textContent = `${hero.name} | Lv. ${hero.level}`;
+		card.querySelector('[data-tokens]').textContent = `Tokens: ${hero.tokens}`;
 		card.querySelector('[data-class]').textContent = hero.class;
 		card.querySelector('[data-class]').className = `badge ${hero.class === 'Aegis' ? 'badge-info' : hero.class === 'Striker' ? 'badge-error' : 'badge-success'}`;
 		
@@ -221,11 +222,10 @@ export function renderHeroes() {
 			
 			if (inventoryItems.length > 0) {
 				inventoryItems.forEach(([id, qty]) => {
+					if (qty <= 0) return;
 					const entity = findEntityById(id);
 					if (entity) {
-						let count = qty;
 						const isEquipped = hero.armorId === id;
-						const isArmor = gameData.armor.some(a => a.id === id);
 						const isConsumable = entity.type === 'Consumable';
 						
 						let displayName = entity.name;
@@ -235,15 +235,34 @@ export function renderHeroes() {
 							displayName = `${entity.name} (${effectText})`;
 						}
 						
-						if (isEquipped) {
-							inventoryHtml += `<div class="badge badge-primary badge-lg p-3">${displayName} (Equipped)</div>`;
-							count--;
-						}
+						const useAttribute = isConsumable ? `data-use-item-id="${id}"` : '';
+						const cursorClass = isConsumable ? 'cursor-pointer' : '';
+						const sellPriceText = entity.sellPrice ? `(Sell: ${entity.sellPrice})` : '';
 						
-						for (let i = 0; i < count; i++) {
-							const useAttribute = isConsumable ? `data-use-item-id="${id}"` : '';
-							const cursorClass = isConsumable ? 'cursor-pointer' : '';
-							inventoryHtml += `<div data-hero-id="${hero.id}" ${useAttribute} class="badge badge-outline badge-lg p-3 ${cursorClass}">${displayName}</div>`;
+						// Render each item individually with its controls
+						for (let i = 0; i < qty; i++) {
+							// Only mark the first instance of an equipped armor
+							const equippedThisInstance = isEquipped && i === 0;
+							
+							inventoryHtml += `
+								<div class="flex items-center justify-between w-full bg-base-300/50 p-1 rounded">
+									<div
+										data-hero-id="${hero.id}"
+										${useAttribute}
+										class="badge ${equippedThisInstance ? 'badge-primary' : 'badge-outline'} ${cursorClass} flex-grow text-left"
+									>
+										${displayName} ${equippedThisInstance ? '(Equipped)' : ''}
+									</div>
+									<button
+										class="btn btn-xs btn-ghost text-error/70"
+										data-sell-item-id="${id}"
+										data-hero-id="${hero.id}"
+										${equippedThisInstance ? 'disabled' : ''}
+									>
+										Sell ${sellPriceText}
+									</button>
+								</div>
+							`;
 						}
 					}
 				});
@@ -251,6 +270,43 @@ export function renderHeroes() {
 			} else {
 				invContainer.innerHTML = '<span class="text-xs text-gray-500 italic">Empty</span>';
 			}
+		}
+		
+		// Render System Shop
+		const shopContainer = card.querySelector('[data-shop-list]');
+		if (shopContainer) {
+			shopContainer.innerHTML = gameData.system_shop.map(shopItem => {
+				const entity = findEntityById(shopItem.itemId);
+				if (!entity) return '';
+				
+				let details = '';
+				if (entity.damageMitigation) { // It's armor
+					details = `(Mitigation: ${entity.damageMitigation})`;
+				} else if (entity.effect) { // It's a consumable
+					const { type, value } = entity.effect;
+					const effectText = type === 'heal_hp' ? `+${value} HP` : `+${value} MP`;
+					details = `(${effectText})`;
+				}
+				
+				const canAfford = hero.tokens >= shopItem.price;
+				
+				return `
+					<div class="flex flex-col p-2 bg-base-100 rounded gap-1">
+						<div class="flex justify-between items-center">
+							<span class="font-bold text-sm">${entity.name}</span>
+							<button
+								class="btn btn-xs btn-accent"
+								data-buy-item-id="${shopItem.itemId}"
+								data-hero-id="${hero.id}"
+								${!canAfford ? 'disabled' : ''}
+							>
+								Buy (${shopItem.price} T)
+							</button>
+						</div>
+						<div class="text-[10px] text-gray-400 italic">${details}</div>
+					</div>
+				`;
+			}).join('');
 		}
 		
 		const autoUseContainer = card.querySelector('[data-auto-use-container]');

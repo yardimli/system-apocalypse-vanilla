@@ -4,7 +4,8 @@
     "name": "Salvaged Parts",
     "type": "Resource",
     "description": "Basic components for repairs.",
-    "level": 1
+    "level": 1,
+    "sellPrice": 2
   },
   {
     "id": "ITM002",
@@ -15,21 +16,24 @@
       "type": "heal_hp",
       "value": 100
     },
-    "level": 1
+    "level": 1,
+    "sellPrice": 15
   },
   {
     "id": "ITM003",
     "name": "Monster Core Shard",
     "type": "Resource",
     "description": "A fragment of a monster's essence.",
-    "level": 1
+    "level": 1,
+    "sellPrice": 5
   },
   {
     "id": "ITM004",
     "name": "Broken Circuitry",
     "type": "Resource",
     "description": "Electronic parts for advanced repairs.",
-    "level": 1
+    "level": 1,
+    "sellPrice": 8
   },
   {
     "id": "ITM005",
@@ -40,28 +44,32 @@
       "type": "heal_mp",
       "value": 25
     },
-    "level": 1
+    "level": 1,
+    "sellPrice": 10
   },
   {
     "id": "ITM006",
     "name": "Clean Water",
     "type": "Resource",
     "description": "Essential for survivor well-being.",
-    "level": 1
+    "level": 1,
+    "sellPrice": 1
   },
   {
     "id": "ITM007",
     "name": "Reinforced Steel Plate",
     "type": "Resource",
     "description": "Used to fortify buildings.",
-    "level": 2
+    "level": 2,
+    "sellPrice": 20
   },
   {
     "id": "ITM008",
     "name": "System Shard",
     "type": "Resource",
     "description": "A rare fragment of the System itself.",
-    "level": 2
+    "level": 2,
+    "sellPrice": 50
   },
   {
     "id": "ITM009",
@@ -72,28 +80,32 @@
       "type": "heal_hp",
       "value": 250
     },
-    "level": 1
+    "level": 1,
+    "sellPrice": 40
   },
   {
     "id": "ITM010",
     "name": "Toolbox",
     "type": "Resource",
     "description": "Improves repair speed.",
-    "level": 1
+    "level": 1,
+    "sellPrice": 25
   },
   {
     "id": "ITM011",
     "name": "Advanced Component",
     "type": "Resource",
     "description": "High-tech parts for top-tier crafting.",
-    "level": 3
+    "level": 3,
+    "sellPrice": 100
   },
   {
     "id": "ITM012",
     "name": "Aegis Power Core",
     "type": "Resource",
     "description": "A potent energy source for Aegis technology.",
-    "level": 2
+    "level": 2,
+    "sellPrice": 120
   },
   {
     "id": "ITM013",
@@ -104,21 +116,24 @@
       "type": "heal_mp",
       "value": 50
     },
-    "level": 2
+    "level": 2,
+    "sellPrice": 25
   },
   {
     "id": "ITM014",
     "name": "Corrupted Data Fragment",
     "type": "Resource",
     "description": "An unstable piece of monster data.",
-    "level": 2
+    "level": 2,
+    "sellPrice": 40
   },
   {
     "id": "ITM015",
     "name": "Pure Energy Crystal",
     "type": "Resource",
     "description": "A flawless crystal used in high-end crafting.",
-    "level": 3
+    "level": 3,
+    "sellPrice": 150
   },
   {
     "id": "ITM016",
@@ -129,7 +144,8 @@
       "type": "heal_hp",
       "value": 50
     },
-    "level": 1
+    "level": 1,
+    "sellPrice": 8
   },
   {
     "id": "ITM017",
@@ -140,7 +156,8 @@
       "type": "heal_mp",
       "value": 20
     },
-    "level": 1
+    "level": 1,
+    "sellPrice": 6
   },
   {
     "id": "ITM018",
@@ -151,7 +168,8 @@
       "type": "heal_hp",
       "value": 200
     },
-    "level": 2
+    "level": 2,
+    "sellPrice": 30
   },
   {
     "id": "ITM019",
@@ -162,7 +180,8 @@
       "type": "heal_mp",
       "value": 40
     },
-    "level": 2
+    "level": 2,
+    "sellPrice": 20
   },
   {
     "id": "ITM020",
@@ -173,7 +192,8 @@
       "type": "heal_hp",
       "value": 500
     },
-    "level": 3
+    "level": 3,
+    "sellPrice": 75
   },
   {
     "id": "ITM021",
@@ -184,6 +204,7 @@
       "type": "heal_mp",
       "value": 100
     },
-    "level": 3
+    "level": 3,
+    "sellPrice": 60
   }
 ]

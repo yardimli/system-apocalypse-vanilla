@@ -247,3 +247,7 @@ in Craftable section of the hero show the items needed to craft the item add a b
 update the code so it will add option button to use healing or mana items automatically on each hero's panel
 the automatic should be used when the hero's health or mana would not waste the value of the item
 add 4 healing and 2 mana items to all hero's inventory on the beginning of the game
+
+----
+
+add a new javascript for the system shop, add items hero's can buy from the shop. in each hero tab add a new section shop, make items they can afford buyable. for items and armor add a sell price value, in inventory add sell button to each inventory item. add a wallet where hero's balance is visible. create the system shop json and fill it with consumables and armor, add 3 new variants to each armor, in the inventory and system shop show values of armor. each hero will start with 100 tokens, tokens is the game currency it is always an integer. killing monsters should also earn tokens. add monster token value in the monsters.json, if two hero's fight the same monster divide the tokens. round up to nearest integer.

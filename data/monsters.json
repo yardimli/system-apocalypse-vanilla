@@ -7,7 +7,8 @@
     "xp": 20,
     "level": 1,
     "spawnDay": 1,
-    "spawnRatio": 0.1
+    "spawnRatio": 0.1,
+    "tokens": 5
   },
   {
     "id": "MON002",
@@ -17,7 +18,8 @@
     "xp": 50,
     "level": 1,
     "spawnDay": 3,
-    "spawnRatio": 0.1
+    "spawnRatio": 0.1,
+    "tokens": 15
   },
   {
     "id": "MON003",
@@ -27,7 +29,8 @@
     "xp": 40,
     "level": 1,
     "spawnDay": 5,
-    "spawnRatio": 0.04
+    "spawnRatio": 0.04,
+    "tokens": 12
   },
   {
     "id": "MON004",
@@ -37,7 +40,8 @@
     "xp": 80,
     "level": 2,
     "spawnDay": 8,
-    "spawnRatio": 0.04
+    "spawnRatio": 0.04,
+    "tokens": 25
   },
   {
     "id": "MON005",
@@ -47,7 +51,8 @@
     "xp": 150,
     "level": 2,
     "spawnDay": 10,
-    "spawnRatio": 0.03
+    "spawnRatio": 0.03,
+    "tokens": 50
   },
   {
     "id": "MON006",
@@ -57,7 +62,8 @@
     "xp": 120,
     "level": 2,
     "spawnDay": 13,
-    "spawnRatio": 0.03
+    "spawnRatio": 0.03,
+    "tokens": 40
   },
   {
     "id": "MON007",
@@ -67,7 +73,8 @@
     "xp": 300,
     "level": 3,
     "spawnDay": 20,
-    "spawnRatio": 0.01
+    "spawnRatio": 0.01,
+    "tokens": 100
   },
   {
     "id": "MON008",
@@ -77,6 +84,7 @@
     "xp": 500,
     "level": 3,
     "spawnDay": 25,
-    "spawnRatio": 0.01
+    "spawnRatio": 0.01,
+    "tokens": 200
   }
 ]

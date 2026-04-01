@@ -6,6 +6,7 @@ import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { handleAutoCraft } from './crafting.js';
 import { handleUseConsumable } from './inventory.js';
+import { handleBuyItem, handleSellItem } from './shop.js';
 import { renderHeroes, autoEquipBestArmor } from './heroes.js';
 import { renderMonsters } from './monsters.js';
 import { renderHeader, renderTabs, renderBuildings, renderCars, renderCity, renderLog } from './ui.js';
@@ -134,6 +135,7 @@ function gameLoop() {
 				currentHp: monsterData.hp,
 				damage: monsterData.damage,
 				xp: monsterData.xp,
+				tokens: monsterData.tokens, // Added tokens to monster state
 				assignedTo: [],
 				targetBuilding: null
 			};
@@ -257,7 +259,62 @@ function gameLoop() {
 		}
 	});
 	
-	gameState.activeMonsters = gameState.activeMonsters.filter(m => m.currentHp > 0);
+	// Centralized monster defeat and reward logic
+	const defeatedMonsters = gameState.activeMonsters.filter(m => m.currentHp <= 0);
+	if (defeatedMonsters.length > 0) {
+		defeatedMonsters.forEach(monster => {
+			addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) was defeated!`);
+			
+			// Find heroes who were assigned to this monster
+			const attackers = monster.assignedTo
+				.map(id => gameState.heroes.find(h => h.id === id))
+				.filter(Boolean); // Filter out any nulls if a hero somehow disappears
+			
+			if (attackers.length > 0) {
+				const xpPerHero = Math.ceil(monster.xp / attackers.length);
+				const tokensPerHero = Math.ceil((monster.tokens || 0) / attackers.length);
+				
+				attackers.forEach(hero => {
+					// Clear target so they don't keep attacking a dead monster
+					if (hero.targetMonsterId === monster.id) {
+						hero.targetMonsterId = null;
+					}
+					
+					// Grant XP and Tokens
+					hero.xp.current += xpPerHero;
+					hero.tokens += tokensPerHero;
+					addToLog(`${hero.name} gained ${xpPerHero} XP and ${tokensPerHero} Tokens.`);
+					
+					// Loot Drop Chance (Striker: 25%, Vanguard: 40%)
+					const lootChance = hero.class === 'Vanguard' ? 0.4 : 0.25;
+					if (Math.random() < lootChance) {
+						const possibleDrops = gameData.items.filter(item => item.level === monster.level);
+						if (possibleDrops.length > 0) {
+							const dropped = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
+							hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;
+							addToLog(`${hero.name} found an item: ${dropped.name}!`);
+						}
+					}
+					
+					// Check for Level Up
+					if (hero.xp.current >= hero.xp.max) {
+						hero.level++;
+						hero.xp.current -= hero.xp.max;
+						hero.xp.max = Math.ceil(hero.xp.max * 1.5);
+						hero.hp.max += hero.hpMaxPerLevel;
+						hero.mp.max += hero.mpMaxPerLevel;
+						hero.hpRegen += hero.hpRegenPerLevel;
+						hero.mpRegen += hero.mpRegenPerLevel;
+						hero.hp.current = hero.hp.max;
+						addToLog(`${hero.name} reached Level ${hero.level}!`);
+					}
+				});
+			}
+		});
+		
+		// Remove defeated monsters from the active list
+		gameState.activeMonsters = gameState.activeMonsters.filter(m => m.currentHp > 0);
+	}
 	
 	// 4. Daily Updates
 	if (gameState.time % 10 === 0) {
@@ -296,18 +353,20 @@ function gameLoop() {
 // --- INITIALIZATION ---
 async function init() {
 	try {
-		const [items, skills, recipes, monsters, armor] = await Promise.all([
+		const [items, skills, recipes, monsters, armor, systemShop] = await Promise.all([
 			fetch('./data/items.json').then(res => res.json()),
 			fetch('./data/skills.json').then(res => res.json()),
 			fetch('./data/recipes.json').then(res => res.json()),
 			fetch('./data/monsters.json').then(res => res.json()),
-			fetch('./data/armor.json').then(res => res.json())
+			fetch('./data/armor.json').then(res => res.json()),
+			fetch('./data/system_shop.json').then(res => res.json())
 		]);
 		gameData.items = items;
 		gameData.skills = skills;
 		gameData.recipes = recipes;
 		gameData.monsters = monsters;
 		gameData.armor = armor;
+		gameData.system_shop = systemShop;
 	} catch (error) {
 		console.error('Failed to load game data:', error);
 		contentArea.innerHTML = `<p class="text-error">Error: Could not load game data. Please check the console.</p>`;
@@ -343,6 +402,18 @@ async function init() {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
 			const recipeResultId = e.target.dataset.autoCraftRecipeId;
 			handleAutoCraft(heroId, recipeResultId);
+			renderContent();
+		}
+		if (e.target.matches('[data-buy-item-id]')) {
+			const heroId = parseInt(e.target.dataset.heroId, 10);
+			const itemId = e.target.dataset.buyItemId;
+			handleBuyItem(heroId, itemId);
+			renderContent();
+		}
+		if (e.target.matches('[data-sell-item-id]')) {
+			const heroId = parseInt(e.target.dataset.heroId, 10);
+			const itemId = e.target.dataset.sellItemId;
+			handleSellItem(heroId, itemId);
 			renderContent();
 		}
 		if (e.target.id === 'sandbox-apply') {

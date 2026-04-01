@@ -3,30 +3,56 @@
     "id": "ARM001",
     "name": "Cloth Armor",
     "damageMitigation": "1-2",
-    "level": 1
+    "level": 1,
+    "sellPrice": 10
   },
   {
     "id": "ARM002",
     "name": "Leather Armor",
     "damageMitigation": "3-6",
-    "level": 2
+    "level": 2,
+    "sellPrice": 50
   },
   {
     "id": "ARM003",
     "name": "Chainmail Armor",
     "damageMitigation": "7-12",
-    "level": 3
+    "level": 3,
+    "sellPrice": 150
   },
   {
     "id": "ARM004",
     "name": "Plate Armor",
     "damageMitigation": "15-25",
-    "level": 4
+    "level": 4,
+    "sellPrice": 400
   },
   {
     "id": "ARM005",
     "name": "Aegis Power Armor",
     "damageMitigation": "30-40",
-    "level": 5
+    "level": 5,
+    "sellPrice": 1000
+  },
+  {
+    "id": "ARM002_V",
+    "name": "Reinforced Leather",
+    "damageMitigation": "5-8",
+    "level": 2,
+    "sellPrice": 90
+  },
+  {
+    "id": "ARM003_V",
+    "name": "Hardened Chainmail",
+    "damageMitigation": "10-16",
+    "level": 3,
+    "sellPrice": 250
+  },
+  {
+    "id": "ARM004_V",
+    "name": "Masterwork Plate",
+    "damageMitigation": "20-30",
+    "level": 4,
+    "sellPrice": 600
   }
 ]

@@ -41,6 +41,7 @@ export const gameState = {
 			hpRegenPerLevel: 0.1,
 			mpRegenPerLevel: 1.0,
 			armorId: 'ARM001',
+			tokens: 100, // Added tokens to hero state
 			skills:[
 				{ id: 'AEG001', xp: 0 },
 				{ id: 'AEG002', xp: 0 },
@@ -75,6 +76,7 @@ export const gameState = {
 			armorId: 'ARM001',
 			carId: null,
 			targetMonsterId: null,
+			tokens: 100, // Added tokens to hero state
 			skills: [{ id: 'STR001', xp: 0 }],
 			autoUse: { hp: false, mp: false },
 			inventory: {
@@ -101,6 +103,7 @@ export const gameState = {
 			armorId: 'ARM001',
 			carId: null,
 			targetMonsterId: null,
+			tokens: 100, // Added tokens to hero state
 			skills: [{ id: 'VAN001', xp: 0 }],
 			autoUse: { hp: false, mp: false },
 			inventory: {
@@ -119,5 +122,6 @@ export const gameData = {
 	skills: [],
 	recipes:[],
 	monsters:[],
-	armor:[]
+	armor:[],
+	system_shop: [] // Added system_shop to gameData
 };
