@@ -49,6 +49,42 @@
     "description": "Toolbox + 5x Salvaged Parts = Aegis Power Core"
   },
   {
+    "resultId": "ITM018",
+    "ingredients": [
+      "ITM016",
+      "ITM016",
+      "ITM003"
+    ],
+    "description": "2x Lesser Healing Salve + Monster Core Shard = Standard Healing Potion"
+  },
+  {
+    "resultId": "ITM019",
+    "ingredients": [
+      "ITM017",
+      "ITM017",
+      "ITM003"
+    ],
+    "description": "2x Lesser Mana Vial + Monster Core Shard = Standard Mana Potion"
+  },
+  {
+    "resultId": "ITM020",
+    "ingredients": [
+      "ITM018",
+      "ITM018",
+      "ITM014"
+    ],
+    "description": "2x Standard Healing Potion + Corrupted Data Fragment = Greater Healing Potion"
+  },
+  {
+    "resultId": "ITM021",
+    "ingredients": [
+      "ITM019",
+      "ITM019",
+      "ITM014"
+    ],
+    "description": "2x Standard Mana Potion + Corrupted Data Fragment = Greater Mana Potion"
+  },
+  {
     "resultId": "ARM002",
     "ingredients": [
       "ARM001",

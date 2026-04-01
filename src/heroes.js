@@ -186,9 +186,31 @@ export function renderHeroes() {
 		if (hintsContainer) {
 			const craftableRecipes = getCraftableRecipes(hero);
 			if (craftableRecipes.length > 0) {
+				// MODIFIED: Crafting hints now show ingredients and an auto-craft button.
 				hintsContainer.innerHTML = craftableRecipes.map(recipe => {
 					const resultEntity = findEntityById(recipe.resultId);
-					return `<div class="badge badge-ghost w-full p-3">${resultEntity ? resultEntity.name : 'Unknown Item'}</div>`;
+					if (!resultEntity) return '';
+					
+					// Count ingredients for a concise display (e.g., "2x Salvaged Parts").
+					const ingredientsCount = {};
+					recipe.ingredients.forEach(id => {
+						ingredientsCount[id] = (ingredientsCount[id] || 0) + 1;
+					});
+					
+					const ingredientsHtml = Object.entries(ingredientsCount).map(([id, qty]) => {
+						const ingredientEntity = findEntityById(id);
+						return `${qty}x ${ingredientEntity ? ingredientEntity.name : 'Unknown'}`;
+					}).join(' + ');
+					
+					return `
+                        <div class="flex flex-col p-2 bg-base-100 rounded gap-1">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-sm">${resultEntity.name}</span>
+                                <button class="btn btn-xs btn-secondary" data-auto-craft-recipe-id="${recipe.resultId}" data-hero-id="${hero.id}">Craft</button>
+                            </div>
+                            <div class="text-[10px] text-gray-400 italic">${ingredientsHtml}</div>
+                        </div>
+                    `;
 				}).join('');
 			} else {
 				hintsContainer.innerHTML = '<span class="text-xs text-gray-500 italic text-center w-full block">None</span>';
@@ -208,10 +230,8 @@ export function renderHeroes() {
 						let count = qty;
 						const isEquipped = hero.armorId === id;
 						const isArmor = gameData.armor.some(a => a.id === id);
-						// NEW: Check if the item is a consumable.
 						const isConsumable = entity.type === 'Consumable';
 						
-						// NEW: Generate the display name with consumable effect info.
 						let displayName = entity.name;
 						if (isConsumable && entity.effect) {
 							const { type, value } = entity.effect;
@@ -227,9 +247,7 @@ export function renderHeroes() {
 						
 						for (let i = 0; i < count; i++) {
 							const equipAttribute = isArmor ? `data-equip-item-id="${id}"` : '';
-							// NEW: Add a data attribute for using consumables by clicking.
 							const useAttribute = isConsumable ? `data-use-item-id="${id}"` : '';
-							// NEW: Change cursor for consumables (for clicking) and armor (for equipping).
 							const cursorClass = (isArmor || isConsumable) ? 'cursor-pointer' : 'cursor-move';
 							inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" data-hero-id="${hero.id}" ${equipAttribute} ${useAttribute} class="badge badge-outline badge-lg p-3 ${cursorClass}">${displayName}</div>`;
 						}

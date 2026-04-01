@@ -3,7 +3,8 @@
     "id": "ITM001",
     "name": "Salvaged Parts",
     "type": "Resource",
-    "description": "Basic components for repairs."
+    "description": "Basic components for repairs.",
+    "level": 1
   },
   {
     "id": "ITM002",
@@ -13,19 +14,22 @@
     "effect": {
       "type": "heal_hp",
       "value": 100
-    }
+    },
+    "level": 1
   },
   {
     "id": "ITM003",
     "name": "Monster Core Shard",
     "type": "Resource",
-    "description": "A fragment of a monster's essence."
+    "description": "A fragment of a monster's essence.",
+    "level": 1
   },
   {
     "id": "ITM004",
     "name": "Broken Circuitry",
     "type": "Resource",
-    "description": "Electronic parts for advanced repairs."
+    "description": "Electronic parts for advanced repairs.",
+    "level": 1
   },
   {
     "id": "ITM005",
@@ -35,25 +39,29 @@
     "effect": {
       "type": "heal_mp",
       "value": 25
-    }
+    },
+    "level": 1
   },
   {
     "id": "ITM006",
     "name": "Clean Water",
     "type": "Resource",
-    "description": "Essential for survivor well-being."
+    "description": "Essential for survivor well-being.",
+    "level": 1
   },
   {
     "id": "ITM007",
     "name": "Reinforced Steel Plate",
     "type": "Resource",
-    "description": "Used to fortify buildings."
+    "description": "Used to fortify buildings.",
+    "level": 2
   },
   {
     "id": "ITM008",
     "name": "System Shard",
     "type": "Resource",
-    "description": "A rare fragment of the System itself."
+    "description": "A rare fragment of the System itself.",
+    "level": 2
   },
   {
     "id": "ITM009",
@@ -63,25 +71,29 @@
     "effect": {
       "type": "heal_hp",
       "value": 250
-    }
+    },
+    "level": 1
   },
   {
     "id": "ITM010",
     "name": "Toolbox",
     "type": "Resource",
-    "description": "Improves repair speed."
+    "description": "Improves repair speed.",
+    "level": 1
   },
   {
     "id": "ITM011",
     "name": "Advanced Component",
     "type": "Resource",
-    "description": "High-tech parts for top-tier crafting."
+    "description": "High-tech parts for top-tier crafting.",
+    "level": 3
   },
   {
     "id": "ITM012",
     "name": "Aegis Power Core",
     "type": "Resource",
-    "description": "A potent energy source for Aegis technology."
+    "description": "A potent energy source for Aegis technology.",
+    "level": 2
   },
   {
     "id": "ITM013",
@@ -91,6 +103,87 @@
     "effect": {
       "type": "heal_mp",
       "value": 50
-    }
+    },
+    "level": 2
+  },
+  {
+    "id": "ITM014",
+    "name": "Corrupted Data Fragment",
+    "type": "Resource",
+    "description": "An unstable piece of monster data.",
+    "level": 2
+  },
+  {
+    "id": "ITM015",
+    "name": "Pure Energy Crystal",
+    "type": "Resource",
+    "description": "A flawless crystal used in high-end crafting.",
+    "level": 3
+  },
+  {
+    "id": "ITM016",
+    "name": "Lesser Healing Salve",
+    "type": "Consumable",
+    "description": "A basic salve that restores a small amount of HP.",
+    "effect": {
+      "type": "heal_hp",
+      "value": 50
+    },
+    "level": 1
+  },
+  {
+    "id": "ITM017",
+    "name": "Lesser Mana Vial",
+    "type": "Consumable",
+    "description": "A small vial that restores a bit of MP.",
+    "effect": {
+      "type": "heal_mp",
+      "value": 20
+    },
+    "level": 1
+  },
+  {
+    "id": "ITM018",
+    "name": "Standard Healing Potion",
+    "type": "Consumable",
+    "description": "Restores a moderate amount of HP.",
+    "effect": {
+      "type": "heal_hp",
+      "value": 200
+    },
+    "level": 2
+  },
+  {
+    "id": "ITM019",
+    "name": "Standard Mana Potion",
+    "type": "Consumable",
+    "description": "Restores a moderate amount of MP.",
+    "effect": {
+      "type": "heal_mp",
+      "value": 40
+    },
+    "level": 2
+  },
+  {
+    "id": "ITM020",
+    "name": "Greater Healing Potion",
+    "type": "Consumable",
+    "description": "A potent elixir that restores a large amount of HP.",
+    "effect": {
+      "type": "heal_hp",
+      "value": 500
+    },
+    "level": 3
+  },
+  {
+    "id": "ITM021",
+    "name": "Greater Mana Potion",
+    "type": "Consumable",
+    "description": "A potent elixir that restores a large amount of MP.",
+    "effect": {
+      "type": "heal_mp",
+      "value": 100
+    },
+    "level": 3
   }
 ]

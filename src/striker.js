@@ -30,7 +30,6 @@ export function processStriker(hero) {
 		const baseDamage = parseRange('10-20');
 		const damageDealt = Math.ceil((baseDamage + damageBoost) * levelBoost);
 		monster.currentHp -= damageDealt;
-		// NEW: Log the hero's attack and damage dealt.
 		addToLog(`${hero.name} dealt ${damageDealt} damage to ${monster.name} (#${monster.id}).`);
 		
 		const armor = gameData.armor.find(a => a.id === hero.armorId);
@@ -38,7 +37,6 @@ export function processStriker(hero) {
 		const monsterDamage = parseRange(monster.damage);
 		const damageTaken = Math.max(1, monsterDamage - armorMitigation);
 		hero.hp.current -= damageTaken;
-		// NEW: Log the monster's attack, including raw damage and mitigation.
 		addToLog(`${monster.name} (#${monster.id}) attacked ${hero.name}, dealing ${damageTaken} damage (${monsterDamage} raw - ${armorMitigation} mitigated).`);
 		
 		const activeSkill = hero.skills.find(s => {
@@ -73,10 +71,13 @@ export function processStriker(hero) {
 			hero.targetMonsterId = null;
 			
 			if (Math.random() < 0.25) {
-				const items = gameData.items;
-				const dropped = items[Math.floor(Math.random() * items.length)];
-				hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;
-				addToLog(`${hero.name} found an item: ${dropped.name}!`);
+				// MODIFIED: Item drops are now based on monster level.
+				const possibleDrops = gameData.items.filter(item => item.level === monster.level);
+				if (possibleDrops.length > 0) {
+					const dropped = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
+					hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;
+					addToLog(`${hero.name} found an item: ${dropped.name}!`);
+				}
 			}
 			
 			if (hero.xp.current >= hero.xp.max) {

@@ -2,11 +2,10 @@ import { gameState, gameData } from './state.js';
 import { handleAegisAction } from './aegis.js';
 import { processStriker } from './striker.js';
 import { processVanguard } from './vanguard.js';
-// MODIFIED: Imported parseRange to calculate monster damage against buildings.
 import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
-import { findValidRecipe, handleCraftAttempt } from './crafting.js';
-// MODIFIED: Imported handleUseConsumable for manual and auto item use.
+// MODIFIED: Imported handleAutoCraft for the new auto-craft buttons.
+import { findValidRecipe, handleCraftAttempt, handleAutoCraft } from './crafting.js';
 import { handleItemDrop, handleUnequipArmor, handleEquipArmor, handleUseConsumable } from './inventory.js';
 import { renderHeroes } from './heroes.js';
 import { renderMonsters } from './monsters.js';
@@ -339,13 +338,19 @@ async function init() {
 			handleEquipArmor(heroId, armorId);
 			renderContent();
 		}
-		// NEW: Add click handler for using consumable items.
 		if (e.target.matches('[data-use-item-id]')) {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
 			const itemId = e.target.dataset.useItemId;
 			if (handleUseConsumable(heroId, itemId)) {
 				renderContent();
 			}
+		}
+		// NEW: Add click handler for auto-crafting items.
+		if (e.target.matches('[data-auto-craft-recipe-id]')) {
+			const heroId = parseInt(e.target.dataset.heroId, 10);
+			const recipeResultId = e.target.dataset.autoCraftRecipeId;
+			handleAutoCraft(heroId, recipeResultId);
+			renderContent();
 		}
 		if (e.target.id === 'sandbox-apply') {
 			applySandboxChanges();

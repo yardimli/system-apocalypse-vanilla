@@ -7,7 +7,7 @@
     "xp": 20,
     "level": 1,
     "spawnDay": 1,
-    "spawnRatio": 0.05
+    "spawnRatio": 0.1
   },
   {
     "id": "MON002",
@@ -17,7 +17,7 @@
     "xp": 50,
     "level": 1,
     "spawnDay": 3,
-    "spawnRatio": 0.05
+    "spawnRatio": 0.1
   },
   {
     "id": "MON003",

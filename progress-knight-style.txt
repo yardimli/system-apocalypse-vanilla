@@ -234,3 +234,16 @@ hero's should use first aid kit in their inventory to self heal when their healt
 monsters should drop mana crystals that the hero's can consume to restore mana, the heros should use them when their mana is bellow 60%
 in the inventory for consumables show how many hp and mp they will restore
 hero's can use any consumable in their inventory by clicking on it as well
+
+----
+
+on items add monster monster level for the item drop, so level 1 monsters will only drop level 1 items etc.
+increase the variety of items for each monster level including multiple levels of health and mana crystals
+increase crafting recipes for each level
+in Craftable section of the hero show the items needed to craft the item add a button auto craft, for armor upgrade if it needs their current armor it should unequip it and reequip the better armor automatically.
+
+----
+
+update the code so it will add option button to use healing or mana items automatically on each hero's panel
+the automatic should be used when the hero's health or mana would not waste the value of the item
+add 4 healing and 2 mana items to all hero's inventory on the beginning of the game
