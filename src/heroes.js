@@ -1,5 +1,4 @@
 import { gameState, gameData } from './state.js';
-import { findValidRecipe } from './crafting.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
@@ -149,44 +148,10 @@ export function renderHeroes() {
 			}
 		}
 		
-		const craftingContainer = card.querySelector('[data-crafting-container]');
-		if (craftingContainer) {
-			const craftDropZone = craftingContainer.querySelector('[data-drop-zone="crafting"]');
-			craftDropZone.dataset.heroId = hero.id;
-			const craftButton = craftingContainer.querySelector('[data-craft-button]');
-			craftButton.dataset.heroId = hero.id;
-			
-			if (hero.craftingSlots.length > 0) {
-				craftDropZone.innerHTML = hero.craftingSlots.map((itemId, index) => {
-					const entity = findEntityById(itemId);
-					if (!entity) return '';
-					return `<div draggable="true" data-drag-craft-item-id="${itemId}" data-hero-id="${hero.id}" data-item-index="${index}" class="badge badge-accent cursor-move p-3">${entity.name}</div>`;
-				}).join('');
-			} else {
-				craftDropZone.innerHTML = `<span class="text-xs text-gray-500 italic">Drag ingredients here...</span>`;
-			}
-			
-			const validRecipe = findValidRecipe(hero);
-			if (validRecipe) {
-				craftButton.disabled = false;
-				const resultEntity = findEntityById(validRecipe.resultId);
-				
-				if (resultEntity) {
-					craftButton.textContent = `Craft: ${resultEntity.name}`;
-				} else {
-					craftButton.textContent = 'Craft: Unknown';
-				}
-			} else {
-				craftButton.disabled = true;
-				craftButton.textContent = 'Craft';
-			}
-		}
-		
 		const hintsContainer = card.querySelector('[data-crafting-hints-list]');
 		if (hintsContainer) {
 			const craftableRecipes = getCraftableRecipes(hero);
 			if (craftableRecipes.length > 0) {
-				// MODIFIED: Crafting hints now show ingredients and an auto-craft button.
 				hintsContainer.innerHTML = craftableRecipes.map(recipe => {
 					const resultEntity = findEntityById(recipe.resultId);
 					if (!resultEntity) return '';
@@ -217,9 +182,8 @@ export function renderHeroes() {
 			}
 		}
 		
-		const invContainer = card.querySelector('[data-drop-zone="inventory"]');
+		const invContainer = card.querySelector('[data-inventory-container]');
 		if (invContainer) {
-			invContainer.dataset.heroId = hero.id;
 			let inventoryHtml = '';
 			const inventoryItems = Object.entries(hero.inventory);
 			
@@ -241,15 +205,15 @@ export function renderHeroes() {
 						
 						if (isEquipped) {
 							const equipAttribute = isArmor ? `data-equip-item-id="${id}"` : '';
-							inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" data-hero-id="${hero.id}" ${equipAttribute} class="badge badge-primary badge-lg p-3 cursor-move">${displayName} (Equipped)</div>`;
+							inventoryHtml += `<div data-hero-id="${hero.id}" ${equipAttribute} class="badge badge-primary badge-lg p-3 cursor-pointer">${displayName} (Equipped)</div>`;
 							count--;
 						}
 						
 						for (let i = 0; i < count; i++) {
 							const equipAttribute = isArmor ? `data-equip-item-id="${id}"` : '';
 							const useAttribute = isConsumable ? `data-use-item-id="${id}"` : '';
-							const cursorClass = (isArmor || isConsumable) ? 'cursor-pointer' : 'cursor-move';
-							inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" data-hero-id="${hero.id}" ${equipAttribute} ${useAttribute} class="badge badge-outline badge-lg p-3 ${cursorClass}">${displayName}</div>`;
+							const cursorClass = (isArmor || isConsumable) ? 'cursor-pointer' : '';
+							inventoryHtml += `<div data-hero-id="${hero.id}" ${equipAttribute} ${useAttribute} class="badge badge-outline badge-lg p-3 ${cursorClass}">${displayName}</div>`;
 						}
 					}
 				});
@@ -259,7 +223,6 @@ export function renderHeroes() {
 			}
 		}
 		
-		// NEW: Render auto-use toggles and set their state.
 		const autoUseContainer = card.querySelector('[data-auto-use-container]');
 		if (autoUseContainer) {
 			const hpToggle = autoUseContainer.querySelector('[data-auto-use-type="hp"]');

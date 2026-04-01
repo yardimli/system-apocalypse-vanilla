@@ -64,19 +64,7 @@
 			<div class="w-full mt-2 min-h-[80px] bg-base-300 rounded p-2 flex flex-col justify-center" data-dynamic-area>
 			</div>
 			
-			<!-- Crafting Area -->
-			<div class="mt-2 border-t border-base-300 pt-2" data-crafting-container>
-				<div class="divider my-1">Crafting</div>
-				<div class="flex flex-col gap-2">
-					<div
-						class="bg-base-100 p-2 rounded min-h-[50px] flex flex-wrap gap-2 items-center border border-dashed border-base-300"
-						data-drop-zone="crafting"
-					>
-						<span class="text-xs text-gray-500 italic">Drag ingredients here...</span>
-					</div>
-					<button class="btn btn-sm btn-secondary" data-craft-button disabled>Craft</button>
-				</div>
-			</div>
+			<!-- MODIFIED: Removed the manual drag-and-drop crafting UI section. -->
 			
 			<!-- NEW: Crafting Hints Area -->
 			<div class="mt-2 border-t border-base-300 pt-2" data-crafting-hints-container>
@@ -89,9 +77,10 @@
 			<!-- Personal Inventory Area -->
 			<div class="mt-2 border-t border-base-300 pt-2">
 				<div class="divider my-1">Inventory</div>
+				<!-- MODIFIED: Removed 'data-drop-zone' and changed to 'data-inventory-container' as dropping is disabled. -->
 				<div
 					class="bg-base-100 p-2 rounded min-h-[50px] flex flex-wrap gap-2 items-center border border-dashed border-base-300"
-					data-drop-zone="inventory"
+					data-inventory-container
 					data-hero-id=""
 				></div>
 			</div>

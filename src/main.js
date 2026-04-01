@@ -4,9 +4,8 @@ import { processStriker } from './striker.js';
 import { processVanguard } from './vanguard.js';
 import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
-// MODIFIED: Imported handleAutoCraft for the new auto-craft buttons.
-import { findValidRecipe, handleCraftAttempt, handleAutoCraft } from './crafting.js';
-import { handleItemDrop, handleUnequipArmor, handleEquipArmor, handleUseConsumable } from './inventory.js';
+import { handleAutoCraft } from './crafting.js';
+import { handleUnequipArmor, handleEquipArmor, handleUseConsumable } from './inventory.js';
 import { renderHeroes } from './heroes.js';
 import { renderMonsters } from './monsters.js';
 import { renderHeader, renderTabs, renderBuildings, renderCars, renderCity, renderLog } from './ui.js';
@@ -154,7 +153,7 @@ function gameLoop() {
 			hero.mp.current = Math.min(hero.mp.max, hero.mp.current + hero.mpRegen);
 		}
 		
-		// MODIFIED: Smart auto-consumption of items based on hero settings to avoid waste.
+		// Smart auto-consumption of items based on hero settings to avoid waste.
 		if (hero.autoUse?.hp && hero.hp.current < hero.hp.max) {
 			const missingHp = hero.hp.max - hero.hp.current;
 			
@@ -226,12 +225,10 @@ function gameLoop() {
 			if (monster.targetBuilding) {
 				const bldg = gameState.city.buildings.find(b => b.id === monster.targetBuilding);
 				if (bldg && bldg.state !== 'ruined') {
-					// NEW: Monsters now use their damage range against buildings.
 					const monsterDamage = parseRange(monster.damage);
 					if (bldg.shieldHp > 0) {
 						const damageToShield = Math.min(bldg.shieldHp, monsterDamage);
 						bldg.shieldHp -= damageToShield;
-						// NEW: Log damage dealt to building shields.
 						addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToShield} damage to the shield on Building #${bldg.id}.`);
 						if (bldg.shieldHp === 0) {
 							addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) destroyed the shield on Building #${bldg.id}!`);
@@ -239,7 +236,6 @@ function gameLoop() {
 					} else {
 						const damageToHp = Math.min(bldg.hp, monsterDamage);
 						bldg.hp -= damageToHp;
-						// NEW: Log damage dealt to building HP.
 						addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToHp} damage to Building #${bldg.id}.`);
 						if (bldg.hp <= 0) {
 							bldg.hp = 0;
@@ -334,11 +330,6 @@ async function init() {
 			handleAegisAction(parseInt(heroId), skillId);
 			renderContent();
 		}
-		if (e.target.matches('[data-craft-button]')) {
-			const heroId = parseInt(e.target.dataset.heroId);
-			handleCraftAttempt(heroId);
-			renderContent();
-		}
 		if (e.target.matches('[data-unequip-button]')) {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
 			handleUnequipArmor(heroId);
@@ -357,7 +348,6 @@ async function init() {
 				renderContent();
 			}
 		}
-		// NEW: Add click handler for auto-crafting items.
 		if (e.target.matches('[data-auto-craft-recipe-id]')) {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
 			const recipeResultId = e.target.dataset.autoCraftRecipeId;
@@ -370,7 +360,6 @@ async function init() {
 		}
 	});
 	
-	// NEW: Add a separate event listener for 'change' events, ideal for checkboxes/toggles.
 	document.body.addEventListener('change', (e) => {
 		if (e.target.matches('[data-auto-use-type]')) {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
@@ -391,19 +380,6 @@ async function init() {
 		if (e.target.matches('[data-drag-skill]')) {
 			e.dataTransfer.setData('text/plain', e.target.dataset.dragSkill);
 			e.dataTransfer.setData('heroId', e.target.closest('[data-hero-id]').dataset.heroId);
-			e.target.classList.add('opacity-50');
-		}
-		if (e.target.matches('[data-drag-item-id]')) {
-			e.dataTransfer.setData('source', 'inventory');
-			e.dataTransfer.setData('itemId', e.target.dataset.dragItemId);
-			e.dataTransfer.setData('heroId', e.target.dataset.heroId);
-			e.target.classList.add('opacity-50');
-		}
-		if (e.target.matches('[data-drag-craft-item-id]')) {
-			e.dataTransfer.setData('source', 'crafting');
-			e.dataTransfer.setData('itemId', e.target.dataset.dragCraftItemId);
-			e.dataTransfer.setData('heroId', e.target.dataset.heroId);
-			e.dataTransfer.setData('itemIndex', e.target.dataset.itemIndex);
 			e.target.classList.add('opacity-50');
 		}
 	});
@@ -433,14 +409,6 @@ async function init() {
 		if (!dropZone) return;
 		e.preventDefault();
 		dropZone.classList.remove('bg-primary/20');
-		
-		const zoneType = dropZone.dataset.dropZone;
-		
-		if (zoneType === 'inventory' || zoneType === 'crafting') {
-			handleItemDrop(e);
-			renderContent();
-			return;
-		}
 		
 		const aegisZoneType = dropZone.dataset.dropZone;
 		if (aegisZoneType === 'auto' || aegisZoneType === 'manual') {

@@ -72,7 +72,6 @@ export function processVanguard(hero) {
 			hero.targetMonsterId = null;
 			
 			if (Math.random() < 0.4) {
-				// MODIFIED: Item drops are now based on monster level.
 				const possibleDrops = gameData.items.filter(item => item.level === monster.level);
 				if (possibleDrops.length > 0) {
 					const dropped = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];

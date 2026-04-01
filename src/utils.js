@@ -1,7 +1,6 @@
 import { gameState, gameData } from './state.js';
 
 export function addToLog(message) {
-	// MODIFIED: Changed timestamp to be more game-relevant (Day and Tick).
 	const day = Math.floor(gameState.time / 10) + 1;
 	const tick = (gameState.time % 10) + 1;
 	const timeStr = `[Day ${day}, Tick ${tick}]`;
@@ -10,7 +9,7 @@ export function addToLog(message) {
 }
 
 /**
- * NEW: Parses a string range "min-max" into a random integer between min and max (inclusive).
+ * Parses a string range "min-max" into a random integer between min and max (inclusive).
  * If the input is not a valid range string, it attempts to parse it as a single integer.
  * @param {string|number} rangeStr The string to parse (e.g., "5-10").
  * @returns {number} A random integer within the range, or the parsed number, or 0.
