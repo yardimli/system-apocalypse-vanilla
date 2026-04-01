@@ -230,8 +230,7 @@ in the monsters tab show the monster id
 also keep track of how many days the monster has been alive and show it in the monster tab
 
 ----
-
 hero's should use first aid kit in their inventory to self heal when their health is bellow 60%
-in the inventory for consumables show how many hp they will restore
-add a new item for mana restoration and have the heros use it when their mana is bellow 60%
+monsters should drop mana crystals that the hero's can consume to restore mana, the heros should use them when their mana is bellow 60%
+in the inventory for consumables show how many hp and mp they will restore
 hero's can use any consumable in their inventory by clicking on it as well

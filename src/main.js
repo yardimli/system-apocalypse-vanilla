@@ -6,7 +6,8 @@ import { processVanguard } from './vanguard.js';
 import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { findValidRecipe, handleCraftAttempt } from './crafting.js';
-import { handleItemDrop, handleUnequipArmor, handleEquipArmor } from './inventory.js';
+// MODIFIED: Imported handleUseConsumable for manual and auto item use.
+import { handleItemDrop, handleUnequipArmor, handleEquipArmor, handleUseConsumable } from './inventory.js';
 import { renderHeroes } from './heroes.js';
 import { renderMonsters } from './monsters.js';
 import { renderHeader, renderTabs, renderBuildings, renderCars, renderCity, renderLog } from './ui.js';
@@ -152,6 +153,31 @@ function gameLoop() {
 				hero.hp.current = Math.min(hero.hp.max, hero.hp.current + hero.hpRegen);
 			}
 			hero.mp.current = Math.min(hero.mp.max, hero.mp.current + hero.mpRegen);
+		}
+		
+		// NEW: Auto-consume items if health or mana is low.
+		if (hero.hp.current > 0 && hero.hp.current / hero.hp.max < 0.6) {
+			// Prioritize better healing items first.
+			const hpItems = ['ITM009', 'ITM002'];
+			for (const itemId of hpItems) {
+				if (hero.inventory[itemId]) {
+					if (handleUseConsumable(hero.id, itemId)) {
+						break; // Stop after using one item.
+					}
+				}
+			}
+		}
+		
+		if (hero.mp.current / hero.mp.max < 0.6) {
+			// Prioritize better mana items first.
+			const mpItems = ['ITM013', 'ITM005'];
+			for (const itemId of mpItems) {
+				if (hero.inventory[itemId]) {
+					if (handleUseConsumable(hero.id, itemId)) {
+						break; // Stop after using one item.
+					}
+				}
+			}
 		}
 		
 		if (hero.class === 'Aegis' && Array.isArray(hero.autoCast)) {
@@ -312,6 +338,14 @@ async function init() {
 			const armorId = e.target.dataset.equipItemId;
 			handleEquipArmor(heroId, armorId);
 			renderContent();
+		}
+		// NEW: Add click handler for using consumable items.
+		if (e.target.matches('[data-use-item-id]')) {
+			const heroId = parseInt(e.target.dataset.heroId, 10);
+			const itemId = e.target.dataset.useItemId;
+			if (handleUseConsumable(heroId, itemId)) {
+				renderContent();
+			}
 		}
 		if (e.target.id === 'sandbox-apply') {
 			applySandboxChanges();

@@ -208,17 +208,30 @@ export function renderHeroes() {
 						let count = qty;
 						const isEquipped = hero.armorId === id;
 						const isArmor = gameData.armor.some(a => a.id === id);
+						// NEW: Check if the item is a consumable.
+						const isConsumable = entity.type === 'Consumable';
+						
+						// NEW: Generate the display name with consumable effect info.
+						let displayName = entity.name;
+						if (isConsumable && entity.effect) {
+							const { type, value } = entity.effect;
+							const effectText = type === 'heal_hp' ? `HP: +${value}` : `MP: +${value}`;
+							displayName = `${entity.name} (${effectText})`;
+						}
 						
 						if (isEquipped) {
 							const equipAttribute = isArmor ? `data-equip-item-id="${id}"` : '';
-							inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" data-hero-id="${hero.id}" ${equipAttribute} class="badge badge-primary badge-lg p-3 cursor-move">${entity.name} (Equipped)</div>`;
+							inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" data-hero-id="${hero.id}" ${equipAttribute} class="badge badge-primary badge-lg p-3 cursor-move">${displayName} (Equipped)</div>`;
 							count--;
 						}
 						
 						for (let i = 0; i < count; i++) {
 							const equipAttribute = isArmor ? `data-equip-item-id="${id}"` : '';
-							const cursorClass = isArmor ? 'cursor-pointer' : 'cursor-move';
-							inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" data-hero-id="${hero.id}" ${equipAttribute} class="badge badge-outline badge-lg p-3 ${cursorClass}">${entity.name}</div>`;
+							// NEW: Add a data attribute for using consumables by clicking.
+							const useAttribute = isConsumable ? `data-use-item-id="${id}"` : '';
+							// NEW: Change cursor for consumables (for clicking) and armor (for equipping).
+							const cursorClass = (isArmor || isConsumable) ? 'cursor-pointer' : 'cursor-move';
+							inventoryHtml += `<div draggable="true" data-drag-item-id="${id}" data-hero-id="${hero.id}" ${equipAttribute} ${useAttribute} class="badge badge-outline badge-lg p-3 ${cursorClass}">${displayName}</div>`;
 						}
 					}
 				});

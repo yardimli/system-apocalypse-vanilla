@@ -9,7 +9,11 @@
     "id": "ITM002",
     "name": "Medical Supplies",
     "type": "Consumable",
-    "description": "Used by Aegis heroes for powerful healing."
+    "description": "Used by Aegis heroes for powerful healing.",
+    "effect": {
+      "type": "heal_hp",
+      "value": 100
+    }
   },
   {
     "id": "ITM003",
@@ -27,7 +31,11 @@
     "id": "ITM005",
     "name": "Energy Bar",
     "type": "Consumable",
-    "description": "Can be used to restore a small amount of MP."
+    "description": "Can be used to restore a small amount of MP.",
+    "effect": {
+      "type": "heal_mp",
+      "value": 25
+    }
   },
   {
     "id": "ITM006",
@@ -51,7 +59,11 @@
     "id": "ITM009",
     "name": "First Aid Kit",
     "type": "Consumable",
-    "description": "A better version of Medical Supplies."
+    "description": "A better version of Medical Supplies.",
+    "effect": {
+      "type": "heal_hp",
+      "value": 250
+    }
   },
   {
     "id": "ITM010",
@@ -70,5 +82,15 @@
     "name": "Aegis Power Core",
     "type": "Resource",
     "description": "A potent energy source for Aegis technology."
+  },
+  {
+    "id": "ITM013",
+    "name": "Mana Crystal",
+    "type": "Consumable",
+    "description": "A crystal humming with energy. Restores MP.",
+    "effect": {
+      "type": "heal_mp",
+      "value": 50
+    }
   }
 ]
