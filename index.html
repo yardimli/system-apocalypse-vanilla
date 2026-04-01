@@ -28,7 +28,6 @@
 	<div class="navbar-center hidden lg:flex">
 		<div class="stats bg-transparent shadow-none">
 			<div class="stat"><div class="stat-title">In-Game Time</div><div class="stat-value text-lg" data-stat="time"></div></div>
-			<!-- MODIFIED: Added game ticks display to header -->
 			<div class="stat"><div class="stat-title">Game Ticks</div><div class="stat-value text-lg" data-stat="ticks"></div></div>
 		</div>
 	</div>
@@ -50,10 +49,8 @@
 				<h2 class="card-title text-lg" data-name></h2>
 				<div class="badge" data-class></div>
 			</div>
-			<!-- MODIFIED: Armor display now includes an unequip button -->
-			<div class="flex justify-between items-center text-xs text-gray-400 mb-2" data-armor-container>
+			<div class="text-xs text-gray-400 mb-2" data-armor-container>
 				<span data-armor-text></span>
-				<button class="btn btn-xs btn-outline btn-error hidden" data-unequip-button>Unequip</button>
 			</div>
 			
 			<div class="my-2"><label class="label p-0"><span class="label-text" data-xp-label></span></label><progress class="progress progress-primary w-full" data-xp-bar></progress></div>
@@ -64,9 +61,7 @@
 			<div class="w-full mt-2 min-h-[80px] bg-base-300 rounded p-2 flex flex-col justify-center" data-dynamic-area>
 			</div>
 			
-			<!-- MODIFIED: Removed the manual drag-and-drop crafting UI section. -->
-			
-			<!-- NEW: Crafting Hints Area -->
+			<!-- Crafting Hints Area -->
 			<div class="mt-2 border-t border-base-300 pt-2" data-crafting-hints-container>
 				<div class="divider my-1">Craftable</div>
 				<div class="flex flex-col gap-1 text-xs" data-crafting-hints-list>
@@ -77,7 +72,6 @@
 			<!-- Personal Inventory Area -->
 			<div class="mt-2 border-t border-base-300 pt-2">
 				<div class="divider my-1">Inventory</div>
-				<!-- MODIFIED: Removed 'data-drop-zone' and changed to 'data-inventory-container' as dropping is disabled. -->
 				<div
 					class="bg-base-100 p-2 rounded min-h-[50px] flex flex-wrap gap-2 items-center border border-dashed border-base-300"
 					data-inventory-container
@@ -85,7 +79,7 @@
 				></div>
 			</div>
 			
-			<!-- NEW: Auto-Use Settings Area -->
+			<!-- Auto-Use Settings Area -->
 			<div class="mt-2 border-t border-base-300 pt-2">
 				<div class="divider my-1">Auto-Use</div>
 				<div class="flex justify-around" data-auto-use-container>

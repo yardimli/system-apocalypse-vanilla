@@ -78,7 +78,8 @@ export const gameState = {
 			skills: [{ id: 'STR001', xp: 0 }],
 			autoUse: { hp: false, mp: false },
 			inventory: {
-				'ARM001': 1,
+				'ARM001': 2,
+				'ITM001': 4,
 				'ITM016': 4,
 				'ITM017': 2
 			}
@@ -103,7 +104,8 @@ export const gameState = {
 			skills: [{ id: 'VAN001', xp: 0 }],
 			autoUse: { hp: false, mp: false },
 			inventory: {
-				'ARM001': 1,
+				'ITM001' : 4,
+				'ARM001': 2,
 				'ITM016': 4,
 				'ITM017': 2
 			}

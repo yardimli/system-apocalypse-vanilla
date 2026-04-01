@@ -5,8 +5,8 @@ import { processVanguard } from './vanguard.js';
 import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { handleAutoCraft } from './crafting.js';
-import { handleUnequipArmor, handleEquipArmor, handleUseConsumable } from './inventory.js';
-import { renderHeroes } from './heroes.js';
+import { handleUseConsumable } from './inventory.js';
+import { renderHeroes, autoEquipBestArmor } from './heroes.js';
 import { renderMonsters } from './monsters.js';
 import { renderHeader, renderTabs, renderBuildings, renderCars, renderCity, renderLog } from './ui.js';
 
@@ -52,7 +52,7 @@ function renderContent() {
 }
 
 /**
- * NEW: Manages combat assignments for Strikers and Vanguards.
+ * Manages combat assignments for Strikers and Vanguards.
  * Vanguards taunt monsters, and Strikers prioritize those taunted monsters.
  */
 function manageCombatAssignments() {
@@ -146,6 +146,8 @@ function gameLoop() {
 	manageCombatAssignments();
 	
 	gameState.heroes.forEach(hero => {
+		autoEquipBestArmor(hero);
+		
 		if (!hero.targetMonsterId) { // Check targetMonsterId for regen.
 			if (hero.hp.current > 0) {
 				hero.hp.current = Math.min(hero.hp.max, hero.hp.current + hero.hpRegen);
@@ -328,17 +330,6 @@ async function init() {
 		if (e.target.matches('[data-skill-id]')) {
 			const { heroId, skillId } = e.target.dataset;
 			handleAegisAction(parseInt(heroId), skillId);
-			renderContent();
-		}
-		if (e.target.matches('[data-unequip-button]')) {
-			const heroId = parseInt(e.target.dataset.heroId, 10);
-			handleUnequipArmor(heroId);
-			renderContent();
-		}
-		if (e.target.matches('[data-equip-item-id]')) {
-			const heroId = parseInt(e.target.dataset.heroId, 10);
-			const armorId = e.target.dataset.equipItemId;
-			handleEquipArmor(heroId, armorId);
 			renderContent();
 		}
 		if (e.target.matches('[data-use-item-id]')) {

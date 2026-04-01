@@ -1,7 +1,43 @@
 import { gameState, gameData } from './state.js';
+import { addToLog } from './utils.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
+
+/**
+ * Automatically finds and equips the best armor a hero has in their inventory.
+ * Best is determined by the armor's level.
+ * @param {object} hero - The hero object from gameState.
+ */
+export function autoEquipBestArmor(hero) {
+	// Find all armor the hero possesses in their inventory.
+	const availableArmor = Object.keys(hero.inventory)
+		.map(itemId => gameData.armor.find(a => a.id === itemId && hero.inventory[itemId] > 0))
+		.filter(Boolean); // Filter out any non-armor items.
+	
+	let bestArmor = null;
+	if (availableArmor.length > 0) {
+		// Sort by level descending to find the best armor.
+		bestArmor = availableArmor.sort((a, b) => b.level - a.level)[0];
+	}
+	
+	// Determine the ID of the best armor, or null if none exists.
+	const bestArmorId = bestArmor ? bestArmor.id : null;
+	
+	// Only update and log if the equipped armor changes.
+	if (hero.armorId !== bestArmorId) {
+		const oldArmor = gameData.armor.find(a => a.id === hero.armorId);
+		hero.armorId = bestArmorId;
+		
+		if (bestArmor && oldArmor) {
+			addToLog(`${hero.name} automatically upgraded from ${oldArmor.name} to ${bestArmor.name}.`);
+		} else if (bestArmor) {
+			addToLog(`${hero.name} automatically equipped ${bestArmor.name}.`);
+		} else if (oldArmor) {
+			addToLog(`${hero.name} no longer has any armor equipped.`);
+		}
+	}
+}
 
 /**
  * Finds an entity (item or armor) by its ID from the game data.
@@ -68,16 +104,12 @@ export function renderHeroes() {
 		card.querySelector('[data-class]').className = `badge ${hero.class === 'Aegis' ? 'badge-info' : hero.class === 'Striker' ? 'badge-error' : 'badge-success'}`;
 		
 		const armorTextEl = card.querySelector('[data-armor-text]');
-		const unequipButton = card.querySelector('[data-unequip-button]');
 		const armor = gameData.armor.find(a => a.id === hero.armorId);
 		
 		if (armor) {
-			armorTextEl.textContent = `${armor.name} (Mitigation: ${armor.damageMitigation})`;
-			unequipButton.classList.remove('hidden');
-			unequipButton.dataset.heroId = hero.id;
+			armorTextEl.textContent = `Equipped: ${armor.name} (Mitigation: ${armor.damageMitigation})`;
 		} else {
-			armorTextEl.textContent = 'No Armor';
-			unequipButton.classList.add('hidden');
+			armorTextEl.textContent = 'Equipped: No Armor';
 		}
 		
 		card.querySelector('[data-xp-label]').textContent = `XP: ${hero.xp.current}/${hero.xp.max}`;
@@ -204,16 +236,14 @@ export function renderHeroes() {
 						}
 						
 						if (isEquipped) {
-							const equipAttribute = isArmor ? `data-equip-item-id="${id}"` : '';
-							inventoryHtml += `<div data-hero-id="${hero.id}" ${equipAttribute} class="badge badge-primary badge-lg p-3 cursor-pointer">${displayName} (Equipped)</div>`;
+							inventoryHtml += `<div class="badge badge-primary badge-lg p-3">${displayName} (Equipped)</div>`;
 							count--;
 						}
 						
 						for (let i = 0; i < count; i++) {
-							const equipAttribute = isArmor ? `data-equip-item-id="${id}"` : '';
 							const useAttribute = isConsumable ? `data-use-item-id="${id}"` : '';
-							const cursorClass = (isArmor || isConsumable) ? 'cursor-pointer' : '';
-							inventoryHtml += `<div data-hero-id="${hero.id}" ${equipAttribute} ${useAttribute} class="badge badge-outline badge-lg p-3 ${cursorClass}">${displayName}</div>`;
+							const cursorClass = isConsumable ? 'cursor-pointer' : '';
+							inventoryHtml += `<div data-hero-id="${hero.id}" ${useAttribute} class="badge badge-outline badge-lg p-3 ${cursorClass}">${displayName}</div>`;
 						}
 					}
 				});

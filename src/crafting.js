@@ -1,8 +1,9 @@
 import { gameState, gameData } from './state.js';
 import { addToLog } from './utils.js';
+import { autoEquipBestArmor } from './heroes.js';
 
 /**
- * NEW: Attempts to automatically craft an item for a hero, consuming ingredients from their inventory.
+ * Attempts to automatically craft an item for a hero, consuming ingredients from their inventory.
  * Handles special cases like upgrading equipped armor.
  * @param {number} heroId - The ID of the hero attempting to craft.
  * @param {string} recipeResultId - The resultId of the recipe to craft.
@@ -30,9 +31,7 @@ export function handleAutoCraft(heroId, recipeResultId) {
 	}
 	
 	// 2. Handle un-equipping armor if it's an ingredient.
-	let wasEquippedArmor = false;
 	if (hero.armorId && recipe.ingredients.includes(hero.armorId)) {
-		wasEquippedArmor = true;
 		// The equipped armor will be consumed, so we just need to clear the slot.
 		hero.armorId = null;
 	}
@@ -57,10 +56,5 @@ export function handleAutoCraft(heroId, recipeResultId) {
 		return; // Stop if the result item doesn't exist.
 	}
 	
-	// 5. Re-equip the newly crafted armor if it was an upgrade.
-	const isResultArmor = gameData.armor.some(a => a.id === resultId);
-	if (wasEquippedArmor && isResultArmor) {
-		hero.armorId = resultId;
-		addToLog(`${hero.name} automatically equipped the new ${resultEntity.name}.`);
-	}
+	autoEquipBestArmor(hero);
 }

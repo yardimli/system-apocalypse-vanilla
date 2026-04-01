@@ -18,7 +18,6 @@ export function renderSandbox(contentArea) {
                 ${buildTableSection('Skills', 'skills')}
                 ${buildTableSection('Items', 'items')}
                 ${buildTableSection('Recipes', 'recipes')}
-                <!-- MODIFIED: Added Armor table to sandbox -->
                 ${buildTableSection('Armor', 'armor')}
             </div>
 

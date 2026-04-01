@@ -47,14 +47,14 @@ export function renderMonsters(contentArea) {
 		return `
             <div class="card bg-base-200 shadow-md p-4">
                 <div class="flex justify-between items-center">
-                    <h3 class="font-bold text-lg">Lv.${monster.level} ${monster.name} (#${monster.id})</h3> <!-- MODIFIED: Added monster ID -->
+                    <h3 class="font-bold text-lg">Lv.${monster.level} ${monster.name} (#${monster.id})</h3>
                     <div class="badge badge-error">${targetText}</div>
                 </div>
                 <div class="mt-2">
                     <progress class="progress progress-error w-full" value="${monster.currentHp}" max="${monster.maxHp}"></progress>
                     <p class="text-xs text-right mt-1">${Math.floor(monster.currentHp)} / ${monster.maxHp} HP</p>
                 </div>
-                <div class="text-xs text-gray-400 mt-2">Age: ${ageInDays} day(s)</div> <!-- NEW: Display monster age -->
+                <div class="text-xs text-gray-400 mt-2">Age: ${ageInDays} day(s)</div>
             </div>
         `;
 	}).join('');
