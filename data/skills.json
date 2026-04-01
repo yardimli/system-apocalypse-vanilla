@@ -134,7 +134,7 @@
     "type": "Auto",
     "effect": "damage",
     "value": "3-7",
-    "xpMax": 100,
+    "xpMax": 25,
     "description": "Passively increases damage dealt by 3-7."
   },
   {
@@ -144,7 +144,7 @@
     "type": "Auto",
     "effect": "damage",
     "value": "1-3",
-    "xpMax": 100,
+    "xpMax": 25,
     "description": "Passively increases damage dealt by 1-3."
   },
   {
@@ -155,7 +155,7 @@
     "effect": "damage",
     "value": "12-20",
     "replaces": "STR001",
-    "xpMax": 250,
+    "xpMax": 50,
     "description": "Passively increases damage dealt by 12-20. (Crafted)"
   },
   {
@@ -166,7 +166,7 @@
     "effect": "damage",
     "value": "4-8",
     "replaces": "VAN001",
-    "xpMax": 250,
+    "xpMax": 50,
     "description": "Passively increases damage dealt by 4-8. (Crafted)"
   },
   {
@@ -177,7 +177,7 @@
     "effect": "damage",
     "value": "25-40",
     "replaces": "STR_C01",
-    "xpMax": 500,
+    "xpMax": 100,
     "description": "Massively increases damage dealt by 25-40. (Crafted)"
   },
   {
@@ -188,7 +188,7 @@
     "effect": "damage",
     "value": "10-15",
     "replaces": "VAN_C01",
-    "xpMax": 500,
+    "xpMax": 100,
     "description": "Massively increases damage dealt by 10-15. (Crafted)"
   },
   {
@@ -199,7 +199,7 @@
     "effect": "damage",
     "value": "50-75",
     "replaces": "STR_C02",
-    "xpMax": 1000,
+    "xpMax": 200,
     "description": "Increases damage dealt by 50-75. (Crafted)"
   },
   {
@@ -210,7 +210,7 @@
     "effect": "damage",
     "value": "18-25",
     "replaces": "VAN_C02",
-    "xpMax": 1000,
+    "xpMax": 200,
     "description": "Increases damage dealt by 18-25. (Crafted)"
   },
   {
@@ -221,7 +221,7 @@
     "effect": "damage",
     "value": "80-120",
     "replaces": "STR_C03",
-    "xpMax": 2000,
+    "xpMax": 350,
     "description": "Increases damage dealt by 80-120. (Crafted)"
   },
   {
@@ -232,7 +232,7 @@
     "effect": "damage",
     "value": "30-40",
     "replaces": "VAN_C03",
-    "xpMax": 2000,
+    "xpMax": 350,
     "description": "Reduces incoming damage by 30-40. (Crafted)"
   }
 ]

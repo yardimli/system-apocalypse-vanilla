@@ -1,7 +1,10 @@
 import { gameState, gameData } from './state.js';
 
 export function addToLog(message) {
-	const timeStr = `[D${Math.floor(gameState.time / 86400) + 1}, ${new Date(gameState.time * 1000).toISOString().substr(11, 8)}]`;
+	// MODIFIED: Changed timestamp to be more game-relevant (Day and Tick).
+	const day = Math.floor(gameState.time / 10) + 1;
+	const tick = (gameState.time % 10) + 1;
+	const timeStr = `[Day ${day}, Tick ${tick}]`;
 	gameState.log.unshift(`${timeStr} ${message}`);
 	if (gameState.log.length > 100) gameState.log.pop();
 }
@@ -27,6 +30,5 @@ export function getSkillEffect(hero, effectType) {
 	return hero.skills
 		.map(skill => gameData.skills.find(s => s.id === skill.id))
 		.filter(s => s && s.effect === effectType)
-		// MODIFIED: Use the new parseRange function to calculate a random value from the skill's range.
 		.reduce((sum, s) => sum + parseRange(s.value), 0);
 }

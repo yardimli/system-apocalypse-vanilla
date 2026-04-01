@@ -1,5 +1,4 @@
 import { gameState, gameData } from './state.js';
-// MODIFIED: Added parseRange to imports for calculating damage from new range values.
 import { addToLog, getSkillEffect, parseRange } from './utils.js';
 
 export function processStriker(hero) {
@@ -25,29 +24,23 @@ export function processStriker(hero) {
 			return;
 		}
 		
-		// MODIFIED: Level boost is now applied to the final calculated damage.
 		const levelBoost = 1 + (hero.level * 0.1);
 		
-		// MODIFIED: Skill effect is now 'damage' instead of 'damage_boost'.
 		const damageBoost = getSkillEffect(hero, 'damage') || 0;
-		// MODIFIED: Base damage is now a random value from a hardcoded range.
 		const baseDamage = parseRange('10-20');
-		// MODIFIED: Total damage is calculated from base, skills, and level, then rounded up.
 		const damageDealt = Math.ceil((baseDamage + damageBoost) * levelBoost);
 		monster.currentHp -= damageDealt;
+		// NEW: Log the hero's attack and damage dealt.
+		addToLog(`${hero.name} dealt ${damageDealt} damage to ${monster.name} (#${monster.id}).`);
 		
-		// REMOVED: Complex logic for Vanguards tanking damage is removed for simplification.
-		// The Striker now always takes damage if engaged.
-		
-		// MODIFIED: Simplified damage taken calculation.
 		const armor = gameData.armor.find(a => a.id === hero.armorId);
-		// MODIFIED: Armor mitigation and monster damage are now parsed from their respective ranges.
 		const armorMitigation = armor ? parseRange(armor.damageMitigation) : 0;
 		const monsterDamage = parseRange(monster.damage);
-		const damageTaken = Math.max(1, monsterDamage - armorMitigation); // Damage taken is at least 1.
+		const damageTaken = Math.max(1, monsterDamage - armorMitigation);
 		hero.hp.current -= damageTaken;
+		// NEW: Log the monster's attack, including raw damage and mitigation.
+		addToLog(`${monster.name} (#${monster.id}) attacked ${hero.name}, dealing ${damageTaken} damage (${monsterDamage} raw - ${armorMitigation} mitigated).`);
 		
-		// MODIFIED: The skill effect to look for is now 'damage'.
 		const activeSkill = hero.skills.find(s => {
 			const data = gameData.skills.find(d => d.id === s.id);
 			return data && data.effect === 'damage';
@@ -89,7 +82,6 @@ export function processStriker(hero) {
 			if (hero.xp.current >= hero.xp.max) {
 				hero.level++;
 				hero.xp.current -= hero.xp.max;
-				// MODIFIED: Use Math.ceil for XP curve calculation.
 				hero.xp.max = Math.ceil(hero.xp.max * 1.5);
 				hero.hp.max += hero.hpMaxPerLevel;
 				hero.mp.max += hero.mpMaxPerLevel;
