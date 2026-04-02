@@ -7,7 +7,7 @@ const getEl = (id) => document.getElementById(id);
  * Renders the list of active monsters into the main content area.
  * @param {HTMLElement} contentArea - The main content DOM element.
  */
-export function renderMonsters(contentArea) {
+export function renderMonsters (contentArea) {
 	let container = getEl('monsters-list-container');
 	if (!container) {
 		contentArea.innerHTML = `
@@ -23,9 +23,17 @@ export function renderMonsters(contentArea) {
 	if (!grid) return;
 	
 	if (gameState.activeMonsters.length === 0) {
-		grid.innerHTML = '<p class="text-gray-500 italic col-span-full">No active monsters.</p>';
+		// Modified to use data attribute to avoid flickering
+		if (grid.getAttribute('data-prev-state') !== 'empty') {
+			grid.innerHTML = '<p class="text-gray-500 italic col-span-full">No active monsters.</p>';
+			grid.setAttribute('data-prev-state', 'empty');
+		}
 		return;
 	}
+	
+	// Generate a state string to check if an update is actually needed
+	const stateStr = JSON.stringify(gameState.activeMonsters.map(m => [m.id, m.currentHp, m.targetBuilding, m.assignedTo]));
+	if (grid.getAttribute('data-prev-state') === stateStr) return;
 	
 	// Generate a card for each active monster individually
 	grid.innerHTML = gameState.activeMonsters.map(monster => {
@@ -58,4 +66,7 @@ export function renderMonsters(contentArea) {
             </div>
         `;
 	}).join('');
+	
+	// Save the current state to prevent unnecessary updates
+	grid.setAttribute('data-prev-state', stateStr);
 }

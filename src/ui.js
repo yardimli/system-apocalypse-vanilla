@@ -10,7 +10,7 @@ const tabsContainer = getEl('tabs-container');
 /**
  * Renders the main game header with current stats.
  */
-export function renderHeader() {
+export function renderHeader () {
 	let timeEl = headerContainer.querySelector('[data-stat="time"]');
 	let ticksEl = headerContainer.querySelector('[data-stat="ticks"]');
 	
@@ -56,7 +56,7 @@ export function renderHeader() {
  * @param {string} activeTab - The currently active tab.
  * @param {Array<string>} TABS - An array of all available tab names.
  */
-export function renderTabs(activeTab, TABS) {
+export function renderTabs (activeTab, TABS) {
 	tabsContainer.innerHTML = TABS.map(tab => `
         <a role="tab" class="tab ${tab === activeTab ? 'tab-active' : ''}" data-tab="${tab}">${tab}</a>
     `).join('');
@@ -66,7 +66,7 @@ export function renderTabs(activeTab, TABS) {
  * Renders the grid of city buildings.
  * @param {HTMLElement} contentArea - The main content DOM element.
  */
-export function renderBuildings(contentArea) {
+export function renderBuildings (contentArea) {
 	let grid = getEl('buildings-grid');
 	if (!grid) {
 		contentArea.innerHTML = `<div id="buildings-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>`;
@@ -105,11 +105,16 @@ export function renderBuildings(contentArea) {
  * Renders the grid of mana battery cars.
  * @param {HTMLElement} contentArea - The main content DOM element.
  */
-export function renderCars(contentArea) {
+export function renderCars (contentArea) {
 	if (!getEl('cars-grid')) {
 		contentArea.innerHTML = `<div id="cars-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4"></div>`;
 	}
 	const grid = getEl('cars-grid');
+	
+	// Generate a state string to check if an update is actually needed
+	const stateStr = JSON.stringify(gameState.city.cars.map(car => [car.id, car.battery, car.driverId]));
+	if (grid.getAttribute('data-prev-state') === stateStr) return;
+	
 	grid.innerHTML = gameState.city.cars.map(car => {
 		const driver = car.driverId ? gameState.heroes.find(h => h.id === car.driverId) : null;
 		const driverText = driver ? `${driver.name} (${driver.class})` : 'None';
@@ -121,13 +126,16 @@ export function renderCars(contentArea) {
             </div>
         `;
 	}).join('');
+	
+	// Save the current state to prevent unnecessary updates
+	grid.setAttribute('data-prev-state', stateStr);
 }
 
 /**
  * Renders the main city status overview.
  * @param {HTMLElement} contentArea - The main content DOM element.
  */
-export function renderCity(contentArea) {
+export function renderCity (contentArea) {
 	if (!getEl('city-status-container')) {
 		contentArea.innerHTML = `
         <div id="city-status-container" class="card bg-base-200 shadow-xl p-6">
@@ -156,7 +164,7 @@ export function renderCity(contentArea) {
  * Renders the game log.
  * @param {HTMLElement} contentArea - The main content DOM element.
  */
-export function renderLog(contentArea) {
+export function renderLog (contentArea) {
 	if (!getEl('log-container')) {
 		contentArea.innerHTML = `
         <div class="card bg-base-200 shadow-xl p-6">
@@ -165,14 +173,24 @@ export function renderLog(contentArea) {
             </div>
         </div>`;
 	}
-	getEl('log-container').innerHTML = gameState.log.map(entry => `<p>${entry}</p>`).join('');
+	const container = getEl('log-container');
+	if (!container) return;
+	
+	// Use the first log entry as the state key since logs are unshifted
+	const stateStr = gameState.log.length > 0 ? gameState.log[0] : '';
+	if (container.getAttribute('data-prev-state') === stateStr) return;
+	
+	container.innerHTML = gameState.log.map(entry => `<p>${entry}</p>`).join('');
+	
+	// Save the current state to prevent unnecessary updates
+	container.setAttribute('data-prev-state', stateStr);
 }
 
 /**
  * Renders the overview of all items in the game.
  * @param {HTMLElement} contentArea - The main content DOM element.
  */
-export function renderItemsOverview(contentArea) {
+export function renderItemsOverview (contentArea) {
 	let grid = getEl('items-overview-grid');
 	if (!grid) {
 		contentArea.innerHTML = `

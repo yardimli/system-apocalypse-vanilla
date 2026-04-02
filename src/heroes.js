@@ -4,12 +4,41 @@ import { addToLog } from './utils.js';
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
 
+// New helper: Update text content only if it has changed to prevent flickering
+function updateTextIfChanged (el, newText) {
+	if (el && el.textContent !== newText) {
+		el.textContent = newText;
+	}
+}
+
+// New helper: Update innerHTML only if the state has changed to prevent flickering
+function updateHtmlIfChanged (el, newHtml, stateKey) {
+	if (el && el.getAttribute('data-prev-state') !== stateKey) {
+		el.innerHTML = newHtml;
+		el.setAttribute('data-prev-state', stateKey);
+	}
+}
+
+// New helper: Update progress bar only if values changed to prevent flickering
+function updateProgressIfChanged (el, value, max) {
+	if (!el) return;
+	const currentVal = el.getAttribute('value');
+	const currentMax = el.getAttribute('max');
+	const newValStr = String(value);
+	const newMaxStr = String(max);
+	
+	if (currentVal !== newValStr || currentMax !== newMaxStr) {
+		el.value = value;
+		el.max = max;
+	}
+}
+
 /**
  * Automatically finds and equips the best gear a hero has in their inventory for each slot.
  * Best is determined by the item's level.
  * @param {object} hero - The hero object from gameState.
  */
-export function autoEquipBestGear(hero) {
+export function autoEquipBestGear (hero) {
 	const slots = {
 		mainHand: [],
 		offHand: [],
@@ -55,13 +84,12 @@ export function autoEquipBestGear(hero) {
 	}
 }
 
-
 /**
  * Finds an item by its ID from the game data.
  * @param {string} id - The ID of the item to find.
  * @returns {object|null} The found item or null.
  */
-function findEntityById(id) {
+function findEntityById (id) {
 	if (!id) return null;
 	return gameData.items.find(i => i.id === id);
 }
@@ -69,7 +97,7 @@ function findEntityById(id) {
 /**
  * Renders all hero cards into the main content area.
  */
-export function renderHeroes() {
+export function renderHeroes () {
 	const grid = getEl('heroes-grid');
 	if (!grid) return;
 	const template = getEl('hero-card-template');
@@ -85,47 +113,66 @@ export function renderHeroes() {
 			card = getEl(`hero-card-${hero.id}`);
 		}
 		
-		card.querySelector('[data-name]').textContent = `${hero.name} | Lv. ${hero.level}`;
-		card.querySelector('[data-tokens]').textContent = `Tokens: ${hero.tokens}`;
-		card.querySelector('[data-class]').textContent = hero.class;
-		card.querySelector('[data-class]').className = `badge ${hero.class === 'Aegis' ? 'badge-info' : hero.class === 'Striker' ? 'badge-error' : 'badge-success'}`;
+		// Modified to use updateTextIfChanged
+		const nameText = `${hero.name} | Lv. ${hero.level}`;
+		updateTextIfChanged(card.querySelector('[data-name]'), nameText);
+		
+		const tokensText = `Tokens: ${hero.tokens}`;
+		updateTextIfChanged(card.querySelector('[data-tokens]'), tokensText);
+		
+		const classEl = card.querySelector('[data-class]');
+		if (classEl) {
+			updateTextIfChanged(classEl, hero.class);
+			const newClassName = `badge ${hero.class === 'Aegis' ? 'badge-info' : hero.class === 'Striker' ? 'badge-error' : 'badge-success'}`;
+			if (classEl.className !== newClassName) {
+				classEl.className = newClassName;
+			}
+		}
 		
 		const equipmentContainer = card.querySelector('[data-equipment-container]');
 		const equippedItems = Object.entries(hero.equipment)
 			.map(([slot, itemId]) => ({ slot, item: findEntityById(itemId) }))
 			.filter(e => e.item);
 		
+		// Modified to use updateHtmlIfChanged based on equipment state
+		let equipHtml = '';
 		if (equippedItems.length > 0) {
-			equipmentContainer.innerHTML = equippedItems.map(({ slot, item }) => {
+			equipHtml = equippedItems.map(({ slot, item }) => {
 				let details = '';
 				if (item.damageMitigation) details = `Mit: ${item.damageMitigation}`;
 				if (item.damage) details = `Dmg: ${item.damage}`;
 				if (item.spellPower) details = `SP: x${item.spellPower}`;
 				return `
-					<div class="tooltip" data-tip="${item.name} (${details}) | Slot: ${slot}">
-						<img src="${item.image}" alt="${item.name}" class="w-[50px] h-[50px] object-contain bg-base-300/50 rounded" />
-					</div>
-				`;
+          <div class="tooltip" data-tip="${item.name} (${details}) | Slot: ${slot}">
+            <img src="${item.image}" alt="${item.name}" class="w-[50px] h-[50px] object-contain bg-base-300/50 rounded" />
+          </div>
+        `;
 			}).join(' ');
 		} else {
-			equipmentContainer.innerHTML = '<span class="text-xs italic text-gray-500">Nothing Equipped</span>';
+			equipHtml = '<span class="text-xs italic text-gray-500">Nothing Equipped</span>';
 		}
+		const equipStateKey = JSON.stringify(hero.equipment);
+		updateHtmlIfChanged(equipmentContainer, equipHtml, equipStateKey);
 		
-		card.querySelector('[data-xp-label]').textContent = `XP: ${hero.xp.current}/${hero.xp.max}`;
-		card.querySelector('[data-xp-bar]').value = hero.xp.current;
-		card.querySelector('[data-xp-bar]').max = hero.xp.max;
+		// Modified to use updateTextIfChanged and updateProgressIfChanged
+		const xpText = `XP: ${hero.xp.current}/${hero.xp.max}`;
+		updateTextIfChanged(card.querySelector('[data-xp-label]'), xpText);
+		updateProgressIfChanged(card.querySelector('[data-xp-bar]'), hero.xp.current, hero.xp.max);
 		
 		const formatRegen = (val) => Number(val.toFixed(2));
-		card.querySelector('[data-hp-label]').textContent = `HP: ${Math.floor(hero.hp.current)}/${hero.hp.max} (+${formatRegen(hero.hpRegen)}/s)`;
-		card.querySelector('[data-hp-bar]').value = hero.hp.current;
-		card.querySelector('[data-hp-bar]').max = hero.hp.max;
+		const hpText = `HP: ${Math.floor(hero.hp.current)}/${hero.hp.max} (+${formatRegen(hero.hpRegen)}/s)`;
+		updateTextIfChanged(card.querySelector('[data-hp-label]'), hpText);
+		updateProgressIfChanged(card.querySelector('[data-hp-bar]'), hero.hp.current, hero.hp.max);
 		
-		card.querySelector('[data-mp-label]').textContent = `MP: ${Math.floor(hero.mp.current)}/${hero.mp.max} (+${formatRegen(hero.mpRegen)}/s)`;
-		card.querySelector('[data-mp-bar]').value = hero.mp.current;
-		card.querySelector('[data-mp-bar]').max = hero.mp.max;
+		const mpText = `MP: ${Math.floor(hero.mp.current)}/${hero.mp.max} (+${formatRegen(hero.mpRegen)}/s)`;
+		updateTextIfChanged(card.querySelector('[data-mp-label]'), mpText);
+		updateProgressIfChanged(card.querySelector('[data-mp-bar]'), hero.mp.current, hero.mp.max);
 		
 		const dynamicArea = card.querySelector('[data-dynamic-area]');
+		let dynamicHtml = '';
+		let dynamicStateKey = '';
 		
+		// Modified to use updateHtmlIfChanged based on dynamic state
 		if (hero.class === 'Aegis') {
 			const allSkillData = hero.skills.map(s => gameData.skills.find(gs => gs.id === s.id));
 			const allManualSkills = allSkillData.filter(s => s && s.type === 'Manual');
@@ -133,10 +180,10 @@ export function renderHeroes() {
 			const autoSkills = hero.autoCast.map(id => allManualSkills.find(s => s.id === id)).filter(Boolean);
 			const manualSkills = allManualSkills.filter(s => !hero.autoCast.includes(s.id));
 			
-			dynamicArea.innerHTML = `
+			dynamicHtml = `
                 <div class="flex gap-2 w-full">
                     <div class="flex-1 bg-base-100 p-2 rounded border border-base-300 min-h-[100px]" data-drop-zone="manual" data-hero-id="${hero.id}">
-                        <h4 class="text-xs font-bold mb-2 text-center text-gray-400">Manual Skills</h4>
+                        <h4 class="text-xs text-center font-bold mb-2 text-gray-400">Manual Skills</h4>
                         <div class="flex flex-col gap-1">
                             ${manualSkills.map(skill => `
                                 <div draggable="true" data-drag-skill="${skill.id}" class="badge badge-outline cursor-move w-full justify-between p-3">
@@ -147,7 +194,7 @@ export function renderHeroes() {
                         </div>
                     </div>
                     <div class="flex-1 bg-base-100 p-2 rounded border border-primary min-h-[100px]" data-drop-zone="auto" data-hero-id="${hero.id}">
-                        <h4 class="text-xs font-bold mb-2 text-center text-primary">Auto Priority</h4>
+                        <h4 class="text-xs text-center font-bold mb-2 text-primary">Auto Priority</h4>
                         <div class="flex flex-col gap-1">
                             ${autoSkills.map(skill => `
                                 <div draggable="true" data-drag-skill="${skill.id}" class="badge badge-primary cursor-move w-full p-3">${skill.name}</div>
@@ -157,29 +204,35 @@ export function renderHeroes() {
                 </div>
                 <p class="text-[10px] text-center mt-1 text-gray-500">Drag skills between boxes to set auto-cast priority.</p>
             `;
+			dynamicStateKey = JSON.stringify([hero.autoCast, hero.mp.current, hero.skills.map(s => s.id)]);
 		} else {
 			if (hero.hp.current <= 0) {
-				dynamicArea.innerHTML = `<p class="text-error font-bold text-center">INCAPACITATED</p><p class="text-xs text-center">Awaiting Aegis Healing...</p>`;
+				dynamicHtml = `<p class="text-error font-bold text-center">INCAPACITATED</p><p class="text-xs text-center">Awaiting Aegis Healing...</p>`;
+				dynamicStateKey = 'incapacitated';
 			} else if (!hero.carId) {
-				dynamicArea.innerHTML = `<p class="text-warning text-center text-sm">Waiting for Mana Battery Car...</p>`;
+				dynamicHtml = `<p class="text-warning text-center text-sm">Waiting for Mana Battery Car...</p>`;
+				dynamicStateKey = 'no-car';
 			} else if (hero.targetMonsterId) {
 				const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
 				if (monster) {
-					dynamicArea.innerHTML = `
+					dynamicHtml = `
                     <p class="text-sm font-bold text-error mb-1">Fighting: Lv.${monster.level} ${monster.name} (#${monster.id})</p>
                     <progress class="progress progress-error w-full" value="${monster.currentHp}" max="${monster.maxHp}"></progress>
                     <p class="text-xs text-right mt-1">${Math.floor(monster.currentHp)}/${monster.maxHp} HP</p>
                 `;
+					dynamicStateKey = `fighting-${monster.id}-${monster.currentHp}`;
 				} else {
-					// This case can happen if a monster is defeated but the hero's target ID hasn't been cleared yet.
-					dynamicArea.innerHTML = `<p class="text-success text-center text-sm">Patrolling in Car #${hero.carId}. No targets.</p>`;
+					dynamicHtml = `<p class="text-success text-center text-sm">Patrolling in Car #${hero.carId}. No targets.</p>`;
+					dynamicStateKey = `patrolling-${hero.carId}`;
 				}
 			} else {
-				dynamicArea.innerHTML = `<p class="text-success text-center text-sm">Patrolling in Car #${hero.carId}. No targets.</p>`;
+				dynamicHtml = `<p class="text-success text-center text-sm">Patrolling in Car #${hero.carId}. No targets.</p>`;
+				dynamicStateKey = `patrolling-${hero.carId}`;
 			}
 		}
+		updateHtmlIfChanged(dynamicArea, dynamicHtml, dynamicStateKey);
 		
-		// Inventory rendering logic to show stacked images.
+		// Inventory rendering logic modified to use updateHtmlIfChanged
 		const invContainer = card.querySelector('[data-inventory-container]');
 		if (invContainer) {
 			let inventoryHtml = '';
@@ -191,31 +244,31 @@ export function renderHeroes() {
 					const entity = findEntityById(id);
 					if (entity) {
 						const isEquipped = Object.values(hero.equipment).includes(id);
-						// The container itself is the hover target for the new tooltip system.
 						inventoryHtml += `
-							<div
-								class="relative w-[50px] h-[50px] bg-base-300/50 rounded flex items-center justify-center p-1 group cursor-pointer"
-								data-inventory-item
-								data-item-id="${id}"
-								data-hero-id="${hero.id}"
-							>
-								<img src="${entity.image}" alt="${entity.name}" class="w-full h-full object-contain ${isEquipped ? 'border-2 border-primary rounded' : ''}" />
-								<span class="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs font-bold px-2 py-1 rounded">${qty}</span>
-								${isEquipped ? '<span class="absolute top-1 left-1 badge badge-primary badge-xs" title="Equipped">E</span>' : ''}
-							</div>
-						`;
+              <div
+                class="relative w-[50px] h-[50px] bg-base-300/50 rounded flex items-center justify-center p-1 group cursor-pointer"
+                data-inventory-item
+                data-item-id="${id}"
+                data-hero-id="${hero.id}"
+              >
+                <img src="${entity.image}" alt="${entity.name}" class="w-full h-full object-contain ${isEquipped ? 'border-2 border-primary rounded' : ''}" />
+                <span class="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs font-bold px-2 py-1 rounded">${qty}</span>
+                ${isEquipped ? '<span class="absolute top-1 left-1 badge badge-primary badge-xs" title="Equipped">E</span>' : ''}
+              </div>
+            `;
 					}
 				});
-				invContainer.innerHTML = inventoryHtml;
 			} else {
-				invContainer.innerHTML = '<span class="text-xs text-gray-500 italic">Empty</span>';
+				inventoryHtml = '<span class="text-xs text-gray-500 italic">Empty</span>';
 			}
+			const invStateKey = JSON.stringify(hero.inventory) + JSON.stringify(hero.equipment);
+			updateHtmlIfChanged(invContainer, inventoryHtml, invStateKey);
 		}
 		
-		// Render System Shop with item images.
+		// Render System Shop modified to use updateHtmlIfChanged
 		const shopContainer = card.querySelector('[data-shop-list]');
 		if (shopContainer) {
-			shopContainer.innerHTML = gameData.system_shop.map(shopItem => {
+			const shopHtml = gameData.system_shop.map(shopItem => {
 				const isSkill = !!shopItem.skillId;
 				const entity = isSkill
 					? gameData.skills.find(s => s.id === shopItem.skillId)
@@ -246,25 +299,28 @@ export function renderHeroes() {
 					: '';
 				
 				return `
-					<div class="flex items-center p-2 bg-base-100 rounded gap-2">
-						${imageHtml}
-						<div class="flex-grow">
-							<div class="flex justify-between items-center">
-								<span class="font-bold text-sm">${entity.name}</span>
-								<button
-									class="btn btn-xs btn-accent"
-									data-buy-${isSkill ? 'skill' : 'item'}-id="${isSkill ? entity.id : entity.id}"
-									data-hero-id="${hero.id}"
-									${!canAfford || hasSkill ? 'disabled' : ''}
-								>
-									${hasSkill ? 'Learned' : `Buy (${shopItem.price} T)`}
-								</button>
-							</div>
-							<div class="text-[10px] text-gray-400 italic">${details}</div>
-						</div>
-					</div>
-				`;
+          <div class="flex items-center p-2 bg-base-100 rounded gap-2">
+            ${imageHtml}
+            <div class="flex-grow">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-sm">${entity.name}</span>
+                <button
+                  class="btn btn-xs btn-accent"
+                  data-buy-${isSkill ? 'skill' : 'item'}-id="${isSkill ? entity.id : entity.id}"
+                  data-hero-id="${hero.id}"
+                  ${!canAfford || hasSkill ? 'disabled' : ''}
+                >
+                  ${hasSkill ? 'Learned' : `Buy (${shopItem.price} T)`}
+                </button>
+              </div>
+              <div class="text-[10px] text-gray-400 italic">${details}</div>
+            </div>
+          </div>
+        `;
 			}).join('');
+			
+			const shopStateKey = JSON.stringify([hero.tokens, hero.skills.map(s => s.id)]);
+			updateHtmlIfChanged(shopContainer, shopHtml, shopStateKey);
 		}
 		
 		const autoUseContainer = card.querySelector('[data-auto-use-container]');
@@ -282,22 +338,26 @@ export function renderHeroes() {
 			}
 		}
 		
+		// Skills list rendering modified to use updateHtmlIfChanged
 		const skillsListContainer = card.querySelector('[data-skills-list]');
 		if (skillsListContainer) {
-			skillsListContainer.innerHTML = hero.skills.map(heroSkill => {
+			const skillsHtml = hero.skills.map(heroSkill => {
 				const skillData = gameData.skills.find(s => s.id === heroSkill.id);
 				if (!skillData) return '';
 				
 				return `
-					<div class="text-xs">
-						<div class="flex justify-between items-center">
-							<span>${skillData.name}</span>
-							<span class="text-gray-400">${heroSkill.xp} / ${skillData.xpMax}</span>
-						</div>
-						<progress class="progress progress-secondary w-full" value="${heroSkill.xp}" max="${skillData.xpMax}"></progress>
-					</div>
-				`;
+          <div class="text-xs">
+            <div class="flex justify-between items-center">
+              <span>${skillData.name}</span>
+              <span class="text-gray-400">${heroSkill.xp} / ${skillData.xpMax}</span>
+            </div>
+            <progress class="progress progress-secondary w-full" value="${heroSkill.xp}" max="${skillData.xpMax}"></progress>
+          </div>
+        `;
 			}).join('');
+			
+			const skillsStateKey = JSON.stringify(hero.skills);
+			updateHtmlIfChanged(skillsListContainer, skillsHtml, skillsStateKey);
 		}
 	});
 }
