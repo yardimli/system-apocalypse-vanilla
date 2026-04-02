@@ -220,7 +220,8 @@ function gameLoop() {
 				if (skill.actionType === 'repair' && gameState.city.buildings.some(b => b.state !== 'functional')) shouldCast = true;
 				if (skill.actionType === 'shield' && gameState.city.buildings.some(b => b.state === 'functional' && b.shieldHp === 0)) shouldCast = true;
 				if (skill.actionType === 'battery' && gameState.city.cars.some(c => c.battery <= 0)) shouldCast = true;
-				if (skill.actionType === 'heal' && gameState.heroes.some(h => h.hp.current < h.hp.max)) shouldCast = true;
+				// Heal is only auto-cast if a hero is below 70% HP.
+				if (skill.actionType === 'heal' && gameState.heroes.some(h => h.hp.current < (h.hp.max * 0.7))) shouldCast = true;
 				
 				if (shouldCast) {
 					handleAegisAction(hero.id, skill.id);
@@ -399,7 +400,6 @@ async function init() {
 	});
 	
 	document.body.addEventListener('click', (e) => {
-		
 		// Handle selling an item - This must be checked before data-inventory-item
 		if (e.target.matches('[data-sell-item-id]')) {
 			const heroId = parseInt(e.target.dataset.heroId, 10);

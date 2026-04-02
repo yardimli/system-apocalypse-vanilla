@@ -43,7 +43,7 @@ excluded_folders:
 
 # Whitespace and new line compression settings
 compress_extensions:
-  - json
+  - jsonx
 
 prompts:
   file_overview: |-
