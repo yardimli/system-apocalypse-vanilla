@@ -7,6 +7,7 @@
     "actionType": "repair",
     "mpCost": 20,
     "xpMax": 100,
+    "autoCastUnlockLevel": 3,
     "description": "Repairs 1 broken building."
   },
   {
@@ -39,6 +40,7 @@
     "actionType": "shield",
     "mpCost": 30,
     "xpMax": 100,
+    "autoCastUnlockLevel": 3,
     "description": "Adds a shield to 1 functional building."
   },
   {
@@ -71,6 +73,7 @@
     "actionType": "battery",
     "mpCost": 40,
     "xpMax": 100,
+    "autoCastUnlockLevel": 7,
     "description": "Recharges 1 empty car battery (lasts 10 days)."
   },
   {
@@ -103,6 +106,7 @@
     "actionType": "heal",
     "mpCost": 25,
     "xpMax": 100,
+    "autoCastUnlockLevel": 5,
     "description": "Restores 100 HP to the most injured hero."
   },
   {

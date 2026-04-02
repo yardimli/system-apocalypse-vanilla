@@ -215,7 +215,22 @@ function gameLoop() {
 		if (hero.class === 'Aegis' && hero.autoCastSkillId) {
 			const skillId = hero.autoCastSkillId;
 			const skill = gameData.skills.find(s => s.id === skillId);
-			if (skill && hero.mp.current >= skill.mpCost) {
+			
+			// MODIFIED: Add check to ensure hero meets level requirement for auto-cast
+			let baseSkill = skill;
+			if (baseSkill) {
+				while (baseSkill.replaces) {
+					const parent = gameData.skills.find(s => s.id === baseSkill.replaces);
+					if (!parent) break;
+					baseSkill = parent;
+				}
+			}
+			
+			const unlockLevel = baseSkill ? baseSkill.autoCastUnlockLevel : null;
+			const canAutoCast = unlockLevel && hero.level >= unlockLevel;
+			// END MODIFICATION
+			
+			if (skill && canAutoCast && hero.mp.current >= skill.mpCost) { // MODIFIED: Added canAutoCast check
 				let shouldCast = false;
 				if (skill.actionType === 'repair' && gameState.city.buildings.some(b => b.state !== 'functional')) shouldCast = true;
 				if (skill.actionType === 'shield' && gameState.city.buildings.some(b => b.state === 'functional' && b.shieldHp === 0)) shouldCast = true;

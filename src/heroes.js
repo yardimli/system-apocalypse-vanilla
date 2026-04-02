@@ -177,7 +177,7 @@ export function renderHeroes () {
 		const skillsListContainer = card.querySelector('[data-skills-list]');
 		if (skillsListContainer) {
 			let skillsHtml = '';
-
+			
 			if (hero.class === 'Aegis') {
 				const manualSkills = hero.skills
 					.map(hs => gameData.skills.find(s => s.id === hs.id))
@@ -186,6 +186,36 @@ export function renderHeroes () {
 				skillsHtml = manualSkills.map(skillData => {
 					const heroSkill = hero.skills.find(hs => hs.id === skillData.id);
 					const isAutoCasting = hero.autoCastSkillId === skillData.id;
+					
+					// MODIFIED: Find the base skill to check for auto-cast unlock level
+					let baseSkill = skillData;
+					while (baseSkill.replaces) {
+						const parent = gameData.skills.find(s => s.id === baseSkill.replaces);
+						if (!parent) break;
+						baseSkill = parent;
+					}
+					
+					const unlockLevel = baseSkill.autoCastUnlockLevel;
+					const canAutoCast = unlockLevel && hero.level >= unlockLevel;
+					
+					let autoButtonHtml = '';
+					if (canAutoCast) {
+						autoButtonHtml = `
+							<button class="btn btn-xs ${isAutoCasting ? 'btn-primary' : 'btn-ghost'}"
+								data-autocast-skill-id="${skillData.id}" data-hero-id="${hero.id}">
+								Auto
+							</button>
+						`;
+					} else if (unlockLevel) {
+						// NEW: Show a disabled button with a tooltip if auto-cast is not yet unlocked.
+						autoButtonHtml = `
+							<div class="tooltip" data-tip="Unlocks at Hero Level ${unlockLevel}">
+								<button class="btn btn-xs btn-ghost" disabled>Auto</button>
+							</div>
+						`;
+					}
+					// END MODIFICATION
+					
 					return `
 						<div class="text-xs bg-base-100 p-2 rounded">
 							<div class="flex justify-between items-center mb-1">
@@ -194,10 +224,7 @@ export function renderHeroes () {
 									<button class="btn btn-xs btn-ghost" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${hero.mp.current < skillData.mpCost ? 'disabled' : ''}>
 										Cast (${skillData.mpCost} MP)
 									</button>
-									<button class="btn btn-xs ${isAutoCasting ? 'btn-primary' : 'btn-ghost'}"
-										data-autocast-skill-id="${skillData.id}" data-hero-id="${hero.id}">
-										Auto
-									</button>
+									${autoButtonHtml} <!-- MODIFIED: Use the generated button HTML -->
 								</div>
 								<span class="text-gray-400">${heroSkill.xp} / ${skillData.xpMax}</span>
 							</div>
