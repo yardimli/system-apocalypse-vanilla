@@ -48,9 +48,8 @@ export const gameState = {
 				{ id: 'AEG003', xp: 0 },
 				{ id: 'AEG004', xp: 0 }
 			],
-			// MODIFIED: Replaced autoCast array with a single skill ID property.
 			autoCastSkillId: null,
-			autoUse: { hp: false, mp: false },
+			// MODIFIED: Removed autoUse property. This is now always enabled.
 			inventory: {
 				'ARM001': 1,
 				'ITM003': 2,
@@ -78,7 +77,7 @@ export const gameState = {
 			targetMonsterId: null,
 			tokens: 100,
 			skills: [{ id: 'STR001', xp: 0 }],
-			autoUse: { hp: false, mp: false },
+			// MODIFIED: Removed autoUse property. This is now always enabled.
 			inventory: {
 				'ARM001': 1,
 				'WAND001': 1,
@@ -105,7 +104,7 @@ export const gameState = {
 			targetMonsterId: null,
 			tokens: 100,
 			skills: [{ id: 'VAN001', xp: 0 }, { id: 'VAN002', xp: 0 }],
-			autoUse: { hp: false, mp: false },
+			// MODIFIED: Removed autoUse property. This is now always enabled.
 			inventory: {
 				'ARM001': 1,
 				'SWD001': 1,

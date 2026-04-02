@@ -159,8 +159,8 @@ function gameLoop() {
 			hero.mp.current = Math.min(hero.mp.max, hero.mp.current + hero.mpRegen);
 		}
 		
-		// MODIFIED: Updated auto-use logic with 25% threshold
-		if (hero.autoUse?.hp && hero.hp.current < hero.hp.max) {
+		// MODIFIED: Auto-use is always enabled. The check for `hero.autoUse.hp` has been removed.
+		if (hero.hp.current < hero.hp.max) {
 			const missingHp = hero.hp.max - hero.hp.current;
 			const availableHpItems = Object.keys(hero.inventory)
 				.map(itemId => gameData.items.find(i => i.id === itemId && hero.inventory[itemId] > 0))
@@ -186,8 +186,8 @@ function gameLoop() {
 			}
 		}
 		
-		// MODIFIED: Updated auto-use logic with 25% threshold
-		if (hero.autoUse?.mp && hero.mp.current < hero.mp.max) {
+		// MODIFIED: Auto-use is always enabled. The check for `hero.autoUse.mp` has been removed.
+		if (hero.mp.current < hero.mp.max) {
 			const missingMp = hero.mp.max - hero.mp.current;
 			const availableMpItems = Object.keys(hero.inventory)
 				.map(itemId => gameData.items.find(i => i.id === itemId && hero.inventory[itemId] > 0))
@@ -401,17 +401,7 @@ async function init() {
 	});
 	
 	document.body.addEventListener('click', (e) => {
-		// MODIFIED: Reordered event handlers to prioritize specific button clicks over general container clicks.
-		
-		// NEW: Handle expanding/collapsing item details in the shop modal
-		const shopItemToggle = e.target.closest('[data-shop-item-toggle]');
-		if (shopItemToggle) {
-			const details = shopItemToggle.nextElementSibling;
-			if (details && details.hasAttribute('data-shop-item-details')) {
-				details.classList.toggle('hidden');
-			}
-			return; // Stop further processing
-		}
+		// MODIFIED: Removed the event handler for expanding/collapsing shop items.
 		
 		// Handle selling an item - This must be checked before data-inventory-item
 		if (e.target.matches('[data-sell-item-id]')) {
@@ -502,18 +492,7 @@ async function init() {
 		}
 	});
 	
-	document.body.addEventListener('change', (e) => {
-		// Handle auto-use toggles
-		if (e.target.matches('[data-auto-use-type]')) {
-			const heroId = parseInt(e.target.dataset.heroId, 10);
-			const type = e.target.dataset.autoUseType;
-			const hero = gameState.heroes.find(h => h.id === heroId);
-			if (hero && hero.autoUse) {
-				hero.autoUse[type] = e.target.checked;
-				addToLog(`${hero.name} auto-use for ${type.toUpperCase()} items ${e.target.checked ? 'enabled' : 'disabled'}.`);
-			}
-		}
-	});
+	// MODIFIED: Removed the 'change' event listener for auto-use toggles as they no longer exist.
 	
 	// MODIFIED: Removed all tooltip-related event listeners
 	

@@ -177,47 +177,10 @@ export function renderHeroes () {
 		}
 		updateHtmlIfChanged(dynamicArea, dynamicHtml, dynamicStateKey);
 		
-		// MODIFIED: Inventory rendering logic now only shows unequipped items.
+		// MODIFIED: Inventory rendering logic has been removed from the hero card.
 		const invContainer = card.querySelector('[data-inventory-container]');
 		if (invContainer) {
-			let inventoryHtml = '';
-			const inventoryItems = Object.entries(hero.inventory);
-			
-			if (inventoryItems.length > 0) {
-				inventoryItems.forEach(([itemId, totalQty]) => {
-					if (totalQty <= 0) return;
-					const entity = findEntityById(itemId);
-					if (entity) {
-						// Count how many of this item are equipped to determine unequipped quantity.
-						const equippedCount = Object.values(hero.equipment).filter(eqId => eqId === itemId).length;
-						const unequippedQty = totalQty - equippedCount;
-						
-						// Only render if there are unequipped items of this type.
-						if (unequippedQty > 0) {
-							const isAnyEquipped = equippedCount > 0;
-							inventoryHtml += `
-								<div
-									class="relative w-[50px] h-[50px] bg-base-300/50 rounded flex items-center justify-center p-1 group cursor-pointer"
-									data-inventory-item
-									data-item-id="${itemId}"
-									data-hero-id="${hero.id}"
-								>
-									<img src="${entity.image}" alt="${entity.name}" class="w-full h-full object-contain" />
-									<span class="absolute bottom-0 right-0 bg-black bg-opacity-60 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-tl-md">${unequippedQty}</span>
-									${isAnyEquipped ? '<span class="absolute top-1 left-1 badge badge-primary badge-xs" title="An item of this type is equipped">E</span>' : ''}
-								</div>
-							`;
-						}
-					}
-				});
-			}
-			
-			if (inventoryHtml === '') {
-				inventoryHtml = '<span class="text-xs text-gray-500 italic">Empty</span>';
-			}
-			
-			const invStateKey = JSON.stringify(hero.inventory) + JSON.stringify(hero.equipment);
-			updateHtmlIfChanged(invContainer, inventoryHtml, invStateKey);
+			invContainer.innerHTML = ''; // Clear it to ensure it's empty
 		}
 		
 		// MODIFIED: Removed inline System Shop rendering
@@ -226,19 +189,10 @@ export function renderHeroes () {
 			shopContainer.innerHTML = ''; // Clear it in case old template is cached
 		}
 		
+		// MODIFIED: Auto-use container rendering logic has been removed.
 		const autoUseContainer = card.querySelector('[data-auto-use-container]');
 		if (autoUseContainer) {
-			const hpToggle = autoUseContainer.querySelector('[data-auto-use-type="hp"]');
-			const mpToggle = autoUseContainer.querySelector('[data-auto-use-type="mp"]');
-			
-			if (hpToggle) {
-				hpToggle.checked = !!hero.autoUse?.hp;
-				hpToggle.dataset.heroId = hero.id;
-			}
-			if (mpToggle) {
-				mpToggle.checked = !!hero.autoUse?.mp;
-				mpToggle.dataset.heroId = hero.id;
-			}
+			autoUseContainer.innerHTML = ''; // Clear it to ensure it's empty
 		}
 		
 		// Skills list rendering modified to use updateHtmlIfChanged
@@ -320,7 +274,7 @@ export function renderShopModal (heroId) {
         </div>
     `;
 	
-	// MODIFIED: Populate content with expandable shop items
+	// MODIFIED: Populate content with all details visible, removing the expand/collapse feature.
 	content.innerHTML = gameData.system_shop.map(shopItem => {
 		const isSkill = !!shopItem.skillId;
 		const entity = isSkill
@@ -351,22 +305,21 @@ export function renderShopModal (heroId) {
 			? `<img src="${entity.image}" alt="${entity.name}" class="w-[50px] h-[50px] object-contain bg-base-100 rounded" />`
 			: '<div class="w-[50px] h-[50px] flex items-center justify-center bg-base-100 rounded"><span class="text-2xl">📜</span></div>'; // Placeholder for skills
 		
+		// MODIFIED: Reworked the item card to show all details at once.
 		return `
-			<div class="bg-base-100 rounded">
-				<div class="flex items-center p-2 gap-2 cursor-pointer" data-shop-item-toggle>
-					${imageHtml}
-					<div class="flex-grow">
+			<div class="bg-base-100 rounded p-2 flex gap-2">
+				<div class="flex-shrink-0">${imageHtml}</div>
+				<div class="flex-grow flex flex-col justify-between gap-1">
+					<div>
 						<div class="flex justify-between items-center">
 							<span class="font-bold text-sm">${entity.name}</span>
 							<span class="badge badge-warning">${shopItem.price} T</span>
 						</div>
+						<div class="text-[10px] text-gray-400 italic">${details}</div>
+						<p class="text-xs mt-1">${entity.description || 'No description available.'}</p>
 					</div>
-				</div>
-				<div class="p-2 border-t border-base-300 hidden" data-shop-item-details>
-					<p class="text-xs mb-2">${entity.description || 'No description available.'}</p>
-					<div class="text-[10px] text-gray-400 italic mb-2">${details}</div>
 					<button
-						class="btn btn-sm btn-accent w-full"
+						class="btn btn-sm btn-accent w-full mt-1"
 						data-buy-${isSkill ? 'skill' : 'item'}-id="${isSkill ? entity.id : entity.id}"
 						data-hero-id="${hero.id}"
 						${!canAfford || hasSkill ? 'disabled' : ''}
@@ -378,7 +331,7 @@ export function renderShopModal (heroId) {
 		`;
 	}).join('');
 	
-	// MODIFIED: Populate the hero's inventory section with expandable items.
+	// MODIFIED: Populate the hero's inventory section with all details visible.
 	let inventoryHtml = '';
 	const inventoryItems = Object.entries(hero.inventory);
 	if (inventoryItems.length > 0) {
@@ -391,30 +344,31 @@ export function renderShopModal (heroId) {
 			const canSell = totalQty > equippedCount;
 			const isAnyEquipped = equippedCount > 0;
 			
+			// MODIFIED: Reworked the inventory item card to show all details at once.
 			return `
-				<div class="bg-base-300/50 rounded">
-					<div class="flex items-center p-2 gap-2 cursor-pointer" data-shop-item-toggle>
-						<div class="relative w-[50px] h-[50px]">
-							<img src="${entity.image}" alt="${entity.name}" class="w-full h-full object-contain bg-base-100 rounded" />
-							<span class="absolute bottom-0 right-0 bg-black bg-opacity-60 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-tl-md">${totalQty}</span>
-							${isAnyEquipped ? '<span class="absolute top-1 left-1 badge badge-primary badge-xs" title="Equipped">E</span>' : ''}
-						</div>
-						<div class="flex-grow">
-							<span class="font-bold text-sm">${entity.name}</span>
-						</div>
+				<div class="bg-base-300/50 rounded p-2 flex gap-2">
+					<div class="relative w-[50px] h-[50px] flex-shrink-0">
+						<img src="${entity.image}" alt="${entity.name}" class="w-full h-full object-contain bg-base-100 rounded" />
+						<span class="absolute bottom-0 right-0 bg-black bg-opacity-60 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-tl-md">${totalQty}</span>
+						${isAnyEquipped ? '<span class="absolute top-1 left-1 badge badge-primary badge-xs" title="Equipped">E</span>' : ''}
 					</div>
-					<div class="p-2 border-t border-base-300 hidden" data-shop-item-details>
-						<p class="text-xs mb-2">${entity.description || 'No description available.'}</p>
-						<div class="text-[10px] text-gray-400 italic mb-2">${entity.type} - Lvl ${entity.level}</div>
-						<button
-							class="btn btn-sm btn-error w-full"
-							data-sell-item-id="${itemId}"
-							data-hero-id="${hero.id}"
-							${!canSell ? 'disabled' : ''}
-						>
-							Sell (${entity.sellPrice} T)
-						</button>
-						${!canSell && isAnyEquipped ? '<p class="text-xs text-center text-error mt-1">Cannot sell last equipped item.</p>' : ''}
+					<div class="flex-grow flex flex-col justify-between gap-1">
+						<div>
+							<span class="font-bold text-sm">${entity.name}</span>
+							<div class="text-[10px] text-gray-400 italic">${entity.type} - Lvl ${entity.level}</div>
+							<p class="text-xs mt-1">${entity.description || 'No description available.'}</p>
+						</div>
+						<div>
+							<button
+								class="btn btn-sm btn-error w-full mt-1"
+								data-sell-item-id="${itemId}"
+								data-hero-id="${hero.id}"
+								${!canSell ? 'disabled' : ''}
+							>
+								Sell (${entity.sellPrice} T)
+							</button>
+							${!canSell && isAnyEquipped ? '<p class="text-xs text-center text-error mt-1">Cannot sell last equipped item.</p>' : ''}
+						</div>
 					</div>
 				</div>
 			`;
