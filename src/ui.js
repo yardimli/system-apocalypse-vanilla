@@ -1,4 +1,6 @@
 import { gameState, gameData } from './state.js';
+// Modified: Import helper function
+import { updateTextIfChanged } from './utils.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
@@ -87,17 +89,22 @@ export function renderBuildings (contentArea) {
 		});
 	}
 	
+	// Modified: Update each building's properties only if they have changed.
 	gameState.city.buildings.forEach(b => {
 		const el = getEl(`bldg-${b.id}`);
 		if (!el) return;
 		
 		const stateEl = el.querySelector('[data-state]');
-		stateEl.textContent = `State: ${b.state}`;
-		stateEl.className = `font-semibold ${b.state === 'functional' ? 'text-success' : b.state === 'damaged' ? 'text-warning' : 'text-error'}`;
+		updateTextIfChanged(stateEl, `State: ${b.state}`);
 		
-		el.querySelector('[data-hp]').textContent = `HP: ${b.hp}/${b.maxHp}`;
-		el.querySelector('[data-shield]').textContent = `Shield: ${b.shieldHp}/${b.maxShieldHp}`;
-		el.querySelector('[data-pop]').textContent = `Pop: ${b.population}/10`;
+		const newClassName = `font-semibold ${b.state === 'functional' ? 'text-success' : b.state === 'damaged' ? 'text-warning' : 'text-error'}`;
+		if (stateEl.className !== newClassName) {
+			stateEl.className = newClassName;
+		}
+		
+		updateTextIfChanged(el.querySelector('[data-hp]'), `HP: ${b.hp}/${b.maxHp}`);
+		updateTextIfChanged(el.querySelector('[data-shield]'), `Shield: ${b.shieldHp}/${b.maxShieldHp}`);
+		updateTextIfChanged(el.querySelector('[data-pop]'), `Pop: ${b.population}/10`);
 	});
 }
 
@@ -202,6 +209,11 @@ export function renderItemsOverview (contentArea) {
 		grid = getEl('items-overview-grid');
 	}
 	
+	// Modified: Since gameData.items is static, only render the content once.
+	if (grid.hasChildNodes()) {
+		return;
+	}
+	
 	grid.innerHTML = gameData.items.map(item => {
 		const details = [];
 		if (item.type) details.push(`<strong>Type:</strong> ${item.type}`);
@@ -225,7 +237,7 @@ export function renderItemsOverview (contentArea) {
 		return `
 			<div class="card bg-base-200 shadow-md p-4 flex flex-col items-center">
 				<h3 class="font-bold text-lg text-center">${item.name} (${item.id})</h3>
-				<img src="${item.image}" alt="${item.name}" class="w-[200px] h-[200px] object-contain my-4 bg-base-300 rounded" />
+				<img src="${item.image}" alt="${item.name}" class="w-[100px] h-[100px] object-contain my-4 bg-base-300 rounded" />
 				<div class="text-sm w-full">
 					${details.join('<br>')}
 					${descriptionHtml}

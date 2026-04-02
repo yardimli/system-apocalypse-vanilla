@@ -1,37 +1,11 @@
 import { gameState, gameData } from './state.js';
-import { addToLog } from './utils.js';
+// Modified: Import new helper functions from utils.js
+import { addToLog, updateTextIfChanged, updateHtmlIfChanged, updateProgressIfChanged } from './utils.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
 
-// New helper: Update text content only if it has changed to prevent flickering
-function updateTextIfChanged (el, newText) {
-	if (el && el.textContent !== newText) {
-		el.textContent = newText;
-	}
-}
-
-// New helper: Update innerHTML only if the state has changed to prevent flickering
-function updateHtmlIfChanged (el, newHtml, stateKey) {
-	if (el && el.getAttribute('data-prev-state') !== stateKey) {
-		el.innerHTML = newHtml;
-		el.setAttribute('data-prev-state', stateKey);
-	}
-}
-
-// New helper: Update progress bar only if values changed to prevent flickering
-function updateProgressIfChanged (el, value, max) {
-	if (!el) return;
-	const currentVal = el.getAttribute('value');
-	const currentMax = el.getAttribute('max');
-	const newValStr = String(value);
-	const newMaxStr = String(max);
-	
-	if (currentVal !== newValStr || currentMax !== newMaxStr) {
-		el.value = value;
-		el.max = max;
-	}
-}
+// Removed local definitions of updateTextIfChanged, updateHtmlIfChanged, and updateProgressIfChanged
 
 /**
  * Automatically finds and equips the best gear a hero has in their inventory for each slot.
