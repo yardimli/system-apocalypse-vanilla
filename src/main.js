@@ -6,7 +6,6 @@ import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { handleUseConsumable } from './inventory.js';
 import { handleBuyItem, handleSellItem, handleBuySkill } from './shop.js';
-// MODIFIED: Imported renderShopModal
 import { renderHeroes, autoEquipBestGear, renderShopModal } from './heroes.js';
 import { renderMonsters } from './monsters.js';
 import { renderHeader, renderTabs, renderBuildings, renderCars, renderCity, renderLog, renderItemsOverview } from './ui.js';
@@ -160,40 +159,57 @@ function gameLoop() {
 			hero.mp.current = Math.min(hero.mp.max, hero.mp.current + hero.mpRegen);
 		}
 		
-		// Smart auto-consumption of items based on hero settings to avoid waste.
+		// MODIFIED: Updated auto-use logic with 25% threshold
 		if (hero.autoUse?.hp && hero.hp.current < hero.hp.max) {
 			const missingHp = hero.hp.max - hero.hp.current;
-			
-			// Find all HP consumables the hero has.
 			const availableHpItems = Object.keys(hero.inventory)
 				.map(itemId => gameData.items.find(i => i.id === itemId && hero.inventory[itemId] > 0))
 				.filter(item => item && item.type === 'Consumable' && item.effect?.type === 'heal_hp');
 			
-			// Find the best item to use (strongest one that won't be wasted).
-			const bestItemToUse = availableHpItems
-				.filter(item => missingHp >= item.effect.value)
-				.sort((a, b) => b.effect.value - a.effect.value)[0];
-			
-			if (bestItemToUse) {
-				handleUseConsumable(hero.id, bestItemToUse.id);
+			if (availableHpItems.length > 0) {
+				let bestItemToUse = null;
+				const hpThreshold = hero.hp.max * 0.25;
+				
+				// If HP is below 25%, use the strongest item available, even if it's wasteful.
+				if (hero.hp.current < hpThreshold) {
+					bestItemToUse = availableHpItems.sort((a, b) => b.effect.value - a.effect.value)[0];
+				} else {
+					// Otherwise, use the strongest item that won't be wasted.
+					bestItemToUse = availableHpItems
+						.filter(item => missingHp >= item.effect.value)
+						.sort((a, b) => b.effect.value - a.effect.value)[0];
+				}
+				
+				if (bestItemToUse) {
+					handleUseConsumable(hero.id, bestItemToUse.id);
+				}
 			}
 		}
 		
+		// MODIFIED: Updated auto-use logic with 25% threshold
 		if (hero.autoUse?.mp && hero.mp.current < hero.mp.max) {
 			const missingMp = hero.mp.max - hero.mp.current;
-			
-			// Find all MP consumables the hero has.
 			const availableMpItems = Object.keys(hero.inventory)
 				.map(itemId => gameData.items.find(i => i.id === itemId && hero.inventory[itemId] > 0))
 				.filter(item => item && item.type === 'Consumable' && item.effect?.type === 'heal_mp');
 			
-			// Find the best item to use (strongest one that won't be wasted).
-			const bestItemToUse = availableMpItems
-				.filter(item => missingMp >= item.effect.value)
-				.sort((a, b) => b.effect.value - a.effect.value)[0];
-			
-			if (bestItemToUse) {
-				handleUseConsumable(hero.id, bestItemToUse.id);
+			if (availableMpItems.length > 0) {
+				let bestItemToUse = null;
+				const mpThreshold = hero.mp.max * 0.25;
+				
+				// If MP is below 25%, use the strongest item available, even if it's wasteful.
+				if (hero.mp.current < mpThreshold) {
+					bestItemToUse = availableMpItems.sort((a, b) => b.effect.value - a.effect.value)[0];
+				} else {
+					// Otherwise, use the strongest item that won't be wasted.
+					bestItemToUse = availableMpItems
+						.filter(item => missingMp >= item.effect.value)
+						.sort((a, b) => b.effect.value - a.effect.value)[0];
+				}
+				
+				if (bestItemToUse) {
+					handleUseConsumable(hero.id, bestItemToUse.id);
+				}
 			}
 		}
 		
@@ -386,7 +402,7 @@ async function init() {
 	});
 	
 	document.body.addEventListener('click', (e) => {
-		// MODIFIED: Handle clicking on an inventory item to use it
+		// Handle clicking on an inventory item to use it
 		const inventoryItem = e.target.closest('[data-inventory-item]');
 		if (inventoryItem) {
 			const heroId = parseInt(inventoryItem.dataset.heroId, 10);
@@ -402,7 +418,7 @@ async function init() {
 			return; // Prevent other click handlers from firing
 		}
 		
-		// MODIFIED: Handle opening the system shop modal
+		// Handle opening the system shop modal
 		if (e.target.matches('[data-open-shop-btn]')) {
 			const card = e.target.closest('.card');
 			if (card && card.id.startsWith('hero-card-')) {
@@ -568,7 +584,6 @@ async function init() {
 			
 			detailsHtml += `<div class="divider my-2"></div>`;
 			
-			// MODIFIED: Removed the "Use Item" button. Clicking the item now uses it.
 			if (isConsumable) {
 				detailsHtml += `<p class="text-xs text-center text-info mb-2">Click item in inventory to use.</p>`;
 			}
@@ -600,7 +615,7 @@ async function init() {
 		const itemEl = e.target.closest('[data-inventory-item]');
 		if (!itemEl) return;
 		
-		// MODIFIED: Tooltip bug fix. Check if the mouse is moving to the tooltip itself.
+		// Tooltip bug fix. Check if the mouse is moving to the tooltip itself.
 		if (e.relatedTarget === tooltip || tooltip.contains(e.relatedTarget)) {
 			return; // Don't hide if moving to the tooltip
 		}
