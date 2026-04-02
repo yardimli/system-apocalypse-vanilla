@@ -225,8 +225,10 @@ export function renderHeroes () {
                 data-item-id="${id}"
                 data-hero-id="${hero.id}"
               >
-                <img src="${entity.image}" alt="${entity.name}" class="w-full h-full object-contain ${isEquipped ? 'border-2 border-primary rounded' : ''}" />
-                <span class="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs font-bold px-2 py-1 rounded">${qty}</span>
+                <!-- MODIFIED: Removed border from equipped items -->
+                <img src="${entity.image}" alt="${entity.name}" class="w-full h-full object-contain" />
+                <!-- MODIFIED: Made item count smaller and more transparent -->
+                <span class="absolute bottom-0 right-0 bg-black bg-opacity-60 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-tl-md">${qty}</span>
                 ${isEquipped ? '<span class="absolute top-1 left-1 badge badge-primary badge-xs" title="Equipped">E</span>' : ''}
               </div>
             `;
@@ -239,62 +241,10 @@ export function renderHeroes () {
 			updateHtmlIfChanged(invContainer, inventoryHtml, invStateKey);
 		}
 		
-		// Render System Shop modified to use updateHtmlIfChanged
+		// MODIFIED: Removed inline System Shop rendering
 		const shopContainer = card.querySelector('[data-shop-list]');
 		if (shopContainer) {
-			const shopHtml = gameData.system_shop.map(shopItem => {
-				const isSkill = !!shopItem.skillId;
-				const entity = isSkill
-					? gameData.skills.find(s => s.id === shopItem.skillId)
-					: findEntityById(shopItem.itemId);
-				
-				if (!entity) return '';
-				
-				let details = '';
-				if (isSkill) {
-					details = entity.description;
-				} else if (entity.damageMitigation) {
-					details = `(Mitigation: ${entity.damageMitigation})`;
-				} else if (entity.damage) {
-					details = `(Damage: ${entity.damage})`;
-				} else if (entity.spellPower) {
-					details = `(Spell Power: x${entity.spellPower})`;
-				} else if (entity.effect) {
-					const { type, value } = entity.effect;
-					const effectText = type === 'heal_hp' ? `+${value} HP` : `+${value} MP`;
-					details = `(${effectText})`;
-				}
-				
-				const canAfford = hero.tokens >= shopItem.price;
-				const hasSkill = isSkill && hero.skills.some(s => s.id === shopItem.skillId);
-				
-				const imageHtml = !isSkill && entity.image
-					? `<img src="${entity.image}" alt="${entity.name}" class="w-[50px] h-[50px] object-contain bg-base-100 rounded" />`
-					: '';
-				
-				return `
-          <div class="flex items-center p-2 bg-base-100 rounded gap-2">
-            ${imageHtml}
-            <div class="flex-grow">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-sm">${entity.name}</span>
-                <button
-                  class="btn btn-xs btn-accent"
-                  data-buy-${isSkill ? 'skill' : 'item'}-id="${isSkill ? entity.id : entity.id}"
-                  data-hero-id="${hero.id}"
-                  ${!canAfford || hasSkill ? 'disabled' : ''}
-                >
-                  ${hasSkill ? 'Learned' : `Buy (${shopItem.price} T)`}
-                </button>
-              </div>
-              <div class="text-[10px] text-gray-400 italic">${details}</div>
-            </div>
-          </div>
-        `;
-			}).join('');
-			
-			const shopStateKey = JSON.stringify([hero.tokens, hero.skills.map(s => s.id)]);
-			updateHtmlIfChanged(shopContainer, shopHtml, shopStateKey);
+			shopContainer.innerHTML = ''; // Clear it in case old template is cached
 		}
 		
 		const autoUseContainer = card.querySelector('[data-auto-use-container]');
@@ -334,4 +284,81 @@ export function renderHeroes () {
 			updateHtmlIfChanged(skillsListContainer, skillsHtml, skillsStateKey);
 		}
 	});
+}
+
+/**
+ * NEW: Renders the System Shop modal for a specific hero.
+ * @param {number} heroId - The ID of the hero to open the shop for.
+ */
+export function renderShopModal (heroId) {
+	const hero = gameState.heroes.find(h => h.id === heroId);
+	if (!hero) return;
+	
+	const modal = getEl('system-shop-modal');
+	const header = getEl('shop-modal-header');
+	const content = getEl('shop-modal-content');
+	
+	if (!modal || !header || !content) return;
+	
+	// Populate header
+	header.innerHTML = `
+        <div class="flex justify-between items-center">
+            <h3 class="font-bold text-lg">System Shop for ${hero.name}</h3>
+            <span class="badge badge-warning">Tokens: ${hero.tokens}</span>
+        </div>
+    `;
+	
+	// Populate content with shop items
+	content.innerHTML = gameData.system_shop.map(shopItem => {
+		const isSkill = !!shopItem.skillId;
+		const entity = isSkill
+			? gameData.skills.find(s => s.id === shopItem.skillId)
+			: findEntityById(shopItem.itemId);
+		
+		if (!entity) return '';
+		
+		let details = '';
+		if (isSkill) {
+			details = entity.description;
+		} else if (entity.damageMitigation) {
+			details = `(Mitigation: ${entity.damageMitigation})`;
+		} else if (entity.damage) {
+			details = `(Damage: ${entity.damage})`;
+		} else if (entity.spellPower) {
+			details = `(Spell Power: x${entity.spellPower})`;
+		} else if (entity.effect) {
+			const { type, value } = entity.effect;
+			const effectText = type === 'heal_hp' ? `+${value} HP` : `+${value} MP`;
+			details = `(${effectText})`;
+		}
+		
+		const canAfford = hero.tokens >= shopItem.price;
+		const hasSkill = isSkill && hero.skills.some(s => s.id === shopItem.skillId);
+		
+		const imageHtml = !isSkill && entity.image
+			? `<img src="${entity.image}" alt="${entity.name}" class="w-[50px] h-[50px] object-contain bg-base-100 rounded" />`
+			: '<div class="w-[50px] h-[50px] flex items-center justify-center bg-base-100 rounded"><span class="text-2xl">📜</span></div>'; // Placeholder for skills
+		
+		return `
+      <div class="flex items-center p-2 bg-base-100 rounded gap-2">
+        ${imageHtml}
+        <div class="flex-grow">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-sm">${entity.name}</span>
+            <button
+              class="btn btn-xs btn-accent"
+              data-buy-${isSkill ? 'skill' : 'item'}-id="${isSkill ? entity.id : entity.id}"
+              data-hero-id="${hero.id}"
+              ${!canAfford || hasSkill ? 'disabled' : ''}
+            >
+              ${hasSkill ? 'Learned' : `Buy (${shopItem.price} T)`}
+            </button>
+          </div>
+          <div class="text-[10px] text-gray-400 italic">${details}</div>
+        </div>
+      </div>
+    `;
+	}).join('');
+	
+	modal.showModal();
 }

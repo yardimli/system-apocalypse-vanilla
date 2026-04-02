@@ -6,7 +6,8 @@ import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { handleUseConsumable } from './inventory.js';
 import { handleBuyItem, handleSellItem, handleBuySkill } from './shop.js';
-import { renderHeroes, autoEquipBestGear } from './heroes.js';
+// MODIFIED: Imported renderShopModal
+import { renderHeroes, autoEquipBestGear, renderShopModal } from './heroes.js';
 import { renderMonsters } from './monsters.js';
 import { renderHeader, renderTabs, renderBuildings, renderCars, renderCity, renderLog, renderItemsOverview } from './ui.js';
 
@@ -385,6 +386,32 @@ async function init() {
 	});
 	
 	document.body.addEventListener('click', (e) => {
+		// MODIFIED: Handle clicking on an inventory item to use it
+		const inventoryItem = e.target.closest('[data-inventory-item]');
+		if (inventoryItem) {
+			const heroId = parseInt(inventoryItem.dataset.heroId, 10);
+			const itemId = inventoryItem.dataset.itemId;
+			const itemData = gameData.items.find(i => i.id === itemId);
+			// Only try to use items that are consumables
+			if (itemData && itemData.type === 'Consumable') {
+				if (handleUseConsumable(heroId, itemId)) {
+					getEl('item-tooltip').classList.add('hidden'); // Hide tooltip after use
+					renderContent(); // Re-render to show updated inventory count
+				}
+			}
+			return; // Prevent other click handlers from firing
+		}
+		
+		// MODIFIED: Handle opening the system shop modal
+		if (e.target.matches('[data-open-shop-btn]')) {
+			const card = e.target.closest('.card');
+			if (card && card.id.startsWith('hero-card-')) {
+				const heroId = parseInt(card.id.replace('hero-card-', ''), 10);
+				renderShopModal(heroId);
+			}
+			return;
+		}
+		
 		// Note: The tooltip system now creates the use/sell buttons, but these handlers still work.
 		if (e.target.matches('[data-skill-id]')) {
 			const { heroId, skillId } = e.target.dataset;
@@ -402,12 +429,16 @@ async function init() {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
 			const itemId = e.target.dataset.buyItemId;
 			handleBuyItem(heroId, itemId);
+			// Re-render the modal content after a purchase
+			renderShopModal(heroId);
 			renderContent();
 		}
 		if (e.target.matches('[data-buy-skill-id]')) {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
 			const skillId = e.target.dataset.buySkillId;
 			handleBuySkill(heroId, skillId);
+			// Re-render the modal content after a purchase
+			renderShopModal(heroId);
 			renderContent();
 		}
 		if (e.target.matches('[data-sell-item-id]')) {
@@ -537,10 +568,9 @@ async function init() {
 			
 			detailsHtml += `<div class="divider my-2"></div>`;
 			
+			// MODIFIED: Removed the "Use Item" button. Clicking the item now uses it.
 			if (isConsumable) {
-				detailsHtml += `
-					<button class="btn btn-sm btn-info w-full mb-2" data-use-item-id="${itemId}" data-hero-id="${heroId}">Use Item</button>
-				`;
+				detailsHtml += `<p class="text-xs text-center text-info mb-2">Click item in inventory to use.</p>`;
 			}
 			
 			detailsHtml += `
@@ -569,6 +599,11 @@ async function init() {
 	document.body.addEventListener('mouseleave', (e) => {
 		const itemEl = e.target.closest('[data-inventory-item]');
 		if (!itemEl) return;
+		
+		// MODIFIED: Tooltip bug fix. Check if the mouse is moving to the tooltip itself.
+		if (e.relatedTarget === tooltip || tooltip.contains(e.relatedTarget)) {
+			return; // Don't hide if moving to the tooltip
+		}
 		
 		if (tooltipShowTimeout) clearTimeout(tooltipShowTimeout);
 		

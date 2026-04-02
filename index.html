@@ -27,6 +27,23 @@
 	<!-- Content will be injected by JS -->
 </div>
 
+<!-- MODIFIED: Added a modal for the System Shop -->
+<dialog id="system-shop-modal" class="modal">
+	<div class="modal-box w-11/12 max-w-3xl">
+		<div id="shop-modal-header">
+			<!-- Hero name and tokens will be injected here by JS -->
+		</div>
+		<div id="shop-modal-content" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto">
+			<!-- Shop items will be injected here by JS -->
+		</div>
+		<div class="modal-action">
+			<form method="dialog">
+				<button class="btn">Close</button>
+			</form>
+		</div>
+	</div>
+</dialog>
+
 
 <!-- TEMPLATES -->
 <template id="header-template">
@@ -71,12 +88,11 @@
 			<div class="w-full mt-2 min-h-[80px] bg-base-300 rounded p-2 flex flex-col justify-center" data-dynamic-area>
 			</div>
 			
-			<!-- System Shop Area -->
-			<div class="mt-2 border-t border-base-300 pt-2" data-shop-container>
-				<div class="divider my-1">System Shop</div>
-				<div class="flex flex-col gap-1 text-xs max-h-32 overflow-y-auto" data-shop-list>
-					<!-- Shop items will be rendered here by JS -->
-				</div>
+			<!-- MODIFIED: System Shop Area is now a button -->
+			<div class="mt-2 border-t border-base-300 pt-2">
+				<button class="btn btn-sm btn-accent w-full" data-open-shop-btn>
+					Open Shop
+				</button>
 			</div>
 			
 			<!-- Personal Inventory Area -->
