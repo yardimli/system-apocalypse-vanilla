@@ -186,7 +186,8 @@
     "equipSlot": "body",
     "damageMitigation": "1-2",
     "level": 1,
-    "sellPrice": 10
+    "sellPrice": 10,
+    "description": "Basic cloth armor providing minimal protection."
   },
   {
     "id": "ARM002",
@@ -196,7 +197,8 @@
     "equipSlot": "body",
     "damageMitigation": "3-6",
     "level": 2,
-    "sellPrice": 50
+    "sellPrice": 50,
+    "description": "Sturdy leather armor offering moderate protection."
   },
   {
     "id": "ARM003",
@@ -206,7 +208,8 @@
     "equipSlot": "body",
     "damageMitigation": "7-12",
     "level": 3,
-    "sellPrice": 150
+    "sellPrice": 150,
+    "description": "Interlocking metal rings providing good protection against slashing attacks."
   },
   {
     "id": "ARM004",
@@ -216,7 +219,8 @@
     "equipSlot": "body",
     "damageMitigation": "15-25",
     "level": 4,
-    "sellPrice": 400
+    "sellPrice": 400,
+    "description": "Heavy plate armor offering excellent physical protection."
   },
   {
     "id": "ARM005",
@@ -226,7 +230,8 @@
     "equipSlot": "body",
     "damageMitigation": "30-40",
     "level": 5,
-    "sellPrice": 1000
+    "sellPrice": 1000,
+    "description": "Advanced powered armor used by Aegis heroes, offering superior protection."
   },
   {
     "id": "ARM002_V",
@@ -236,7 +241,8 @@
     "equipSlot": "body",
     "damageMitigation": "5-8",
     "level": 2,
-    "sellPrice": 90
+    "sellPrice": 90,
+    "description": "Leather armor reinforced with metal studs for better defense."
   },
   {
     "id": "ARM003_V",
@@ -246,7 +252,8 @@
     "equipSlot": "body",
     "damageMitigation": "10-16",
     "level": 3,
-    "sellPrice": 250
+    "sellPrice": 250,
+    "description": "Chainmail hardened through a special process, increasing its durability."
   },
   {
     "id": "ARM004_V",
@@ -256,7 +263,8 @@
     "equipSlot": "body",
     "damageMitigation": "20-30",
     "level": 4,
-    "sellPrice": 600
+    "sellPrice": 600,
+    "description": "Expertly crafted plate armor, lighter and stronger than the standard version."
   },
   {
     "id": "WAND001",
@@ -267,7 +275,8 @@
     "class": "Striker",
     "spellPower": 2,
     "level": 1,
-    "sellPrice": 25
+    "sellPrice": 25,
+    "description": "A simple wooden wand for novice Strikers."
   },
   {
     "id": "WAND002",
@@ -278,7 +287,8 @@
     "class": "Striker",
     "spellPower": 3,
     "level": 2,
-    "sellPrice": 100
+    "sellPrice": 100,
+    "description": "A well-balanced wand for an experienced Striker."
   },
   {
     "id": "WAND003",
@@ -289,7 +299,8 @@
     "class": "Striker",
     "spellPower": 5,
     "level": 3,
-    "sellPrice": 350
+    "sellPrice": 350,
+    "description": "A powerful scepter that greatly amplifies a Striker's magic."
   },
   {
     "id": "SWD001",
@@ -300,7 +311,8 @@
     "class": "Vanguard",
     "damage": "3-5",
     "level": 1,
-    "sellPrice": 25
+    "sellPrice": 25,
+    "description": "A basic, rusted shortsword. Better than nothing."
   },
   {
     "id": "SWD002",
@@ -311,7 +323,8 @@
     "class": "Vanguard",
     "damage": "8-12",
     "level": 2,
-    "sellPrice": 120
+    "sellPrice": 120,
+    "description": "A reliable longsword made of forged steel."
   },
   {
     "id": "SWD003",
@@ -322,7 +335,8 @@
     "class": "Vanguard",
     "damage": "15-22",
     "level": 3,
-    "sellPrice": 400
+    "sellPrice": 400,
+    "description": "A massive greatsword made from a lightweight and durable titanium alloy."
   },
   {
     "id": "SHD001",
@@ -333,7 +347,8 @@
     "class": "Vanguard",
     "damageMitigation": "2-4",
     "level": 1,
-    "sellPrice": 20
+    "sellPrice": 20,
+    "description": "A small, light wooden shield for parrying."
   },
   {
     "id": "SHD002",
@@ -344,7 +359,8 @@
     "class": "Vanguard",
     "damageMitigation": "6-10",
     "level": 2,
-    "sellPrice": 110
+    "sellPrice": 110,
+    "description": "A large, sturdy iron shield offering significant protection."
   },
   {
     "id": "SHD003",
@@ -355,6 +371,7 @@
     "class": "Vanguard",
     "damageMitigation": "14-20",
     "level": 3,
-    "sellPrice": 380
+    "sellPrice": 380,
+    "description": "A high-tech energy barrier projector, the pinnacle of Vanguard defensive gear."
   }
 ]

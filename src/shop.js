@@ -91,9 +91,13 @@ export function handleSellItem(heroId, itemId) {
 		return;
 	}
 	
-	// Cannot sell equipped items from any slot
-	if (Object.values(hero.equipment).includes(itemId)) {
-		addToLog(`Cannot sell equipped item. Unequip ${itemData.name} first.`);
+	// MODIFIED: Allow selling if the hero has unequipped duplicates.
+	const totalQty = hero.inventory[itemId] || 0;
+	const equippedCount = Object.values(hero.equipment).filter(eqId => eqId === itemId).length;
+	
+	// Cannot sell if the number of items is less than or equal to the number equipped.
+	if (totalQty <= equippedCount) {
+		addToLog(`Cannot sell. All ${itemData.name}(s) are currently equipped.`);
 		return;
 	}
 	

@@ -177,37 +177,45 @@ export function renderHeroes () {
 		}
 		updateHtmlIfChanged(dynamicArea, dynamicHtml, dynamicStateKey);
 		
-		// Inventory rendering logic modified to use updateHtmlIfChanged
+		// MODIFIED: Inventory rendering logic now only shows unequipped items.
 		const invContainer = card.querySelector('[data-inventory-container]');
 		if (invContainer) {
 			let inventoryHtml = '';
 			const inventoryItems = Object.entries(hero.inventory);
 			
 			if (inventoryItems.length > 0) {
-				inventoryItems.forEach(([id, qty]) => {
-					if (qty <= 0) return;
-					const entity = findEntityById(id);
+				inventoryItems.forEach(([itemId, totalQty]) => {
+					if (totalQty <= 0) return;
+					const entity = findEntityById(itemId);
 					if (entity) {
-						const isEquipped = Object.values(hero.equipment).includes(id);
-						inventoryHtml += `
-              <div
-                class="relative w-[50px] h-[50px] bg-base-300/50 rounded flex items-center justify-center p-1 group cursor-pointer"
-                data-inventory-item
-                data-item-id="${id}"
-                data-hero-id="${hero.id}"
-              >
-                <!-- MODIFIED: Removed border from equipped items -->
-                <img src="${entity.image}" alt="${entity.name}" class="w-full h-full object-contain" />
-                <!-- MODIFIED: Made item count smaller and more transparent -->
-                <span class="absolute bottom-0 right-0 bg-black bg-opacity-60 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-tl-md">${qty}</span>
-                ${isEquipped ? '<span class="absolute top-1 left-1 badge badge-primary badge-xs" title="Equipped">E</span>' : ''}
-              </div>
-            `;
+						// Count how many of this item are equipped to determine unequipped quantity.
+						const equippedCount = Object.values(hero.equipment).filter(eqId => eqId === itemId).length;
+						const unequippedQty = totalQty - equippedCount;
+						
+						// Only render if there are unequipped items of this type.
+						if (unequippedQty > 0) {
+							const isAnyEquipped = equippedCount > 0;
+							inventoryHtml += `
+								<div
+									class="relative w-[50px] h-[50px] bg-base-300/50 rounded flex items-center justify-center p-1 group cursor-pointer"
+									data-inventory-item
+									data-item-id="${itemId}"
+									data-hero-id="${hero.id}"
+								>
+									<img src="${entity.image}" alt="${entity.name}" class="w-full h-full object-contain" />
+									<span class="absolute bottom-0 right-0 bg-black bg-opacity-60 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-tl-md">${unequippedQty}</span>
+									${isAnyEquipped ? '<span class="absolute top-1 left-1 badge badge-primary badge-xs" title="An item of this type is equipped">E</span>' : ''}
+								</div>
+							`;
+						}
 					}
 				});
-			} else {
+			}
+			
+			if (inventoryHtml === '') {
 				inventoryHtml = '<span class="text-xs text-gray-500 italic">Empty</span>';
 			}
+			
 			const invStateKey = JSON.stringify(hero.inventory) + JSON.stringify(hero.equipment);
 			updateHtmlIfChanged(invContainer, inventoryHtml, invStateKey);
 		}
@@ -237,7 +245,7 @@ export function renderHeroes () {
 		const skillsListContainer = card.querySelector('[data-skills-list]');
 		if (skillsListContainer) {
 			let skillsHtml = '';
-			// MODIFIED: Aegis heroes get an interactive skill list.
+			// MODIFIED: Aegis heroes get a redesigned, more compact interactive skill list.
 			if (hero.class === 'Aegis') {
 				const manualSkills = hero.skills
 					.map(hs => gameData.skills.find(s => s.id === hs.id))
@@ -245,39 +253,26 @@ export function renderHeroes () {
 				
 				skillsHtml = manualSkills.map(skillData => {
 					const heroSkill = hero.skills.find(hs => hs.id === skillData.id);
+					const isAutoCasting = hero.autoCastSkillId === skillData.id;
 					return `
 						<div class="text-xs bg-base-100 p-2 rounded">
-							<div class="flex justify-between items-center">
-								<span>${skillData.name}</span>
+							<div class="flex justify-between items-center mb-1">
+								<div class="flex items-center gap-2">
+									<span class="font-bold">${skillData.name}</span>
+									<button class="btn btn-xs btn-ghost" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${hero.mp.current < skillData.mpCost ? 'disabled' : ''}>
+										Cast (${skillData.mpCost} MP)
+									</button>
+									<button class="btn btn-xs ${isAutoCasting ? 'btn-primary' : 'btn-ghost'}"
+										data-autocast-skill-id="${skillData.id}" data-hero-id="${hero.id}">
+										Auto
+									</button>
+								</div>
 								<span class="text-gray-400">${heroSkill.xp} / ${skillData.xpMax}</span>
 							</div>
 							<progress class="progress progress-secondary w-full" value="${heroSkill.xp}" max="${skillData.xpMax}"></progress>
-							<div class="flex justify-end items-center gap-2 mt-2">
-								<label class="label cursor-pointer gap-1 p-0">
-									<span class="label-text text-xs">Auto</span>
-									<input type="radio" name="autocast-${hero.id}" class="radio radio-xs radio-primary"
-										data-autocast-skill-id="${skillData.id}" data-hero-id="${hero.id}"
-										${hero.autoCastSkillId === skillData.id ? 'checked' : ''} />
-								</label>
-								<button class="btn btn-xs btn-ghost" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${hero.mp.current < skillData.mpCost ? 'disabled' : ''}>
-									Cast (${skillData.mpCost} MP)
-								</button>
-							</div>
 						</div>
 					`;
 				}).join('');
-				
-				// Add a "None" option for auto-casting
-				skillsHtml += `
-					<div class="flex justify-end items-center gap-2 mt-1 px-2">
-						<label class="label cursor-pointer gap-1 p-0">
-							<span class="label-text text-xs">Auto-Cast: None</span>
-							<input type="radio" name="autocast-${hero.id}" class="radio radio-xs"
-								data-autocast-skill-id="none" data-hero-id="${hero.id}"
-								${!hero.autoCastSkillId ? 'checked' : ''} />
-						</label>
-					</div>
-				`;
 			} else {
 				// Original rendering for other classes
 				skillsHtml = hero.skills.map(heroSkill => {
@@ -313,8 +308,9 @@ export function renderShopModal (heroId) {
 	const modal = getEl('system-shop-modal');
 	const header = getEl('shop-modal-header');
 	const content = getEl('shop-modal-content');
+	const inventoryContent = getEl('shop-modal-inventory'); // NEW: Get inventory container
 	
-	if (!modal || !header || !content) return;
+	if (!modal || !header || !content || !inventoryContent) return;
 	
 	// Populate header
 	header.innerHTML = `
@@ -324,7 +320,7 @@ export function renderShopModal (heroId) {
         </div>
     `;
 	
-	// Populate content with shop items
+	// MODIFIED: Populate content with expandable shop items
 	content.innerHTML = gameData.system_shop.map(shopItem => {
 		const isSkill = !!shopItem.skillId;
 		const entity = isSkill
@@ -335,17 +331,17 @@ export function renderShopModal (heroId) {
 		
 		let details = '';
 		if (isSkill) {
-			details = entity.description;
+			details = `MP Cost: ${entity.mpCost || 0}`;
 		} else if (entity.damageMitigation) {
-			details = `(Mitigation: ${entity.damageMitigation})`;
+			details = `Mitigation: ${entity.damageMitigation}`;
 		} else if (entity.damage) {
-			details = `(Damage: ${entity.damage})`;
+			details = `Damage: ${entity.damage}`;
 		} else if (entity.spellPower) {
-			details = `(Spell Power: x${entity.spellPower})`;
+			details = `Spell Power: x${entity.spellPower}`;
 		} else if (entity.effect) {
 			const { type, value } = entity.effect;
 			const effectText = type === 'heal_hp' ? `+${value} HP` : `+${value} MP`;
-			details = `(${effectText})`;
+			details = `Effect: ${effectText}`;
 		}
 		
 		const canAfford = hero.tokens >= shopItem.price;
@@ -356,25 +352,76 @@ export function renderShopModal (heroId) {
 			: '<div class="w-[50px] h-[50px] flex items-center justify-center bg-base-100 rounded"><span class="text-2xl">📜</span></div>'; // Placeholder for skills
 		
 		return `
-      <div class="flex items-center p-2 bg-base-100 rounded gap-2">
-        ${imageHtml}
-        <div class="flex-grow">
-          <div class="flex justify-between items-center">
-            <span class="font-bold text-sm">${entity.name}</span>
-            <button
-              class="btn btn-xs btn-accent"
-              data-buy-${isSkill ? 'skill' : 'item'}-id="${isSkill ? entity.id : entity.id}"
-              data-hero-id="${hero.id}"
-              ${!canAfford || hasSkill ? 'disabled' : ''}
-            >
-              ${hasSkill ? 'Learned' : `Buy (${shopItem.price} T)`}
-            </button>
-          </div>
-          <div class="text-[10px] text-gray-400 italic">${details}</div>
-        </div>
-      </div>
-    `;
+			<div class="bg-base-100 rounded">
+				<div class="flex items-center p-2 gap-2 cursor-pointer" data-shop-item-toggle>
+					${imageHtml}
+					<div class="flex-grow">
+						<div class="flex justify-between items-center">
+							<span class="font-bold text-sm">${entity.name}</span>
+							<span class="badge badge-warning">${shopItem.price} T</span>
+						</div>
+					</div>
+				</div>
+				<div class="p-2 border-t border-base-300 hidden" data-shop-item-details>
+					<p class="text-xs mb-2">${entity.description || 'No description available.'}</p>
+					<div class="text-[10px] text-gray-400 italic mb-2">${details}</div>
+					<button
+						class="btn btn-sm btn-accent w-full"
+						data-buy-${isSkill ? 'skill' : 'item'}-id="${isSkill ? entity.id : entity.id}"
+						data-hero-id="${hero.id}"
+						${!canAfford || hasSkill ? 'disabled' : ''}
+					>
+						${hasSkill ? 'Learned' : `Buy (${shopItem.price} T)`}
+					</button>
+				</div>
+			</div>
+		`;
 	}).join('');
+	
+	// MODIFIED: Populate the hero's inventory section with expandable items.
+	let inventoryHtml = '';
+	const inventoryItems = Object.entries(hero.inventory);
+	if (inventoryItems.length > 0) {
+		inventoryHtml = inventoryItems.map(([itemId, totalQty]) => {
+			if (totalQty <= 0) return '';
+			const entity = findEntityById(itemId);
+			if (!entity) return '';
+			
+			const equippedCount = Object.values(hero.equipment).filter(eqId => eqId === itemId).length;
+			const canSell = totalQty > equippedCount;
+			const isAnyEquipped = equippedCount > 0;
+			
+			return `
+				<div class="bg-base-300/50 rounded">
+					<div class="flex items-center p-2 gap-2 cursor-pointer" data-shop-item-toggle>
+						<div class="relative w-[50px] h-[50px]">
+							<img src="${entity.image}" alt="${entity.name}" class="w-full h-full object-contain bg-base-100 rounded" />
+							<span class="absolute bottom-0 right-0 bg-black bg-opacity-60 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-tl-md">${totalQty}</span>
+							${isAnyEquipped ? '<span class="absolute top-1 left-1 badge badge-primary badge-xs" title="Equipped">E</span>' : ''}
+						</div>
+						<div class="flex-grow">
+							<span class="font-bold text-sm">${entity.name}</span>
+						</div>
+					</div>
+					<div class="p-2 border-t border-base-300 hidden" data-shop-item-details>
+						<p class="text-xs mb-2">${entity.description || 'No description available.'}</p>
+						<div class="text-[10px] text-gray-400 italic mb-2">${entity.type} - Lvl ${entity.level}</div>
+						<button
+							class="btn btn-sm btn-error w-full"
+							data-sell-item-id="${itemId}"
+							data-hero-id="${hero.id}"
+							${!canSell ? 'disabled' : ''}
+						>
+							Sell (${entity.sellPrice} T)
+						</button>
+						${!canSell && isAnyEquipped ? '<p class="text-xs text-center text-error mt-1">Cannot sell last equipped item.</p>' : ''}
+					</div>
+				</div>
+			`;
+		}).join('');
+	}
+	
+	inventoryContent.innerHTML = inventoryHtml || '<p class="text-xs italic text-center text-gray-500 col-span-full">Inventory is empty.</p>';
 	
 	modal.showModal();
 }

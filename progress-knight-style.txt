@@ -270,3 +270,10 @@ use should be one per click.
 hover over to see item name and sell price and other properties. sell button should be in the details windows that show when hovering over the item, it should sell one item at a time. make the hint window remain visible as long as mouse is in it and for 200ms after the mouse leaves also show hint after hover for 100ms
 create a items overview tab where all items are visible along with the image and their properites
 replace all item text in the ui with the images. show all images as 100x100 in inventory and 50x50 px in the rest of the ui, in the overview show them as 200x200
+
+-----
+
+in inventory don't show equipped items. if hero has duplicates show the ones that are not equipped
+remove the tooltip on hover from the inventory in the game ui
+in the shop dialog add hero's inventory with a sell button under each of their items. have the hover tooltip show up in the shop dialog when hovering over items instead.
+in hero's skills for aegis remove the auto radio button, instead add a auto button that will be active/inactive, if player clicks on another auto cast button the existing one should be turned inactive, put the two buttons cast and auto besides the skills title to make the ui more compact.

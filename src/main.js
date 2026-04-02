@@ -401,16 +401,42 @@ async function init() {
 	});
 	
 	document.body.addEventListener('click', (e) => {
-		// Handle clicking on an inventory item to use it
+		// MODIFIED: Reordered event handlers to prioritize specific button clicks over general container clicks.
+		
+		// NEW: Handle expanding/collapsing item details in the shop modal
+		const shopItemToggle = e.target.closest('[data-shop-item-toggle]');
+		if (shopItemToggle) {
+			const details = shopItemToggle.nextElementSibling;
+			if (details && details.hasAttribute('data-shop-item-details')) {
+				details.classList.toggle('hidden');
+			}
+			return; // Stop further processing
+		}
+		
+		// Handle selling an item - This must be checked before data-inventory-item
+		if (e.target.matches('[data-sell-item-id]')) {
+			const heroId = parseInt(e.target.dataset.heroId, 10);
+			const itemId = e.target.dataset.sellItemId;
+			handleSellItem(heroId, itemId);
+			// If the shop is open, re-render it to reflect the change.
+			const modal = getEl('system-shop-modal');
+			if (modal.open) {
+				renderShopModal(heroId);
+			}
+			renderContent();
+			return; // Stop further processing
+		}
+		
+		// Handle clicking on an inventory item on the HERO CARD to use it
 		const inventoryItem = e.target.closest('[data-inventory-item]');
-		if (inventoryItem) {
+		const inShopModal = e.target.closest('#system-shop-modal');
+		if (inventoryItem && !inShopModal) { // Only process clicks outside the shop modal
 			const heroId = parseInt(inventoryItem.dataset.heroId, 10);
 			const itemId = inventoryItem.dataset.itemId;
 			const itemData = gameData.items.find(i => i.id === itemId);
 			// Only try to use items that are consumables
 			if (itemData && itemData.type === 'Consumable') {
 				if (handleUseConsumable(heroId, itemId)) {
-					getEl('item-tooltip').classList.add('hidden'); // Hide tooltip after use
 					renderContent(); // Re-render to show updated inventory count
 				}
 			}
@@ -427,18 +453,32 @@ async function init() {
 			return;
 		}
 		
-		// Note: The tooltip system now creates the use/sell buttons, but these handlers still work.
+		// Handle Aegis auto-cast buttons
+		const autoCastBtn = e.target.closest('[data-autocast-skill-id]');
+		if (autoCastBtn) {
+			const heroId = parseInt(autoCastBtn.dataset.heroId, 10);
+			const skillId = autoCastBtn.dataset.autocastSkillId;
+			const hero = gameState.heroes.find(h => h.id === heroId);
+			if (hero) {
+				// If clicking the currently active skill, toggle it off.
+				if (hero.autoCastSkillId === skillId) {
+					hero.autoCastSkillId = null;
+					addToLog(`${hero.name} disabled auto-cast.`);
+				} else {
+					// Otherwise, set the new skill as active.
+					hero.autoCastSkillId = skillId;
+					const skillName = gameData.skills.find(s => s.id === skillId).name;
+					addToLog(`${hero.name} set auto-cast skill to: ${skillName}.`);
+				}
+				renderContent();
+			}
+			return; // Prevent other handlers
+		}
+		
 		if (e.target.matches('[data-skill-id]')) {
 			const { heroId, skillId } = e.target.dataset;
 			handleAegisAction(parseInt(heroId), skillId);
 			renderContent();
-		}
-		if (e.target.matches('[data-use-item-id]')) {
-			const heroId = parseInt(e.target.dataset.heroId, 10);
-			const itemId = e.target.dataset.useItemId;
-			if (handleUseConsumable(heroId, itemId)) {
-				renderContent();
-			}
 		}
 		if (e.target.matches('[data-buy-item-id]')) {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
@@ -454,12 +494,6 @@ async function init() {
 			handleBuySkill(heroId, skillId);
 			// Re-render the modal content after a purchase
 			renderShopModal(heroId);
-			renderContent();
-		}
-		if (e.target.matches('[data-sell-item-id]')) {
-			const heroId = parseInt(e.target.dataset.heroId, 10);
-			const itemId = e.target.dataset.sellItemId;
-			handleSellItem(heroId, itemId);
 			renderContent();
 		}
 		if (e.target.id === 'sandbox-apply') {
@@ -479,118 +513,9 @@ async function init() {
 				addToLog(`${hero.name} auto-use for ${type.toUpperCase()} items ${e.target.checked ? 'enabled' : 'disabled'}.`);
 			}
 		}
-		
-		// NEW: Handle Aegis auto-cast radio buttons
-		if (e.target.matches('[data-autocast-skill-id]')) {
-			const heroId = parseInt(e.target.dataset.heroId, 10);
-			const skillId = e.target.dataset.autocastSkillId;
-			const hero = gameState.heroes.find(h => h.id === heroId);
-			if (hero) {
-				const newSkillId = skillId === 'none' ? null : skillId;
-				if (hero.autoCastSkillId !== newSkillId) {
-					hero.autoCastSkillId = newSkillId;
-					const skillName = newSkillId ? gameData.skills.find(s => s.id === newSkillId).name : 'None';
-					addToLog(`${hero.name} set auto-cast skill to: ${skillName}.`);
-					renderContent();
-				}
-			}
-		}
 	});
 	
-	// REMOVED: All drag-and-drop event listeners are now obsolete.
-	
-	// Advanced tooltip logic for inventory items
-	const tooltip = getEl('item-tooltip');
-	let tooltipHideTimeout = null;
-	let tooltipShowTimeout = null;
-	
-	document.body.addEventListener('mouseenter', (e) => {
-		const itemEl = e.target.closest('[data-inventory-item]');
-		if (!itemEl) return;
-		
-		if (tooltipHideTimeout) clearTimeout(tooltipHideTimeout);
-		
-		tooltipShowTimeout = setTimeout(() => {
-			const itemId = itemEl.dataset.itemId;
-			const heroId = parseInt(itemEl.dataset.heroId, 10);
-			const hero = gameState.heroes.find(h => h.id === heroId);
-			const item = gameData.items.find(i => i.id === itemId);
-			
-			if (!item || !hero) return;
-			
-			const isEquipped = Object.values(hero.equipment).includes(itemId);
-			const isConsumable = item.type === 'Consumable';
-			
-			let detailsHtml = `
-				<h3 class="font-bold text-lg">${item.name}</h3>
-				<p class="text-xs text-gray-400 mb-2">${item.type} - Level ${item.level}</p>
-				<p class="italic text-xs mb-2">${item.description}</p>
-			`;
-			
-			if (item.effect) {
-				const { type, value } = item.effect;
-				const effectText = type === 'heal_hp' ? `Restores ${value} HP` : `Restores ${value} MP`;
-				detailsHtml += `<p><strong>Effect:</strong> ${effectText}</p>`;
-			}
-			if (item.damage) detailsHtml += `<p><strong>Damage:</strong> ${item.damage}</p>`;
-			if (item.damageMitigation) detailsHtml += `<p><strong>Mitigation:</strong> ${item.damageMitigation}</p>`;
-			if (item.spellPower) detailsHtml += `<p><strong>Spell Power:</strong> x${item.spellPower}</p>`;
-			if (item.equipSlot) detailsHtml += `<p><strong>Slot:</strong> ${item.equipSlot}</p>`;
-			
-			detailsHtml += `<div class="divider my-2"></div>`;
-			
-			if (isConsumable) {
-				detailsHtml += `<p class="text-xs text-center text-info mb-2">Click item in inventory to use.</p>`;
-			}
-			
-			detailsHtml += `
-				<button
-					class="btn btn-sm btn-error w-full"
-					data-sell-item-id="${itemId}"
-					data-hero-id="${heroId}"
-					${isEquipped ? 'disabled' : ''}
-				>
-					Sell ( ${item.sellPrice} T)
-				</button>
-			`;
-			if (isEquipped) {
-				detailsHtml += `<p class="text-xs text-center text-error mt-1">Cannot sell equipped item.</p>`;
-			}
-			
-			tooltip.innerHTML = detailsHtml;
-			
-			const rect = itemEl.getBoundingClientRect();
-			tooltip.style.left = `${rect.right + 10}px`;
-			tooltip.style.top = `${rect.top}px`;
-			tooltip.classList.remove('hidden');
-		}, 100);
-	}, true);
-	
-	document.body.addEventListener('mouseleave', (e) => {
-		const itemEl = e.target.closest('[data-inventory-item]');
-		if (!itemEl) return;
-		
-		// Tooltip bug fix. Check if the mouse is moving to the tooltip itself.
-		if (e.relatedTarget === tooltip || tooltip.contains(e.relatedTarget)) {
-			return; // Don't hide if moving to the tooltip
-		}
-		
-		if (tooltipShowTimeout) clearTimeout(tooltipShowTimeout);
-		
-		tooltipHideTimeout = setTimeout(() => {
-			tooltip.classList.add('hidden');
-		}, 200);
-	}, true);
-	
-	tooltip.addEventListener('mouseenter', () => {
-		if (tooltipHideTimeout) clearTimeout(tooltipHideTimeout);
-	});
-	
-	tooltip.addEventListener('mouseleave', () => {
-		tooltipHideTimeout = setTimeout(() => {
-			tooltip.classList.add('hidden');
-		}, 200);
-	});
+	// MODIFIED: Removed all tooltip-related event listeners
 	
 	setInterval(gameLoop, 1000);
 }

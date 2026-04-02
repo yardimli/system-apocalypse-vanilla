@@ -22,10 +22,7 @@
 
 </div>
 
-<!-- Tooltip element for inventory items. It's positioned and filled by JS. -->
-<div id="item-tooltip" class="fixed card bg-base-200 shadow-xl p-4 text-sm z-50 hidden w-64">
-	<!-- Content will be injected by JS -->
-</div>
+<!-- MODIFIED: Removed the tooltip element -->
 
 <!-- MODIFIED: Added a modal for the System Shop -->
 <dialog id="system-shop-modal" class="modal">
@@ -33,8 +30,15 @@
 		<div id="shop-modal-header">
 			<!-- Hero name and tokens will be injected here by JS -->
 		</div>
+		<!-- MODIFIED: Added a title for the shop section -->
+		<div class="divider my-2">Items for Sale</div>
 		<div id="shop-modal-content" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto">
 			<!-- Shop items will be injected here by JS -->
+		</div>
+		<!-- NEW: Added a section for the hero's personal inventory -->
+		<div class="divider my-2">Your Inventory</div>
+		<div id="shop-modal-inventory" class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[25vh] overflow-y-auto">
+			<!-- Hero inventory items will be injected here by JS -->
 		</div>
 		<div class="modal-action">
 			<form method="dialog">
