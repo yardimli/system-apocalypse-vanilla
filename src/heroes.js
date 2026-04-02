@@ -90,7 +90,6 @@ export function renderHeroes() {
 		card.querySelector('[data-class]').textContent = hero.class;
 		card.querySelector('[data-class]').className = `badge ${hero.class === 'Aegis' ? 'badge-info' : hero.class === 'Striker' ? 'badge-error' : 'badge-success'}`;
 		
-		// [MODIFIED] Render multi-slot equipment as images with tooltips
 		const equipmentContainer = card.querySelector('[data-equipment-container]');
 		const equippedItems = Object.entries(hero.equipment)
 			.map(([slot, itemId]) => ({ slot, item: findEntityById(itemId) }))
@@ -180,7 +179,7 @@ export function renderHeroes() {
 			}
 		}
 		
-		// [MODIFIED] Inventory rendering logic to show stacked images.
+		// Inventory rendering logic to show stacked images.
 		const invContainer = card.querySelector('[data-inventory-container]');
 		if (invContainer) {
 			let inventoryHtml = '';
@@ -195,7 +194,7 @@ export function renderHeroes() {
 						// The container itself is the hover target for the new tooltip system.
 						inventoryHtml += `
 							<div
-								class="relative w-[100px] h-[100px] bg-base-300/50 rounded flex items-center justify-center p-1 group cursor-pointer"
+								class="relative w-[50px] h-[50px] bg-base-300/50 rounded flex items-center justify-center p-1 group cursor-pointer"
 								data-inventory-item
 								data-item-id="${id}"
 								data-hero-id="${hero.id}"
@@ -213,7 +212,7 @@ export function renderHeroes() {
 			}
 		}
 		
-		// [MODIFIED] Render System Shop with item images.
+		// Render System Shop with item images.
 		const shopContainer = card.querySelector('[data-shop-list]');
 		if (shopContainer) {
 			shopContainer.innerHTML = gameData.system_shop.map(shopItem => {

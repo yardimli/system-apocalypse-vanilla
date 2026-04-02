@@ -1,4 +1,4 @@
-import { gameState, gameData } from './state.js'; // [ADDED] gameData import
+import { gameState, gameData } from './state.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
@@ -169,7 +169,7 @@ export function renderLog(contentArea) {
 }
 
 /**
- * [ADDED] Renders the overview of all items in the game.
+ * Renders the overview of all items in the game.
  * @param {HTMLElement} contentArea - The main content DOM element.
  */
 export function renderItemsOverview(contentArea) {

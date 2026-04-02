@@ -45,7 +45,7 @@ export function handleBuyItem(heroId, itemId) {
 }
 
 /**
- * Added: Handles a hero buying a skill from the System Shop.
+ * Handles a hero buying a skill from the System Shop.
  * @param {number} heroId - The ID of the hero buying the skill.
  * @param {string} skillId - The ID of the skill to buy.
  */

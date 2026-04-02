@@ -8,9 +8,9 @@ import { handleUseConsumable } from './inventory.js';
 import { handleBuyItem, handleSellItem, handleBuySkill } from './shop.js';
 import { renderHeroes, autoEquipBestGear } from './heroes.js';
 import { renderMonsters } from './monsters.js';
-import { renderHeader, renderTabs, renderBuildings, renderCars, renderCity, renderLog, renderItemsOverview } from './ui.js'; // [ADDED] renderItemsOverview
+import { renderHeader, renderTabs, renderBuildings, renderCars, renderCity, renderLog, renderItemsOverview } from './ui.js';
 
-const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'City', 'Items', 'Log', 'Sandbox']; // [ADDED] 'Items' tab
+const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'City', 'Items', 'Log', 'Sandbox'];
 let activeTab = 'Heroes';
 
 // --- DOM ELEMENTS ---
@@ -42,7 +42,6 @@ function renderContent() {
 		case 'City':
 			renderCity(contentArea);
 			break;
-		// [ADDED] Case for the new Items overview tab
 		case 'Items':
 			renderItemsOverview(contentArea);
 			break;
@@ -138,7 +137,7 @@ function gameLoop() {
 				currentHp: monsterData.hp,
 				damage: monsterData.damage,
 				xp: monsterData.xp,
-				tokens: monsterData.tokens, // Added tokens to monster state
+				tokens: monsterData.tokens,
 				assignedTo: [],
 				targetBuilding: null
 			};
@@ -349,7 +348,7 @@ function gameLoop() {
 	if (activeTab === 'Monsters') renderMonsters(contentArea);
 	if (activeTab === 'Cars') renderCars(contentArea);
 	if (activeTab === 'City') renderCity(contentArea);
-	if (activeTab === 'Items') renderItemsOverview(contentArea); // [ADDED] Render items tab
+	if (activeTab === 'Items') renderItemsOverview(contentArea);
 	if (activeTab === 'Log') renderLog(contentArea);
 	if (activeTab === 'Sandbox') renderSandbox(contentArea);
 }
@@ -498,7 +497,7 @@ async function init() {
 		}
 	});
 	
-	// [ADDED] Advanced tooltip logic for inventory items
+	// Advanced tooltip logic for inventory items
 	const tooltip = getEl('item-tooltip');
 	let tooltipHideTimeout = null;
 	let tooltipShowTimeout = null;
