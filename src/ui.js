@@ -127,7 +127,7 @@ export function renderCars (contentArea) {
 		return `
             <div class="card bg-base-200 shadow-sm p-3 text-xs border ${car.battery > 0 ? 'border-success' : 'border-error'}">
                 <div class="font-bold mb-1">Car #${car.id}</div>
-                <div>Battery: ${car.battery}/10</div>
+                <div>Battery: ${car.battery}/30</div>
                 <div class="truncate text-gray-400 mt-1">Driver: ${driverText}</div>
             </div>
         `;

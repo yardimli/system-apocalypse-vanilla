@@ -18,6 +18,7 @@ export function handleAegisAction(heroId, skillId) {
 			const baseRepairCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
 			const repairCount = Math.ceil(baseRepairCount * levelBoost);
 			let repaired = 0;
+			const repairedBuildingIds = []; // Array to store IDs of repaired buildings
 			for (let i = 0; i < repairCount; i++) {
 				let targetBldg = gameState.city.buildings.find(b => b.state === 'ruined');
 				if (!targetBldg) targetBldg = gameState.city.buildings.find(b => b.state === 'damaged');
@@ -25,11 +26,13 @@ export function handleAegisAction(heroId, skillId) {
 				if (targetBldg) {
 					targetBldg.state = 'functional';
 					targetBldg.hp = targetBldg.maxHp;
+					repairedBuildingIds.push(targetBldg.id); // store ID
 					repaired++;
 				} else break;
 			}
 			if (repaired > 0) {
-				addToLog(`${hero.name} repaired ${repaired} building(s).`);
+				// Update log message with building IDs
+				addToLog(`${hero.name} repaired ${repaired} building(s): #${repairedBuildingIds.join(', #')}.`, hero.id);
 				success = true;
 			}
 			break;
@@ -37,15 +40,18 @@ export function handleAegisAction(heroId, skillId) {
 			const baseShieldCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
 			const shieldCount = Math.ceil(baseShieldCount * levelBoost);
 			let shielded = 0;
+			const shieldedBuildingIds = []; // Array to store IDs of shielded buildings
 			for (let i = 0; i < shieldCount; i++) {
 				const unshieldedBldg = gameState.city.buildings.find(b => b.state === 'functional' && b.shieldHp === 0);
 				if (unshieldedBldg) {
 					unshieldedBldg.shieldHp = unshieldedBldg.maxShieldHp;
+					shieldedBuildingIds.push(unshieldedBldg.id); // MODIFIED: store ID
 					shielded++;
 				} else break;
 			}
 			if (shielded > 0) {
-				addToLog(`${hero.name} shielded ${shielded} building(s).`);
+				// Update log message with building IDs
+				addToLog(`${hero.name} shielded ${shielded} building(s): #${shieldedBuildingIds.join(', #')}.`, hero.id);
 				success = true;
 			}
 			break;
@@ -53,15 +59,18 @@ export function handleAegisAction(heroId, skillId) {
 			const baseChargeCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
 			const chargeCount = Math.ceil(baseChargeCount * levelBoost);
 			let charged = 0;
+			const chargedCarIds = []; // NEW: Array to store IDs of charged cars
 			for (let i = 0; i < chargeCount; i++) {
 				const emptyCar = gameState.city.cars.find(c => c.battery <= 0);
 				if (emptyCar) {
 					emptyCar.battery = 30; // 30 days of charge
+					chargedCarIds.push(emptyCar.id); // store ID
 					charged++;
 				} else break;
 			}
 			if (charged > 0) {
-				addToLog(`${hero.name} recharged ${charged} Mana Battery Car(s).`);
+				//  Update log message with car IDs
+				addToLog(`${hero.name} recharged ${charged} Mana Battery Car(s): #${chargedCarIds.join(', #')}.`, hero.id);
 				success = true;
 			}
 			break;
@@ -71,7 +80,7 @@ export function handleAegisAction(heroId, skillId) {
 				const baseHealAmount = skill.id.includes('III') ? 500 : skill.id.includes('II') ? 250 : 100;
 				const healAmount = Math.ceil(baseHealAmount * levelBoost);
 				injured.hp.current = Math.min(injured.hp.max, injured.hp.current + healAmount);
-				addToLog(`${hero.name} healed ${injured.name} for ${healAmount} HP.`);
+				addToLog(`${hero.name} healed ${injured.name} for ${healAmount} HP.`, hero.id);
 				success = true;
 			}
 			break;
@@ -91,11 +100,11 @@ export function handleAegisAction(heroId, skillId) {
 				if (upgradeSkill) {
 					heroSkill.id = upgradeSkill.id;
 					heroSkill.xp = 0;
-					// If the upgraded skill was on auto-cast, update the ID there too
+					// MODIFIED: If the upgraded skill was on auto-cast, update the ID there too
 					if (hero.autoCastSkillId === skillId) {
 						hero.autoCastSkillId = upgradeSkill.id;
 					}
-					addToLog(`${hero.name}'s ${skillData.name} has upgraded to ${upgradeSkill.name}!`);
+					addToLog(`${hero.name}'s ${skillData.name} has upgraded to ${upgradeSkill.name}!`, hero.id);
 				}
 			}
 		}
@@ -110,7 +119,7 @@ export function handleAegisAction(heroId, skillId) {
 			hero.mpRegen += hero.mpRegenPerLevel;
 			hero.hp.current = hero.hp.max;
 			hero.mp.current = hero.mp.max;
-			addToLog(`${hero.name} reached Level ${hero.level}! Stats increased.`);
+			addToLog(`${hero.name} reached Level ${hero.level}! Stats increased.`, hero.id);
 		}
 	}
 }
