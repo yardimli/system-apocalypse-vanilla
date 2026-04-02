@@ -10,7 +10,7 @@ export function processStriker(hero) {
 		if (availableCar) {
 			hero.carId = availableCar.id;
 			availableCar.driverId = hero.id;
-			addToLog(`${hero.name} equipped Car #${availableCar.id} and is ready to fight.`, hero.id); // MODIFIED
+			addToLog(`${hero.name} equipped Car #${availableCar.id} and is ready to fight.`, hero.id);
 		}
 	}
 	
@@ -42,7 +42,7 @@ export function processStriker(hero) {
 			// Damage is now multiplied by the wand's spell power.
 			const damageDealt = Math.ceil((baseDamage * spellPower) * levelBoost);
 			monster.currentHp -= damageDealt;
-			addToLog(`${hero.name} casts ${skillToUse.name}, dealing ${damageDealt} damage to ${monster.name} (#${monster.id}).`, hero.id); // MODIFIED
+			addToLog(`${hero.name} casts ${skillToUse.name}, dealing ${damageDealt} damage to ${monster.name} (#${monster.id}).`, hero.id);
 			
 			// Grant skill XP to the used skill
 			const heroSkill = hero.skills.find(s => s.id === skillToUse.id);
@@ -51,15 +51,27 @@ export function processStriker(hero) {
 			}
 		} else {
 			// If no mana for any skill, do nothing this tick.
-			addToLog(`${hero.name} is low on mana and conserves energy.`, hero.id); // MODIFIED
+			addToLog(`${hero.name} is low on mana and conserves energy.`, hero.id);
 		}
 		
-		const armor = gameData.items.find(a => a.id === hero.equipment.body);
-		const armorMitigation = armor ? parseRange(armor.damageMitigation) : 0;
-		const monsterDamage = parseRange(monster.damage);
-		const damageTaken = Math.max(1, monsterDamage - armorMitigation);
-		hero.hp.current -= damageTaken;
-		addToLog(`${monster.name} (#${monster.id}) attacked ${hero.name}, dealing ${damageTaken} damage (${monsterDamage} raw - ${armorMitigation} mitigated).`, hero.id); // MODIFIED
+		// Striker only takes damage if a Vanguard is not present.
+		const isVanguardPresent = monster.assignedTo.some(heroId => {
+			const assignedHero = gameState.heroes.find(h => h.id === heroId);
+			return assignedHero && assignedHero.class === 'Vanguard';
+		});
+		
+		if (isVanguardPresent) {
+			// A Vanguard is tanking, so the Striker takes no damage.
+			addToLog(`${monster.name} (#${monster.id}) attacks, but a Vanguard protects ${hero.name}!`, hero.id);
+		} else {
+			// No Vanguard present, Striker takes damage as normal.
+			const armor = gameData.items.find(a => a.id === hero.equipment.body);
+			const armorMitigation = armor ? parseRange(armor.damageMitigation) : 0;
+			const monsterDamage = parseRange(monster.damage);
+			const damageTaken = Math.max(1, monsterDamage - armorMitigation);
+			hero.hp.current -= damageTaken;
+			addToLog(`${monster.name} (#${monster.id}) attacked ${hero.name}, dealing ${damageTaken} damage (${monsterDamage} raw - ${armorMitigation} mitigated).`, hero.id);
+		}
 		
 		// Check for skill level-ups
 		hero.skills.forEach(heroSkill => {
@@ -69,7 +81,7 @@ export function processStriker(hero) {
 				if (upgradeSkill) {
 					heroSkill.id = upgradeSkill.id;
 					heroSkill.xp = 0;
-					addToLog(`${hero.name}'s ${skillData.name} has upgraded to ${upgradeSkill.name}!`, hero.id); // MODIFIED
+					addToLog(`${hero.name}'s ${skillData.name} has upgraded to ${upgradeSkill.name}!`, hero.id);
 				}
 			}
 		});
@@ -82,7 +94,7 @@ export function processStriker(hero) {
 			hero.carId = null;
 			
 			hero.targetMonsterId = null;
-			addToLog(`${hero.name} was incapacitated by Lv.${monster.level} ${monster.name} (#${monster.id})!`, hero.id); // MODIFIED
+			addToLog(`${hero.name} was incapacitated by Lv.${monster.level} ${monster.name} (#${monster.id})!`, hero.id);
 		} else if (monster.currentHp <= 0) {
 			hero.targetMonsterId = null;
 		}

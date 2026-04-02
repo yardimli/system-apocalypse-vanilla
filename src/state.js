@@ -49,8 +49,7 @@ export const gameState = {
 				{ id: 'AEG004', xp: 0 }
 			],
 			autoCastSkillId: null,
-			log: [], // NEW: Add personal log for the hero.
-			// MODIFIED: Removed autoUse property. This is now always enabled.
+			log: [],
 			inventory: {
 				'ARM001': 1,
 				'ITM003': 2,
@@ -78,8 +77,7 @@ export const gameState = {
 			targetMonsterId: null,
 			tokens: 100,
 			skills: [{ id: 'STR001', xp: 0 }],
-			log: [], // NEW: Add personal log for the hero.
-			// MODIFIED: Removed autoUse property. This is now always enabled.
+			log: [],
 			inventory: {
 				'ARM001': 1,
 				'WAND001': 1,
@@ -106,8 +104,7 @@ export const gameState = {
 			targetMonsterId: null,
 			tokens: 100,
 			skills: [{ id: 'VAN001', xp: 0 }, { id: 'VAN002', xp: 0 }],
-			log: [], // NEW: Add personal log for the hero.
-			// MODIFIED: Removed autoUse property. This is now always enabled.
+			log: [],
 			inventory: {
 				'ARM001': 1,
 				'SWD001': 1,

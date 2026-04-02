@@ -91,7 +91,7 @@ export function handleSellItem(heroId, itemId) {
 		return;
 	}
 	
-	// MODIFIED: Allow selling if the hero has unequipped duplicates.
+	// Allow selling if the hero has unequipped duplicates.
 	const totalQty = hero.inventory[itemId] || 0;
 	const equippedCount = Object.values(hero.equipment).filter(eqId => eqId === itemId).length;
 	

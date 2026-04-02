@@ -1,11 +1,8 @@
 import { gameState, gameData } from './state.js';
-// Modified: Import new helper functions from utils.js
 import { addToLog, updateTextIfChanged, updateHtmlIfChanged, updateProgressIfChanged } from './utils.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
-
-// Removed local definitions of updateTextIfChanged, updateHtmlIfChanged, and updateProgressIfChanged
 
 /**
  * Automatically finds and equips the best gear a hero has in their inventory for each slot.
@@ -146,7 +143,6 @@ export function renderHeroes () {
 		let dynamicHtml = '';
 		let dynamicStateKey = '';
 		
-		// MODIFIED: Aegis no longer uses the dynamic area for skills.
 		if (hero.class === 'Aegis') {
 			dynamicHtml = '<p class="text-info text-center text-sm">Manage skills below.</p>';
 			dynamicStateKey = 'aegis-idle';
@@ -177,29 +173,11 @@ export function renderHeroes () {
 		}
 		updateHtmlIfChanged(dynamicArea, dynamicHtml, dynamicStateKey);
 		
-		// MODIFIED: Inventory rendering logic has been removed from the hero card.
-		const invContainer = card.querySelector('[data-inventory-container]');
-		if (invContainer) {
-			invContainer.innerHTML = ''; // Clear it to ensure it's empty
-		}
-		
-		// MODIFIED: Removed inline System Shop rendering
-		const shopContainer = card.querySelector('[data-shop-list]');
-		if (shopContainer) {
-			shopContainer.innerHTML = ''; // Clear it in case old template is cached
-		}
-		
-		// MODIFIED: Auto-use container rendering logic has been removed.
-		const autoUseContainer = card.querySelector('[data-auto-use-container]');
-		if (autoUseContainer) {
-			autoUseContainer.innerHTML = ''; // Clear it to ensure it's empty
-		}
-		
 		// Skills list rendering modified to use updateHtmlIfChanged
 		const skillsListContainer = card.querySelector('[data-skills-list]');
 		if (skillsListContainer) {
 			let skillsHtml = '';
-			// MODIFIED: Aegis heroes get a redesigned, more compact interactive skill list.
+
 			if (hero.class === 'Aegis') {
 				const manualSkills = hero.skills
 					.map(hs => gameData.skills.find(s => s.id === hs.id))
@@ -249,10 +227,10 @@ export function renderHeroes () {
 			updateHtmlIfChanged(skillsListContainer, skillsHtml, skillsStateKey);
 		}
 		
-		// NEW: Hero log rendering
+		// Hero log rendering
 		const heroLogContainer = card.querySelector('[data-hero-log-list]');
 		if (heroLogContainer) {
-			const logHtml = hero.log.map(entry => `<p class="truncate">${entry}</p>`).join('');
+			const logHtml = hero.log.map(entry => `<p>${entry}</p>`).join('');
 			const logStateKey = hero.log.length > 0 ? hero.log[0] : ''; // Use first entry as state key
 			updateHtmlIfChanged(heroLogContainer, logHtml, logStateKey);
 		}
@@ -260,7 +238,7 @@ export function renderHeroes () {
 }
 
 /**
- * NEW: Renders the System Shop modal for a specific hero.
+ * Renders the System Shop modal for a specific hero.
  * @param {number} heroId - The ID of the hero to open the shop for.
  */
 export function renderShopModal (heroId) {
@@ -270,7 +248,7 @@ export function renderShopModal (heroId) {
 	const modal = getEl('system-shop-modal');
 	const header = getEl('shop-modal-header');
 	const content = getEl('shop-modal-content');
-	const inventoryContent = getEl('shop-modal-inventory'); // NEW: Get inventory container
+	const inventoryContent = getEl('shop-modal-inventory');
 	
 	if (!modal || !header || !content || !inventoryContent) return;
 	
@@ -282,7 +260,6 @@ export function renderShopModal (heroId) {
         </div>
     `;
 	
-	// MODIFIED: Populate content with all details visible, removing the expand/collapse feature.
 	content.innerHTML = gameData.system_shop.map(shopItem => {
 		const isSkill = !!shopItem.skillId;
 		const entity = isSkill
@@ -313,7 +290,6 @@ export function renderShopModal (heroId) {
 			? `<img src="${entity.image}" alt="${entity.name}" class="w-[50px] h-[50px] object-contain bg-base-100 rounded" />`
 			: '<div class="w-[50px] h-[50px] flex items-center justify-center bg-base-100 rounded"><span class="text-2xl">📜</span></div>'; // Placeholder for skills
 		
-		// MODIFIED: Reworked the item card to show all details at once.
 		return `
 			<div class="bg-base-100 rounded p-2 flex gap-2">
 				<div class="flex-shrink-0">${imageHtml}</div>
@@ -339,7 +315,6 @@ export function renderShopModal (heroId) {
 		`;
 	}).join('');
 	
-	// MODIFIED: Populate the hero's inventory section with all details visible.
 	let inventoryHtml = '';
 	const inventoryItems = Object.entries(hero.inventory);
 	if (inventoryItems.length > 0) {
@@ -352,7 +327,6 @@ export function renderShopModal (heroId) {
 			const canSell = totalQty > equippedCount;
 			const isAnyEquipped = equippedCount > 0;
 			
-			// MODIFIED: Reworked the inventory item card to show all details at once.
 			return `
 				<div class="bg-base-300/50 rounded p-2 flex gap-2">
 					<div class="relative w-[50px] h-[50px] flex-shrink-0">

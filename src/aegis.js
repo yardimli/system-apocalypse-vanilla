@@ -91,7 +91,7 @@ export function handleAegisAction(heroId, skillId) {
 				if (upgradeSkill) {
 					heroSkill.id = upgradeSkill.id;
 					heroSkill.xp = 0;
-					// MODIFIED: If the upgraded skill was on auto-cast, update the ID there too
+					// If the upgraded skill was on auto-cast, update the ID there too
 					if (hero.autoCastSkillId === skillId) {
 						hero.autoCastSkillId = upgradeSkill.id;
 					}

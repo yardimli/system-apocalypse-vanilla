@@ -1,5 +1,4 @@
 import { gameState, gameData } from './state.js';
-// Modified: Import helper function
 import { updateTextIfChanged } from './utils.js';
 
 // Helper function to get an element by its ID.
@@ -89,7 +88,7 @@ export function renderBuildings (contentArea) {
 		});
 	}
 	
-	// Modified: Update each building's properties only if they have changed.
+	// Update each building's properties only if they have changed.
 	gameState.city.buildings.forEach(b => {
 		const el = getEl(`bldg-${b.id}`);
 		if (!el) return;
@@ -209,7 +208,7 @@ export function renderItemsOverview (contentArea) {
 		grid = getEl('items-overview-grid');
 	}
 	
-	// Modified: Since gameData.items is static, only render the content once.
+	// Since gameData.items is static, only render the content once.
 	if (grid.hasChildNodes()) {
 		return;
 	}

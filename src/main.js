@@ -155,11 +155,10 @@ function gameLoop() {
 		if (!hero.targetMonsterId) { // Check targetMonsterId for regen.
 			if (hero.hp.current > 0) {
 				hero.hp.current = Math.min(hero.hp.max, hero.hp.current + hero.hpRegen);
+				hero.mp.current = Math.min(hero.mp.max, hero.mp.current + hero.mpRegen);
 			}
-			hero.mp.current = Math.min(hero.mp.max, hero.mp.current + hero.mpRegen);
 		}
 		
-		// MODIFIED: Auto-use is always enabled. The check for `hero.autoUse.hp` has been removed.
 		if (hero.hp.current < hero.hp.max) {
 			const missingHp = hero.hp.max - hero.hp.current;
 			const availableHpItems = Object.keys(hero.inventory)
@@ -186,7 +185,6 @@ function gameLoop() {
 			}
 		}
 		
-		// MODIFIED: Auto-use is always enabled. The check for `hero.autoUse.mp` has been removed.
 		if (hero.mp.current < hero.mp.max) {
 			const missingMp = hero.mp.max - hero.mp.current;
 			const availableMpItems = Object.keys(hero.inventory)
@@ -213,7 +211,7 @@ function gameLoop() {
 			}
 		}
 		
-		// MODIFIED: Simplified Aegis auto-cast logic
+		// Simplified Aegis auto-cast logic
 		if (hero.class === 'Aegis' && hero.autoCastSkillId) {
 			const skillId = hero.autoCastSkillId;
 			const skill = gameData.skills.find(s => s.id === skillId);
@@ -301,7 +299,7 @@ function gameLoop() {
 					// Grant XP and Tokens
 					hero.xp.current += xpPerHero;
 					hero.tokens += tokensPerHero;
-					addToLog(`${hero.name} gained ${xpPerHero} XP and ${tokensPerHero} Tokens.`, hero.id); // MODIFIED
+					addToLog(`${hero.name} gained ${xpPerHero} XP and ${tokensPerHero} Tokens.`, hero.id);
 					
 					// Loot Drop Chance (Striker: 25%, Vanguard: 40%)
 					const lootChance = hero.class === 'Vanguard' ? 0.4 : 0.25;
@@ -310,7 +308,7 @@ function gameLoop() {
 						if (possibleDrops.length > 0) {
 							const dropped = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
 							hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;
-							addToLog(`${hero.name} found an item: ${dropped.name}!`, hero.id); // MODIFIED
+							addToLog(`${hero.name} found an item: ${dropped.name}!`, hero.id);
 						}
 					}
 					
@@ -324,7 +322,7 @@ function gameLoop() {
 						hero.hpRegen += hero.hpRegenPerLevel;
 						hero.mpRegen += hero.mpRegenPerLevel;
 						hero.hp.current = hero.hp.max;
-						addToLog(`${hero.name} reached Level ${hero.level}!`, hero.id); // MODIFIED
+						addToLog(`${hero.name} reached Level ${hero.level}!`, hero.id);
 					}
 				});
 			}
@@ -350,7 +348,7 @@ function gameLoop() {
 					const driver = gameState.heroes.find(h => h.id === car.driverId);
 					if (driver) {
 						driver.carId = null;
-						addToLog(`${driver.name}'s car ran out of battery!`, driver.id); // MODIFIED
+						addToLog(`${driver.name}'s car ran out of battery!`, driver.id);
 					}
 					car.driverId = null;
 				}
@@ -401,7 +399,6 @@ async function init() {
 	});
 	
 	document.body.addEventListener('click', (e) => {
-		// MODIFIED: Removed the event handler for expanding/collapsing shop items.
 		
 		// Handle selling an item - This must be checked before data-inventory-item
 		if (e.target.matches('[data-sell-item-id]')) {
@@ -453,12 +450,12 @@ async function init() {
 				// If clicking the currently active skill, toggle it off.
 				if (hero.autoCastSkillId === skillId) {
 					hero.autoCastSkillId = null;
-					addToLog(`${hero.name} disabled auto-cast.`, hero.id); // MODIFIED
+					addToLog(`${hero.name} disabled auto-cast.`, hero.id);
 				} else {
 					// Otherwise, set the new skill as active.
 					hero.autoCastSkillId = skillId;
 					const skillName = gameData.skills.find(s => s.id === skillId).name;
-					addToLog(`${hero.name} set auto-cast skill to: ${skillName}.`, hero.id); // MODIFIED
+					addToLog(`${hero.name} set auto-cast skill to: ${skillName}.`, hero.id);
 				}
 				renderContent();
 			}
@@ -491,10 +488,6 @@ async function init() {
 			renderContent();
 		}
 	});
-	
-	// MODIFIED: Removed the 'change' event listener for auto-use toggles as they no longer exist.
-	
-	// MODIFIED: Removed all tooltip-related event listeners
 	
 	setInterval(gameLoop, 1000);
 }

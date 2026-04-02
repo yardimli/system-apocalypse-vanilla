@@ -1,4 +1,4 @@
-import { gameState, gameData } from './state.js'; // MODIFIED: Imported gameData
+import { gameState, gameData } from './state.js';
 
 /**
  * Adds a message to the global log and, optionally, to a specific hero's log.
@@ -17,7 +17,7 @@ export function addToLog (message, heroId = null) {
 		gameState.log.pop();
 	}
 	
-	// NEW: Add to hero-specific log if heroId is provided
+	// Add to hero-specific log if heroId is provided
 	if (heroId) {
 		const hero = gameState.heroes.find(h => h.id === heroId);
 		if (hero) {

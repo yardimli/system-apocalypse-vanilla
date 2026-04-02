@@ -22,23 +22,19 @@
 
 </div>
 
-<!-- MODIFIED: Removed the tooltip element -->
-
-<!-- MODIFIED: Added a modal for the System Shop -->
+<!-- Added a modal for the System Shop -->
 <dialog id="system-shop-modal" class="modal">
 	<div class="modal-box w-11/12 max-w-3xl">
 		<div id="shop-modal-header">
 			<!-- Hero name and tokens will be injected here by JS -->
 		</div>
-		<!-- NEW: A single scrollable container for both shop and inventory to reduce nested scrollbars. -->
+		<!-- A single scrollable container for both shop and inventory to reduce nested scrollbars. -->
 		<div class="mt-4 max-h-[70vh] overflow-y-auto pr-2">
 			<div class="divider my-2">Items for Sale</div>
-			<!-- MODIFIED: Removed max-h and overflow from this container. -->
 			<div id="shop-modal-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 				<!-- Shop items will be injected here by JS -->
 			</div>
 			<div class="divider my-2">Your Inventory</div>
-			<!-- MODIFIED: Removed max-h and overflow from this container. -->
 			<div id="shop-modal-inventory" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 				<!-- Hero inventory items will be injected here by JS -->
 			</div>
@@ -95,16 +91,12 @@
 			<div class="w-full mt-2 min-h-[80px] bg-base-300 rounded p-2 flex flex-col justify-center" data-dynamic-area>
 			</div>
 			
-			<!-- MODIFIED: System Shop Area is now a button -->
+			<!-- System Shop Area is now a button -->
 			<div class="mt-2 border-t border-base-300 pt-2">
 				<button class="btn btn-sm btn-accent w-full" data-open-shop-btn>
 					Open Shop
 				</button>
 			</div>
-			
-			<!-- MODIFIED: Personal Inventory Area has been removed from the hero card. -->
-			
-			<!-- MODIFIED: Auto-Use Settings Area has been removed from the hero card. -->
 			
 			<!-- Skill Progression Area -->
 			<div class="mt-2 border-t border-base-300 pt-2" data-skills-container>
@@ -114,10 +106,10 @@
 				</div>
 			</div>
 			
-			<!-- NEW: Hero Log Area -->
+			<!-- Hero Log Area -->
 			<div class="mt-2 border-t border-base-300 pt-2" data-log-container>
 				<div class="divider my-1">Log</div>
-				<div class="flex flex-col gap-1 bg-base-100 rounded p-2 h-24 overflow-y-auto text-xs font-mono" data-hero-log-list>
+				<div class="flex flex-col gap-1 bg-base-100 rounded p-2 h-60 overflow-y-auto text-xs font-mono" data-hero-log-list>
 					<!-- Hero log entries will be rendered here by JS -->
 				</div>
 			</div>
