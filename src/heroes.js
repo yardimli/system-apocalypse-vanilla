@@ -146,39 +146,10 @@ export function renderHeroes () {
 		let dynamicHtml = '';
 		let dynamicStateKey = '';
 		
-		// Modified to use updateHtmlIfChanged based on dynamic state
+		// MODIFIED: Aegis no longer uses the dynamic area for skills.
 		if (hero.class === 'Aegis') {
-			const allSkillData = hero.skills.map(s => gameData.skills.find(gs => gs.id === s.id));
-			const allManualSkills = allSkillData.filter(s => s && s.type === 'Manual');
-			
-			const autoSkills = hero.autoCast.map(id => allManualSkills.find(s => s.id === id)).filter(Boolean);
-			const manualSkills = allManualSkills.filter(s => !hero.autoCast.includes(s.id));
-			
-			dynamicHtml = `
-                <div class="flex gap-2 w-full">
-                    <div class="flex-1 bg-base-100 p-2 rounded border border-base-300 min-h-[100px]" data-drop-zone="manual" data-hero-id="${hero.id}">
-                        <h4 class="text-xs text-center font-bold mb-2 text-gray-400">Manual Skills</h4>
-                        <div class="flex flex-col gap-1">
-                            ${manualSkills.map(skill => `
-                                <div draggable="true" data-drag-skill="${skill.id}" class="badge badge-outline cursor-move w-full justify-between p-3">
-                                    <span>${skill.name}</span>
-                                    <button class="btn btn-xs btn-ghost" data-skill-id="${skill.id}" data-hero-id="${hero.id}" ${hero.mp.current < skill.mpCost ? 'disabled' : ''}>Cast</button>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    <div class="flex-1 bg-base-100 p-2 rounded border border-primary min-h-[100px]" data-drop-zone="auto" data-hero-id="${hero.id}">
-                        <h4 class="text-xs text-center font-bold mb-2 text-primary">Auto Priority</h4>
-                        <div class="flex flex-col gap-1">
-                            ${autoSkills.map(skill => `
-                                <div draggable="true" data-drag-skill="${skill.id}" class="badge badge-primary cursor-move w-full p-3">${skill.name}</div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-                <p class="text-[10px] text-center mt-1 text-gray-500">Drag skills between boxes to set auto-cast priority.</p>
-            `;
-			dynamicStateKey = JSON.stringify([hero.autoCast, hero.mp.current, hero.skills.map(s => s.id)]);
+			dynamicHtml = '<p class="text-info text-center text-sm">Manage skills below.</p>';
+			dynamicStateKey = 'aegis-idle';
 		} else {
 			if (hero.hp.current <= 0) {
 				dynamicHtml = `<p class="text-error font-bold text-center">INCAPACITATED</p><p class="text-xs text-center">Awaiting Aegis Healing...</p>`;
@@ -265,22 +236,67 @@ export function renderHeroes () {
 		// Skills list rendering modified to use updateHtmlIfChanged
 		const skillsListContainer = card.querySelector('[data-skills-list]');
 		if (skillsListContainer) {
-			const skillsHtml = hero.skills.map(heroSkill => {
-				const skillData = gameData.skills.find(s => s.id === heroSkill.id);
-				if (!skillData) return '';
+			let skillsHtml = '';
+			// MODIFIED: Aegis heroes get an interactive skill list.
+			if (hero.class === 'Aegis') {
+				const manualSkills = hero.skills
+					.map(hs => gameData.skills.find(s => s.id === hs.id))
+					.filter(s => s && s.type === 'Manual');
 				
-				return `
-          <div class="text-xs">
-            <div class="flex justify-between items-center">
-              <span>${skillData.name}</span>
-              <span class="text-gray-400">${heroSkill.xp} / ${skillData.xpMax}</span>
-            </div>
-            <progress class="progress progress-secondary w-full" value="${heroSkill.xp}" max="${skillData.xpMax}"></progress>
-          </div>
-        `;
-			}).join('');
+				skillsHtml = manualSkills.map(skillData => {
+					const heroSkill = hero.skills.find(hs => hs.id === skillData.id);
+					return `
+						<div class="text-xs bg-base-100 p-2 rounded">
+							<div class="flex justify-between items-center">
+								<span>${skillData.name}</span>
+								<span class="text-gray-400">${heroSkill.xp} / ${skillData.xpMax}</span>
+							</div>
+							<progress class="progress progress-secondary w-full" value="${heroSkill.xp}" max="${skillData.xpMax}"></progress>
+							<div class="flex justify-end items-center gap-2 mt-2">
+								<label class="label cursor-pointer gap-1 p-0">
+									<span class="label-text text-xs">Auto</span>
+									<input type="radio" name="autocast-${hero.id}" class="radio radio-xs radio-primary"
+										data-autocast-skill-id="${skillData.id}" data-hero-id="${hero.id}"
+										${hero.autoCastSkillId === skillData.id ? 'checked' : ''} />
+								</label>
+								<button class="btn btn-xs btn-ghost" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${hero.mp.current < skillData.mpCost ? 'disabled' : ''}>
+									Cast (${skillData.mpCost} MP)
+								</button>
+							</div>
+						</div>
+					`;
+				}).join('');
+				
+				// Add a "None" option for auto-casting
+				skillsHtml += `
+					<div class="flex justify-end items-center gap-2 mt-1 px-2">
+						<label class="label cursor-pointer gap-1 p-0">
+							<span class="label-text text-xs">Auto-Cast: None</span>
+							<input type="radio" name="autocast-${hero.id}" class="radio radio-xs"
+								data-autocast-skill-id="none" data-hero-id="${hero.id}"
+								${!hero.autoCastSkillId ? 'checked' : ''} />
+						</label>
+					</div>
+				`;
+			} else {
+				// Original rendering for other classes
+				skillsHtml = hero.skills.map(heroSkill => {
+					const skillData = gameData.skills.find(s => s.id === heroSkill.id);
+					if (!skillData) return '';
+					
+					return `
+						<div class="text-xs">
+							<div class="flex justify-between items-center">
+								<span>${skillData.name}</span>
+								<span class="text-gray-400">${heroSkill.xp} / ${skillData.xpMax}</span>
+							</div>
+							<progress class="progress progress-secondary w-full" value="${heroSkill.xp}" max="${skillData.xpMax}"></progress>
+						</div>
+					`;
+				}).join('');
+			}
 			
-			const skillsStateKey = JSON.stringify(hero.skills);
+			const skillsStateKey = JSON.stringify(hero.skills) + hero.autoCastSkillId + hero.mp.current;
 			updateHtmlIfChanged(skillsListContainer, skillsHtml, skillsStateKey);
 		}
 	});

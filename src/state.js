@@ -48,7 +48,8 @@ export const gameState = {
 				{ id: 'AEG003', xp: 0 },
 				{ id: 'AEG004', xp: 0 }
 			],
-			autoCast:[],
+			// MODIFIED: Replaced autoCast array with a single skill ID property.
+			autoCastSkillId: null,
 			autoUse: { hp: false, mp: false },
 			inventory: {
 				'ARM001': 1,

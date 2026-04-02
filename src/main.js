@@ -213,20 +213,19 @@ function gameLoop() {
 			}
 		}
 		
-		if (hero.class === 'Aegis' && Array.isArray(hero.autoCast)) {
-			for (const skillId of hero.autoCast) {
-				const skill = gameData.skills.find(s => s.id === skillId);
-				if (skill && hero.mp.current >= skill.mpCost) {
-					let shouldCast = false;
-					if (skill.actionType === 'repair' && gameState.city.buildings.some(b => b.state !== 'functional')) shouldCast = true;
-					if (skill.actionType === 'shield' && gameState.city.buildings.some(b => b.state === 'functional' && b.shieldHp === 0)) shouldCast = true;
-					if (skill.actionType === 'battery' && gameState.city.cars.some(c => c.battery <= 0)) shouldCast = true;
-					if (skill.actionType === 'heal' && gameState.heroes.some(h => h.hp.current < h.hp.max)) shouldCast = true;
-					
-					if (shouldCast) {
-						handleAegisAction(hero.id, skill.id);
-						break;
-					}
+		// MODIFIED: Simplified Aegis auto-cast logic
+		if (hero.class === 'Aegis' && hero.autoCastSkillId) {
+			const skillId = hero.autoCastSkillId;
+			const skill = gameData.skills.find(s => s.id === skillId);
+			if (skill && hero.mp.current >= skill.mpCost) {
+				let shouldCast = false;
+				if (skill.actionType === 'repair' && gameState.city.buildings.some(b => b.state !== 'functional')) shouldCast = true;
+				if (skill.actionType === 'shield' && gameState.city.buildings.some(b => b.state === 'functional' && b.shieldHp === 0)) shouldCast = true;
+				if (skill.actionType === 'battery' && gameState.city.cars.some(c => c.battery <= 0)) shouldCast = true;
+				if (skill.actionType === 'heal' && gameState.heroes.some(h => h.hp.current < h.hp.max)) shouldCast = true;
+				
+				if (shouldCast) {
+					handleAegisAction(hero.id, skill.id);
 				}
 			}
 		}
@@ -470,6 +469,7 @@ async function init() {
 	});
 	
 	document.body.addEventListener('change', (e) => {
+		// Handle auto-use toggles
 		if (e.target.matches('[data-auto-use-type]')) {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
 			const type = e.target.dataset.autoUseType;
@@ -479,70 +479,25 @@ async function init() {
 				addToLog(`${hero.name} auto-use for ${type.toUpperCase()} items ${e.target.checked ? 'enabled' : 'disabled'}.`);
 			}
 		}
-	});
-	
-	let draggedElement = null;
-	
-	document.body.addEventListener('dragstart', (e) => {
-		draggedElement = e.target;
 		
-		if (e.target.matches('[data-drag-skill]')) {
-			e.dataTransfer.setData('text/plain', e.target.dataset.dragSkill);
-			e.dataTransfer.setData('heroId', e.target.closest('[data-hero-id]').dataset.heroId);
-			e.target.classList.add('opacity-50');
-		}
-	});
-	
-	document.body.addEventListener('dragend', (e) => {
-		if (draggedElement) {
-			draggedElement.classList.remove('opacity-50');
-			draggedElement = null;
-		}
-	});
-	
-	document.body.addEventListener('dragover', (e) => {
-		if (e.target.closest('[data-drop-zone]')) {
-			e.preventDefault();
-			e.target.closest('[data-drop-zone]').classList.add('bg-primary/20');
-		}
-	});
-	
-	document.body.addEventListener('dragleave', (e) => {
-		if (e.target.closest('[data-drop-zone]')) {
-			e.target.closest('[data-drop-zone]').classList.remove('bg-primary/20');
-		}
-	});
-	
-	document.body.addEventListener('drop', (e) => {
-		const dropZone = e.target.closest('[data-drop-zone]');
-		if (!dropZone) return;
-		e.preventDefault();
-		dropZone.classList.remove('bg-primary/20');
-		
-		const aegisZoneType = dropZone.dataset.dropZone;
-		if (aegisZoneType === 'auto' || aegisZoneType === 'manual') {
-			const draggedSkill = e.dataTransfer.getData('text/plain');
-			const heroId = parseInt(e.dataTransfer.getData('heroId'));
-			const targetHeroId = parseInt(dropZone.dataset.heroId);
-			
-			if (heroId !== targetHeroId || !draggedSkill) return;
-			
+		// NEW: Handle Aegis auto-cast radio buttons
+		if (e.target.matches('[data-autocast-skill-id]')) {
+			const heroId = parseInt(e.target.dataset.heroId, 10);
+			const skillId = e.target.dataset.autocastSkillId;
 			const hero = gameState.heroes.find(h => h.id === heroId);
-			hero.autoCast = hero.autoCast.filter(id => id !== draggedSkill);
-			
-			if (aegisZoneType === 'auto') {
-				const targetBadge = e.target.closest('[data-drag-skill]');
-				if (targetBadge && targetBadge.dataset.dragSkill !== draggedSkill) {
-					const targetIndex = hero.autoCast.indexOf(targetBadge.dataset.dragSkill);
-					hero.autoCast.splice(targetIndex, 0, draggedSkill);
-				} else {
-					hero.autoCast.push(draggedSkill);
+			if (hero) {
+				const newSkillId = skillId === 'none' ? null : skillId;
+				if (hero.autoCastSkillId !== newSkillId) {
+					hero.autoCastSkillId = newSkillId;
+					const skillName = newSkillId ? gameData.skills.find(s => s.id === newSkillId).name : 'None';
+					addToLog(`${hero.name} set auto-cast skill to: ${skillName}.`);
+					renderContent();
 				}
 			}
-			renderContent();
-			return;
 		}
 	});
+	
+	// REMOVED: All drag-and-drop event listeners are now obsolete.
 	
 	// Advanced tooltip logic for inventory items
 	const tooltip = getEl('item-tooltip');
