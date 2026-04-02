@@ -8,9 +8,9 @@ import { handleUseConsumable } from './inventory.js';
 import { handleBuyItem, handleSellItem, handleBuySkill } from './shop.js';
 import { renderHeroes, autoEquipBestGear } from './heroes.js';
 import { renderMonsters } from './monsters.js';
-import { renderHeader, renderTabs, renderBuildings, renderCars, renderCity, renderLog } from './ui.js';
+import { renderHeader, renderTabs, renderBuildings, renderCars, renderCity, renderLog, renderItemsOverview } from './ui.js'; // [ADDED] renderItemsOverview
 
-const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'City', 'Log', 'Sandbox'];
+const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'City', 'Items', 'Log', 'Sandbox']; // [ADDED] 'Items' tab
 let activeTab = 'Heroes';
 
 // --- DOM ELEMENTS ---
@@ -41,6 +41,10 @@ function renderContent() {
 			break;
 		case 'City':
 			renderCity(contentArea);
+			break;
+		// [ADDED] Case for the new Items overview tab
+		case 'Items':
+			renderItemsOverview(contentArea);
 			break;
 		case 'Log':
 			renderLog(contentArea);
@@ -345,6 +349,7 @@ function gameLoop() {
 	if (activeTab === 'Monsters') renderMonsters(contentArea);
 	if (activeTab === 'Cars') renderCars(contentArea);
 	if (activeTab === 'City') renderCity(contentArea);
+	if (activeTab === 'Items') renderItemsOverview(contentArea); // [ADDED] Render items tab
 	if (activeTab === 'Log') renderLog(contentArea);
 	if (activeTab === 'Sandbox') renderSandbox(contentArea);
 }
@@ -381,6 +386,7 @@ async function init() {
 	});
 	
 	document.body.addEventListener('click', (e) => {
+		// Note: The tooltip system now creates the use/sell buttons, but these handlers still work.
 		if (e.target.matches('[data-skill-id]')) {
 			const { heroId, skillId } = e.target.dataset;
 			handleAegisAction(parseInt(heroId), skillId);
@@ -490,6 +496,96 @@ async function init() {
 			renderContent();
 			return;
 		}
+	});
+	
+	// [ADDED] Advanced tooltip logic for inventory items
+	const tooltip = getEl('item-tooltip');
+	let tooltipHideTimeout = null;
+	let tooltipShowTimeout = null;
+	
+	document.body.addEventListener('mouseenter', (e) => {
+		const itemEl = e.target.closest('[data-inventory-item]');
+		if (!itemEl) return;
+		
+		if (tooltipHideTimeout) clearTimeout(tooltipHideTimeout);
+		
+		tooltipShowTimeout = setTimeout(() => {
+			const itemId = itemEl.dataset.itemId;
+			const heroId = parseInt(itemEl.dataset.heroId, 10);
+			const hero = gameState.heroes.find(h => h.id === heroId);
+			const item = gameData.items.find(i => i.id === itemId);
+			
+			if (!item || !hero) return;
+			
+			const isEquipped = Object.values(hero.equipment).includes(itemId);
+			const isConsumable = item.type === 'Consumable';
+			
+			let detailsHtml = `
+				<h3 class="font-bold text-lg">${item.name}</h3>
+				<p class="text-xs text-gray-400 mb-2">${item.type} - Level ${item.level}</p>
+				<p class="italic text-xs mb-2">${item.description}</p>
+			`;
+			
+			if (item.effect) {
+				const { type, value } = item.effect;
+				const effectText = type === 'heal_hp' ? `Restores ${value} HP` : `Restores ${value} MP`;
+				detailsHtml += `<p><strong>Effect:</strong> ${effectText}</p>`;
+			}
+			if (item.damage) detailsHtml += `<p><strong>Damage:</strong> ${item.damage}</p>`;
+			if (item.damageMitigation) detailsHtml += `<p><strong>Mitigation:</strong> ${item.damageMitigation}</p>`;
+			if (item.spellPower) detailsHtml += `<p><strong>Spell Power:</strong> x${item.spellPower}</p>`;
+			if (item.equipSlot) detailsHtml += `<p><strong>Slot:</strong> ${item.equipSlot}</p>`;
+			
+			detailsHtml += `<div class="divider my-2"></div>`;
+			
+			if (isConsumable) {
+				detailsHtml += `
+					<button class="btn btn-sm btn-info w-full mb-2" data-use-item-id="${itemId}" data-hero-id="${heroId}">Use Item</button>
+				`;
+			}
+			
+			detailsHtml += `
+				<button
+					class="btn btn-sm btn-error w-full"
+					data-sell-item-id="${itemId}"
+					data-hero-id="${heroId}"
+					${isEquipped ? 'disabled' : ''}
+				>
+					Sell ( ${item.sellPrice} T)
+				</button>
+			`;
+			if (isEquipped) {
+				detailsHtml += `<p class="text-xs text-center text-error mt-1">Cannot sell equipped item.</p>`;
+			}
+			
+			tooltip.innerHTML = detailsHtml;
+			
+			const rect = itemEl.getBoundingClientRect();
+			tooltip.style.left = `${rect.right + 10}px`;
+			tooltip.style.top = `${rect.top}px`;
+			tooltip.classList.remove('hidden');
+		}, 100);
+	}, true);
+	
+	document.body.addEventListener('mouseleave', (e) => {
+		const itemEl = e.target.closest('[data-inventory-item]');
+		if (!itemEl) return;
+		
+		if (tooltipShowTimeout) clearTimeout(tooltipShowTimeout);
+		
+		tooltipHideTimeout = setTimeout(() => {
+			tooltip.classList.add('hidden');
+		}, 200);
+	}, true);
+	
+	tooltip.addEventListener('mouseenter', () => {
+		if (tooltipHideTimeout) clearTimeout(tooltipHideTimeout);
+	});
+	
+	tooltip.addEventListener('mouseleave', () => {
+		tooltipHideTimeout = setTimeout(() => {
+			tooltip.classList.add('hidden');
+		}, 200);
 	});
 	
 	setInterval(gameLoop, 1000);

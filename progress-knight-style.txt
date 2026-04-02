@@ -251,3 +251,22 @@ add 4 healing and 2 mana items to all hero's inventory on the beginning of the g
 ----
 
 add a new javascript for the system shop, add items hero's can buy from the shop. in each hero tab add a new section shop, make items they can afford buyable. for items and armor add a sell price value, in inventory add sell button to each inventory item. add a wallet where hero's balance is visible. create the system shop json and fill it with consumables and armor, add 3 new variants to each armor, in the inventory and system shop show values of armor. each hero will start with 100 tokens, tokens is the game currency it is always an integer. killing monsters should also earn tokens. add monster token value in the monsters.json, if two hero's fight the same monster divide the tokens. round up to nearest integer.
+
+----
+
+remove crafting from the game, all items dropped should be consumable or wearable items. remove the recipes.json. merge armor.json into items.json
+for striker add magical wands that will increase the power of the spell by n integer factor
+for vanguard add swords and shields that will increase damage and defence, for vanguard add a skill set for sword fighting.
+vanguard should either use shield bash or sword when attacking
+striker can use different skills when attacking based on mp cost
+add skills as purchasable items in the system shop
+
+---
+
+add stacking into inventory
+add image to items json use the id + png for filename all images are in the images subfolder
+show count of items in inventory.
+use should be one per click.
+hover over to see item name and sell price and other properties. sell button should be in the details windows that show when hovering over the item, it should sell one item at a time. make the hint window remain visible as long as mouse is in it and for 200ms after the mouse leaves also show hint after hover for 100ms
+create a items overview tab where all items are visible along with the image and their properites
+replace all item text in the ui with the images. show all images as 100x100 in inventory and 50x50 px in the rest of the ui, in the overview show them as 200x200

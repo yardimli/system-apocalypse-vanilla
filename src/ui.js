@@ -1,4 +1,4 @@
-import { gameState } from './state.js';
+import { gameState, gameData } from './state.js'; // [ADDED] gameData import
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
@@ -166,4 +166,53 @@ export function renderLog(contentArea) {
         </div>`;
 	}
 	getEl('log-container').innerHTML = gameState.log.map(entry => `<p>${entry}</p>`).join('');
+}
+
+/**
+ * [ADDED] Renders the overview of all items in the game.
+ * @param {HTMLElement} contentArea - The main content DOM element.
+ */
+export function renderItemsOverview(contentArea) {
+	let grid = getEl('items-overview-grid');
+	if (!grid) {
+		contentArea.innerHTML = `
+			<div class="flex flex-col gap-4">
+				<h2 class="text-2xl font-bold">Items Overview</h2>
+				<div id="items-overview-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+			</div>
+		`;
+		grid = getEl('items-overview-grid');
+	}
+	
+	grid.innerHTML = gameData.items.map(item => {
+		const details = [];
+		if (item.type) details.push(`<strong>Type:</strong> ${item.type}`);
+		if (item.level) details.push(`<strong>Level:</strong> ${item.level}`);
+		if (item.sellPrice) details.push(`<strong>Sell Price:</strong> ${item.sellPrice} Tokens`);
+		
+		if (item.effect) {
+			const { type, value } = item.effect;
+			const effectText = type === 'heal_hp' ? `Restores ${value} HP` : `Restores ${value} MP`;
+			details.push(`<strong>Effect:</strong> ${effectText}`);
+		}
+		if (item.damageMitigation) details.push(`<strong>Mitigation:</strong> ${item.damageMitigation}`);
+		if (item.damage) details.push(`<strong>Damage:</strong> ${item.damage}`);
+		if (item.spellPower) details.push(`<strong>Spell Power:</strong> x${item.spellPower}`);
+		if (item.equipSlot) details.push(`<strong>Slot:</strong> ${item.equipSlot}`);
+		if (item.class) details.push(`<strong>Class:</strong> ${item.class}`);
+		
+		// Description is handled separately for formatting
+		const descriptionHtml = item.description ? `<p class="text-xs italic text-gray-400 mt-2">${item.description}</p>` : '';
+		
+		return `
+			<div class="card bg-base-200 shadow-md p-4 flex flex-col items-center">
+				<h3 class="font-bold text-lg text-center">${item.name} (${item.id})</h3>
+				<img src="${item.image}" alt="${item.name}" class="w-[200px] h-[200px] object-contain my-4 bg-base-300 rounded" />
+				<div class="text-sm w-full">
+					${details.join('<br>')}
+					${descriptionHtml}
+				</div>
+			</div>
+		`;
+	}).join('');
 }

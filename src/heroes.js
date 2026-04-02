@@ -90,7 +90,7 @@ export function renderHeroes() {
 		card.querySelector('[data-class]').textContent = hero.class;
 		card.querySelector('[data-class]').className = `badge ${hero.class === 'Aegis' ? 'badge-info' : hero.class === 'Striker' ? 'badge-error' : 'badge-success'}`;
 		
-		// Render multi-slot equipment instead of single armor piece
+		// [MODIFIED] Render multi-slot equipment as images with tooltips
 		const equipmentContainer = card.querySelector('[data-equipment-container]');
 		const equippedItems = Object.entries(hero.equipment)
 			.map(([slot, itemId]) => ({ slot, item: findEntityById(itemId) }))
@@ -102,7 +102,11 @@ export function renderHeroes() {
 				if (item.damageMitigation) details = `Mit: ${item.damageMitigation}`;
 				if (item.damage) details = `Dmg: ${item.damage}`;
 				if (item.spellPower) details = `SP: x${item.spellPower}`;
-				return `<div class="badge badge-outline" title="${slot}">${item.name} (${details})</div>`;
+				return `
+					<div class="tooltip" data-tip="${item.name} (${details}) | Slot: ${slot}">
+						<img src="${item.image}" alt="${item.name}" class="w-[50px] h-[50px] object-contain bg-base-300/50 rounded" />
+					</div>
+				`;
 			}).join(' ');
 		} else {
 			equipmentContainer.innerHTML = '<span class="text-xs italic text-gray-500">Nothing Equipped</span>';
@@ -176,6 +180,7 @@ export function renderHeroes() {
 			}
 		}
 		
+		// [MODIFIED] Inventory rendering logic to show stacked images.
 		const invContainer = card.querySelector('[data-inventory-container]');
 		if (invContainer) {
 			let inventoryHtml = '';
@@ -186,46 +191,20 @@ export function renderHeroes() {
 					if (qty <= 0) return;
 					const entity = findEntityById(id);
 					if (entity) {
-						// Check all equipment slots
 						const isEquipped = Object.values(hero.equipment).includes(id);
-						const isConsumable = entity.type === 'Consumable';
-						
-						let displayName = entity.name;
-						if (isConsumable && entity.effect) {
-							const { type, value } = entity.effect;
-							const effectText = type === 'heal_hp' ? `HP: +${value}` : `MP: +${value}`;
-							displayName = `${entity.name} (${effectText})`;
-						}
-						
-						const useAttribute = isConsumable ? `data-use-item-id="${id}"` : '';
-						const cursorClass = isConsumable ? 'cursor-pointer' : '';
-						const sellPriceText = entity.sellPrice ? `(Sell: ${entity.sellPrice})` : '';
-						
-						// Render each item individually with its controls
-						for (let i = 0; i < qty; i++) {
-							// Only mark the first instance of an equipped item
-							const equippedThisInstance = isEquipped && i === 0;
-							
-							inventoryHtml += `
-								<div class="flex items-center justify-between w-full bg-base-300/50 p-1 rounded">
-									<div
-										data-hero-id="${hero.id}"
-										${useAttribute}
-										class="badge ${equippedThisInstance ? 'badge-primary' : 'badge-outline'} ${cursorClass} flex-grow text-left"
-									>
-										${displayName} ${equippedThisInstance ? '(Equipped)' : ''}
-									</div>
-									<button
-										class="btn btn-xs btn-ghost text-error/70"
-										data-sell-item-id="${id}"
-										data-hero-id="${hero.id}"
-										${equippedThisInstance ? 'disabled' : ''}
-									>
-										Sell ${sellPriceText}
-									</button>
-								</div>
-							`;
-						}
+						// The container itself is the hover target for the new tooltip system.
+						inventoryHtml += `
+							<div
+								class="relative w-[100px] h-[100px] bg-base-300/50 rounded flex items-center justify-center p-1 group cursor-pointer"
+								data-inventory-item
+								data-item-id="${id}"
+								data-hero-id="${hero.id}"
+							>
+								<img src="${entity.image}" alt="${entity.name}" class="w-full h-full object-contain ${isEquipped ? 'border-2 border-primary rounded' : ''}" />
+								<span class="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs font-bold px-2 py-1 rounded">${qty}</span>
+								${isEquipped ? '<span class="absolute top-1 left-1 badge badge-primary badge-xs" title="Equipped">E</span>' : ''}
+							</div>
+						`;
 					}
 				});
 				invContainer.innerHTML = inventoryHtml;
@@ -234,10 +213,9 @@ export function renderHeroes() {
 			}
 		}
 		
-		// Render System Shop
+		// [MODIFIED] Render System Shop with item images.
 		const shopContainer = card.querySelector('[data-shop-list]');
 		if (shopContainer) {
-			// Shop now renders items and skills
 			shopContainer.innerHTML = gameData.system_shop.map(shopItem => {
 				const isSkill = !!shopItem.skillId;
 				const entity = isSkill
@@ -262,23 +240,29 @@ export function renderHeroes() {
 				}
 				
 				const canAfford = hero.tokens >= shopItem.price;
-				// For skills, also check if the hero already has it
 				const hasSkill = isSkill && hero.skills.some(s => s.id === shopItem.skillId);
 				
+				const imageHtml = !isSkill && entity.image
+					? `<img src="${entity.image}" alt="${entity.name}" class="w-[50px] h-[50px] object-contain bg-base-100 rounded" />`
+					: '';
+				
 				return `
-					<div class="flex flex-col p-2 bg-base-100 rounded gap-1">
-						<div class="flex justify-between items-center">
-							<span class="font-bold text-sm">${entity.name}</span>
-							<button
-								class="btn btn-xs btn-accent"
-								data-buy-${isSkill ? 'skill' : 'item'}-id="${isSkill ? entity.id : entity.id}"
-								data-hero-id="${hero.id}"
-								${!canAfford || hasSkill ? 'disabled' : ''}
-							>
-								${hasSkill ? 'Learned' : `Buy (${shopItem.price} T)`}
-							</button>
+					<div class="flex items-center p-2 bg-base-100 rounded gap-2">
+						${imageHtml}
+						<div class="flex-grow">
+							<div class="flex justify-between items-center">
+								<span class="font-bold text-sm">${entity.name}</span>
+								<button
+									class="btn btn-xs btn-accent"
+									data-buy-${isSkill ? 'skill' : 'item'}-id="${isSkill ? entity.id : entity.id}"
+									data-hero-id="${hero.id}"
+									${!canAfford || hasSkill ? 'disabled' : ''}
+								>
+									${hasSkill ? 'Learned' : `Buy (${shopItem.price} T)`}
+								</button>
+							</div>
+							<div class="text-[10px] text-gray-400 italic">${details}</div>
 						</div>
-						<div class="text-[10px] text-gray-400 italic">${details}</div>
 					</div>
 				`;
 			}).join('');
