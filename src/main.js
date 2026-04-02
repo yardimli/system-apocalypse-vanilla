@@ -301,7 +301,7 @@ function gameLoop() {
 					// Grant XP and Tokens
 					hero.xp.current += xpPerHero;
 					hero.tokens += tokensPerHero;
-					addToLog(`${hero.name} gained ${xpPerHero} XP and ${tokensPerHero} Tokens.`);
+					addToLog(`${hero.name} gained ${xpPerHero} XP and ${tokensPerHero} Tokens.`, hero.id); // MODIFIED
 					
 					// Loot Drop Chance (Striker: 25%, Vanguard: 40%)
 					const lootChance = hero.class === 'Vanguard' ? 0.4 : 0.25;
@@ -310,7 +310,7 @@ function gameLoop() {
 						if (possibleDrops.length > 0) {
 							const dropped = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
 							hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;
-							addToLog(`${hero.name} found an item: ${dropped.name}!`);
+							addToLog(`${hero.name} found an item: ${dropped.name}!`, hero.id); // MODIFIED
 						}
 					}
 					
@@ -324,7 +324,7 @@ function gameLoop() {
 						hero.hpRegen += hero.hpRegenPerLevel;
 						hero.mpRegen += hero.mpRegenPerLevel;
 						hero.hp.current = hero.hp.max;
-						addToLog(`${hero.name} reached Level ${hero.level}!`);
+						addToLog(`${hero.name} reached Level ${hero.level}!`, hero.id); // MODIFIED
 					}
 				});
 			}
@@ -350,7 +350,7 @@ function gameLoop() {
 					const driver = gameState.heroes.find(h => h.id === car.driverId);
 					if (driver) {
 						driver.carId = null;
-						addToLog(`${driver.name}'s car ran out of battery!`);
+						addToLog(`${driver.name}'s car ran out of battery!`, driver.id); // MODIFIED
 					}
 					car.driverId = null;
 				}
@@ -453,12 +453,12 @@ async function init() {
 				// If clicking the currently active skill, toggle it off.
 				if (hero.autoCastSkillId === skillId) {
 					hero.autoCastSkillId = null;
-					addToLog(`${hero.name} disabled auto-cast.`);
+					addToLog(`${hero.name} disabled auto-cast.`, hero.id); // MODIFIED
 				} else {
 					// Otherwise, set the new skill as active.
 					hero.autoCastSkillId = skillId;
 					const skillName = gameData.skills.find(s => s.id === skillId).name;
-					addToLog(`${hero.name} set auto-cast skill to: ${skillName}.`);
+					addToLog(`${hero.name} set auto-cast skill to: ${skillName}.`, hero.id); // MODIFIED
 				}
 				renderContent();
 			}

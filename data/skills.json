@@ -144,6 +144,7 @@
     "type": "Combat",
     "mpCost": 25,
     "value": "20-30",
+    "replaces": "STR001",
     "xpMax": 250,
     "description": "A shard of magical ice that pierces armor."
   },
@@ -154,6 +155,7 @@
     "type": "Combat",
     "mpCost": 50,
     "value": "50-70",
+    "replaces": "STR002",
     "xpMax": 500,
     "description": "An explosive ball of fire."
   },

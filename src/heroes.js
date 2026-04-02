@@ -48,11 +48,11 @@ export function autoEquipBestGear (hero) {
 			hero.equipment[slot] = bestItemId;
 			
 			if (bestItem && oldItem) {
-				addToLog(`${hero.name} upgraded ${slot}: ${oldItem.name} -> ${bestItem.name}.`);
+				addToLog(`${hero.name} upgraded ${slot}: ${oldItem.name} -> ${bestItem.name}.`, hero.id); // MODIFIED
 			} else if (bestItem) {
-				addToLog(`${hero.name} equipped ${bestItem.name} (${slot}).`);
+				addToLog(`${hero.name} equipped ${bestItem.name} (${slot}).`, hero.id); // MODIFIED
 			} else if (oldItem) {
-				addToLog(`${hero.name} unequipped ${oldItem.name} (${slot}).`);
+				addToLog(`${hero.name} unequipped ${oldItem.name} (${slot}).`, hero.id); // MODIFIED
 			}
 		}
 	}
@@ -247,6 +247,14 @@ export function renderHeroes () {
 			
 			const skillsStateKey = JSON.stringify(hero.skills) + hero.autoCastSkillId + hero.mp.current;
 			updateHtmlIfChanged(skillsListContainer, skillsHtml, skillsStateKey);
+		}
+		
+		// NEW: Hero log rendering
+		const heroLogContainer = card.querySelector('[data-hero-log-list]');
+		if (heroLogContainer) {
+			const logHtml = hero.log.map(entry => `<p class="truncate">${entry}</p>`).join('');
+			const logStateKey = hero.log.length > 0 ? hero.log[0] : ''; // Use first entry as state key
+			updateHtmlIfChanged(heroLogContainer, logHtml, logStateKey);
 		}
 	});
 }

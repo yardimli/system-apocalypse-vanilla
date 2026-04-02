@@ -176,7 +176,7 @@ export function renderLog (contentArea) {
 		contentArea.innerHTML = `
         <div class="card bg-base-200 shadow-xl p-6">
             <h2 class="text-2xl font-bold mb-4">Game Log</h2>
-            <div id="log-container" class="bg-base-100 rounded-box p-4 h-96 overflow-y-scroll flex flex-col-reverse font-mono text-sm">
+            <div id="log-container" class="bg-base-100 rounded-box p-4 h-96 overflow-y-scroll flex flex-col font-mono text-sm">
             </div>
         </div>`;
 	}

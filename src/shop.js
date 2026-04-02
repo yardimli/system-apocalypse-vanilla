@@ -28,7 +28,7 @@ export function handleBuyItem(heroId, itemId) {
 	}
 	
 	if (hero.tokens < shopEntry.price) {
-		addToLog(`${hero.name} does not have enough tokens to buy ${itemData.name}.`);
+		addToLog(`${hero.name} does not have enough tokens to buy ${itemData.name}.`, hero.id); // MODIFIED
 		return;
 	}
 	
@@ -36,7 +36,7 @@ export function handleBuyItem(heroId, itemId) {
 	hero.tokens -= shopEntry.price;
 	hero.inventory[itemId] = (hero.inventory[itemId] || 0) + 1;
 	
-	addToLog(`${hero.name} bought ${itemData.name} for ${shopEntry.price} tokens.`);
+	addToLog(`${hero.name} bought ${itemData.name} for ${shopEntry.price} tokens.`, hero.id); // MODIFIED
 	
 	// If the bought item was equippable, run auto-equip logic
 	if (itemData.equipSlot) {
@@ -60,12 +60,12 @@ export function handleBuySkill(heroId, skillId) {
 	}
 	
 	if (hero.tokens < shopEntry.price) {
-		addToLog(`${hero.name} does not have enough tokens to learn ${skillData.name}.`);
+		addToLog(`${hero.name} does not have enough tokens to learn ${skillData.name}.`, hero.id); // MODIFIED
 		return;
 	}
 	
 	if (hero.skills.some(s => s.id === skillId)) {
-		addToLog(`${hero.name} already knows ${skillData.name}.`);
+		addToLog(`${hero.name} already knows ${skillData.name}.`, hero.id); // MODIFIED
 		return;
 	}
 	
@@ -73,7 +73,7 @@ export function handleBuySkill(heroId, skillId) {
 	hero.tokens -= shopEntry.price;
 	hero.skills.push({ id: skillId, xp: 0 });
 	
-	addToLog(`${hero.name} learned ${skillData.name} for ${shopEntry.price} tokens.`);
+	addToLog(`${hero.name} learned ${skillData.name} for ${shopEntry.price} tokens.`, hero.id); // MODIFIED
 }
 
 
@@ -97,7 +97,7 @@ export function handleSellItem(heroId, itemId) {
 	
 	// Cannot sell if the number of items is less than or equal to the number equipped.
 	if (totalQty <= equippedCount) {
-		addToLog(`Cannot sell. All ${itemData.name}(s) are currently equipped.`);
+		addToLog(`Cannot sell. All ${itemData.name}(s) are currently equipped.`, hero.id); // MODIFIED
 		return;
 	}
 	
@@ -110,5 +110,5 @@ export function handleSellItem(heroId, itemId) {
 	}
 	hero.tokens += sellPrice;
 	
-	addToLog(`${hero.name} sold ${itemData.name} for ${sellPrice} tokens.`);
+	addToLog(`${hero.name} sold ${itemData.name} for ${sellPrice} tokens.`, hero.id); // MODIFIED
 }

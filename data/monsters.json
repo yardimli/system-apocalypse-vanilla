@@ -2,7 +2,7 @@
   {
     "id": "MON001",
     "name": "Scrap Hound",
-    "hp": 50,
+    "hp": 250,
     "damage": "3-6",
     "xp": 20,
     "level": 1,
@@ -13,7 +13,7 @@
   {
     "id": "MON002",
     "name": "Rust Golem",
-    "hp": 120,
+    "hp": 600,
     "damage": "8-15",
     "xp": 50,
     "level": 1,
@@ -24,7 +24,7 @@
   {
     "id": "MON003",
     "name": "Neon Stalker",
-    "hp": 80,
+    "hp": 400,
     "damage": "15-25",
     "xp": 40,
     "level": 1,
@@ -35,7 +35,7 @@
   {
     "id": "MON004",
     "name": "Cyber Wolf",
-    "hp": 150,
+    "hp": 750,
     "damage": "20-30",
     "xp": 80,
     "level": 2,
@@ -46,7 +46,7 @@
   {
     "id": "MON005",
     "name": "Titan Mech",
-    "hp": 300,
+    "hp": 1500,
     "damage": "35-50",
     "xp": 150,
     "level": 2,
@@ -57,7 +57,7 @@
   {
     "id": "MON006",
     "name": "Plasma Wraith",
-    "hp": 200,
+    "hp": 1000,
     "damage": "50-70",
     "xp": 120,
     "level": 2,
@@ -68,7 +68,7 @@
   {
     "id": "MON007",
     "name": "Apex Predator",
-    "hp": 500,
+    "hp": 2500,
     "damage": "70-90",
     "xp": 300,
     "level": 3,
@@ -79,7 +79,7 @@
   {
     "id": "MON008",
     "name": "Doom Bringer",
-    "hp": 800,
+    "hp": 4000,
     "damage": "100-140",
     "xp": 500,
     "level": 3,

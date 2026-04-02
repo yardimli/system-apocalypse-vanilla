@@ -10,7 +10,7 @@ export function processVanguard(hero) {
 		if (availableCar) {
 			hero.carId = availableCar.id;
 			availableCar.driverId = hero.id;
-			addToLog(`${hero.name} equipped Car #${availableCar.id} and is ready to fight.`);
+			addToLog(`${hero.name} equipped Car #${availableCar.id} and is ready to fight.`, hero.id); // MODIFIED
 		}
 	}
 	
@@ -33,7 +33,7 @@ export function processVanguard(hero) {
 		const damageBoost = getSkillEffect(hero, 'damage'); // From passive skills like Shield Bash
 		const damageDealt = Math.ceil((baseDamage + damageBoost) * levelBoost);
 		monster.currentHp -= damageDealt;
-		addToLog(`${hero.name} dealt ${damageDealt} damage to ${monster.name} (#${monster.id}).`);
+		addToLog(`${hero.name} dealt ${damageDealt} damage to ${monster.name} (#${monster.id}).`, hero.id); // MODIFIED
 		
 		// Mitigation from both armor and shield
 		const armor = gameData.items.find(a => a.id === hero.equipment.body);
@@ -46,7 +46,7 @@ export function processVanguard(hero) {
 		const damageTaken = Math.max(1, monsterDamage - totalMitigation);
 		
 		hero.hp.current -= damageTaken;
-		addToLog(`${monster.name} (#${monster.id}) attacked ${hero.name}, dealing ${damageTaken} damage (${monsterDamage} raw - ${totalMitigation} mitigated).`);
+		addToLog(`${monster.name} (#${monster.id}) attacked ${hero.name}, dealing ${damageTaken} damage (${monsterDamage} raw - ${totalMitigation} mitigated).`, hero.id); // MODIFIED
 		
 		// Grant XP to all passive combat skills
 		hero.skills.forEach(heroSkill => {
@@ -58,7 +58,7 @@ export function processVanguard(hero) {
 					if (upgradeSkill) {
 						heroSkill.id = upgradeSkill.id;
 						heroSkill.xp = 0;
-						addToLog(`${hero.name}'s ${skillData.name} has upgraded to ${upgradeSkill.name}!`);
+						addToLog(`${hero.name}'s ${skillData.name} has upgraded to ${upgradeSkill.name}!`, hero.id); // MODIFIED
 					}
 				}
 			}
@@ -72,7 +72,7 @@ export function processVanguard(hero) {
 			hero.carId = null;
 			
 			hero.targetMonsterId = null;
-			addToLog(`${hero.name} was incapacitated by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
+			addToLog(`${hero.name} was incapacitated by Lv.${monster.level} ${monster.name} (#${monster.id})!`, hero.id); // MODIFIED
 		} else if (monster.currentHp <= 0) {
 			hero.targetMonsterId = null;
 		}
