@@ -9,8 +9,14 @@
   { "itemId": "ARM002", "price": 100 },
   { "itemId": "ARM002_V", "price": 180 },
   { "itemId": "ARM003", "price": 300 },
-  { "itemId": "ARM003_V", "price": 500 },
-  { "itemId": "ARM004", "price": 800 },
-  { "itemId": "ARM004_V", "price": 1200 },
-  { "itemId": "ARM005", "price": 2000 }
+  { "itemId": "WAND001", "price": 50 },
+  { "itemId": "WAND002", "price": 200 },
+  { "itemId": "SWD001", "price": 50 },
+  { "itemId": "SWD002", "price": 250 },
+  { "itemId": "SHD001", "price": 40 },
+  { "itemId": "SHD002", "price": 220 },
+  { "skillId": "STR002", "price": 500 },
+  { "skillId": "STR003", "price": 1200 },
+  { "skillId": "VAN001_II", "price": 400 },
+  { "skillId": "VAN002_II", "price": 400 }
 ]

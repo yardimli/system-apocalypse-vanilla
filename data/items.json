@@ -1,13 +1,5 @@
 [
   {
-    "id": "ITM001",
-    "name": "Salvaged Parts",
-    "type": "Resource",
-    "description": "Basic components for repairs.",
-    "level": 1,
-    "sellPrice": 2
-  },
-  {
     "id": "ITM002",
     "name": "Medical Supplies",
     "type": "Consumable",
@@ -22,18 +14,10 @@
   {
     "id": "ITM003",
     "name": "Monster Core Shard",
-    "type": "Resource",
-    "description": "A fragment of a monster's essence.",
+    "type": "Junk",
+    "description": "A fragment of a monster's essence, valuable to the System.",
     "level": 1,
     "sellPrice": 5
-  },
-  {
-    "id": "ITM004",
-    "name": "Broken Circuitry",
-    "type": "Resource",
-    "description": "Electronic parts for advanced repairs.",
-    "level": 1,
-    "sellPrice": 8
   },
   {
     "id": "ITM005",
@@ -50,23 +34,19 @@
   {
     "id": "ITM006",
     "name": "Clean Water",
-    "type": "Resource",
-    "description": "Essential for survivor well-being.",
+    "type": "Consumable",
+    "description": "Essential for survivor well-being. Restores a tiny amount of HP.",
+    "effect": {
+      "type": "heal_hp",
+      "value": 10
+    },
     "level": 1,
     "sellPrice": 1
   },
   {
-    "id": "ITM007",
-    "name": "Reinforced Steel Plate",
-    "type": "Resource",
-    "description": "Used to fortify buildings.",
-    "level": 2,
-    "sellPrice": 20
-  },
-  {
     "id": "ITM008",
     "name": "System Shard",
-    "type": "Resource",
+    "type": "Junk",
     "description": "A rare fragment of the System itself.",
     "level": 2,
     "sellPrice": 50
@@ -84,30 +64,6 @@
     "sellPrice": 40
   },
   {
-    "id": "ITM010",
-    "name": "Toolbox",
-    "type": "Resource",
-    "description": "Improves repair speed.",
-    "level": 1,
-    "sellPrice": 25
-  },
-  {
-    "id": "ITM011",
-    "name": "Advanced Component",
-    "type": "Resource",
-    "description": "High-tech parts for top-tier crafting.",
-    "level": 3,
-    "sellPrice": 100
-  },
-  {
-    "id": "ITM012",
-    "name": "Aegis Power Core",
-    "type": "Resource",
-    "description": "A potent energy source for Aegis technology.",
-    "level": 2,
-    "sellPrice": 120
-  },
-  {
     "id": "ITM013",
     "name": "Mana Crystal",
     "type": "Consumable",
@@ -122,7 +78,7 @@
   {
     "id": "ITM014",
     "name": "Corrupted Data Fragment",
-    "type": "Resource",
+    "type": "Junk",
     "description": "An unstable piece of monster data.",
     "level": 2,
     "sellPrice": 40
@@ -130,8 +86,8 @@
   {
     "id": "ITM015",
     "name": "Pure Energy Crystal",
-    "type": "Resource",
-    "description": "A flawless crystal used in high-end crafting.",
+    "type": "Junk",
+    "description": "A flawless crystal used in high-end items.",
     "level": 3,
     "sellPrice": 150
   },
@@ -206,5 +162,167 @@
     },
     "level": 3,
     "sellPrice": 60
+  },
+  {
+    "id": "ARM001",
+    "name": "Cloth Armor",
+    "type": "Armor",
+    "equipSlot": "body",
+    "damageMitigation": "1-2",
+    "level": 1,
+    "sellPrice": 10
+  },
+  {
+    "id": "ARM002",
+    "name": "Leather Armor",
+    "type": "Armor",
+    "equipSlot": "body",
+    "damageMitigation": "3-6",
+    "level": 2,
+    "sellPrice": 50
+  },
+  {
+    "id": "ARM003",
+    "name": "Chainmail Armor",
+    "type": "Armor",
+    "equipSlot": "body",
+    "damageMitigation": "7-12",
+    "level": 3,
+    "sellPrice": 150
+  },
+  {
+    "id": "ARM004",
+    "name": "Plate Armor",
+    "type": "Armor",
+    "equipSlot": "body",
+    "damageMitigation": "15-25",
+    "level": 4,
+    "sellPrice": 400
+  },
+  {
+    "id": "ARM005",
+    "name": "Aegis Power Armor",
+    "type": "Armor",
+    "equipSlot": "body",
+    "damageMitigation": "30-40",
+    "level": 5,
+    "sellPrice": 1000
+  },
+  {
+    "id": "ARM002_V",
+    "name": "Reinforced Leather",
+    "type": "Armor",
+    "equipSlot": "body",
+    "damageMitigation": "5-8",
+    "level": 2,
+    "sellPrice": 90
+  },
+  {
+    "id": "ARM003_V",
+    "name": "Hardened Chainmail",
+    "type": "Armor",
+    "equipSlot": "body",
+    "damageMitigation": "10-16",
+    "level": 3,
+    "sellPrice": 250
+  },
+  {
+    "id": "ARM004_V",
+    "name": "Masterwork Plate",
+    "type": "Armor",
+    "equipSlot": "body",
+    "damageMitigation": "20-30",
+    "level": 4,
+    "sellPrice": 600
+  },
+  {
+    "id": "WAND001",
+    "name": "Apprentice's Wand",
+    "type": "Weapon",
+    "equipSlot": "mainHand",
+    "class": "Striker",
+    "spellPower": 2,
+    "level": 1,
+    "sellPrice": 25
+  },
+  {
+    "id": "WAND002",
+    "name": "Adept's Wand",
+    "type": "Weapon",
+    "equipSlot": "mainHand",
+    "class": "Striker",
+    "spellPower": 3,
+    "level": 2,
+    "sellPrice": 100
+  },
+  {
+    "id": "WAND003",
+    "name": "Mage's Scepter",
+    "type": "Weapon",
+    "equipSlot": "mainHand",
+    "class": "Striker",
+    "spellPower": 5,
+    "level": 3,
+    "sellPrice": 350
+  },
+  {
+    "id": "SWD001",
+    "name": "Rusted Shortsword",
+    "type": "Weapon",
+    "equipSlot": "mainHand",
+    "class": "Vanguard",
+    "damage": "3-5",
+    "level": 1,
+    "sellPrice": 25
+  },
+  {
+    "id": "SWD002",
+    "name": "Steel Longsword",
+    "type": "Weapon",
+    "equipSlot": "mainHand",
+    "class": "Vanguard",
+    "damage": "8-12",
+    "level": 2,
+    "sellPrice": 120
+  },
+  {
+    "id": "SWD003",
+    "name": "Titanium Greatsword",
+    "type": "Weapon",
+    "equipSlot": "mainHand",
+    "class": "Vanguard",
+    "damage": "15-22",
+    "level": 3,
+    "sellPrice": 400
+  },
+  {
+    "id": "SHD001",
+    "name": "Wooden Buckler",
+    "type": "Shield",
+    "equipSlot": "offHand",
+    "class": "Vanguard",
+    "damageMitigation": "2-4",
+    "level": 1,
+    "sellPrice": 20
+  },
+  {
+    "id": "SHD002",
+    "name": "Iron Kite Shield",
+    "type": "Shield",
+    "equipSlot": "offHand",
+    "class": "Vanguard",
+    "damageMitigation": "6-10",
+    "level": 2,
+    "sellPrice": 110
+  },
+  {
+    "id": "SHD003",
+    "name": "Aegis Barrier",
+    "type": "Shield",
+    "equipSlot": "offHand",
+    "class": "Vanguard",
+    "damageMitigation": "14-20",
+    "level": 3,
+    "sellPrice": 380
   }
 ]

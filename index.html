@@ -52,8 +52,9 @@
 				</div>
 				<div class="badge" data-class></div>
 			</div>
-			<div class="text-xs text-gray-400 mb-2" data-armor-container>
-				<span data-armor-text></span>
+			<!-- Container for multi-slot equipment -->
+			<div class="text-xs text-gray-400 mb-2 flex flex-wrap gap-1" data-equipment-container>
+				<!-- Equipment will be rendered here by JS -->
 			</div>
 			
 			<div class="my-2"><label class="label p-0"><span class="label-text" data-xp-label></span></label><progress class="progress progress-primary w-full" data-xp-bar></progress></div>
@@ -62,14 +63,6 @@
 			
 			<!-- Dynamic Action/Combat Area -->
 			<div class="w-full mt-2 min-h-[80px] bg-base-300 rounded p-2 flex flex-col justify-center" data-dynamic-area>
-			</div>
-			
-			<!-- Crafting Hints Area -->
-			<div class="mt-2 border-t border-base-300 pt-2" data-crafting-hints-container>
-				<div class="divider my-1">Craftable</div>
-				<div class="flex flex-col gap-1 text-xs" data-crafting-hints-list>
-					<!-- Hints will be rendered here by JS -->
-				</div>
 			</div>
 			
 			<!-- System Shop Area -->

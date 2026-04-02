@@ -4,10 +4,9 @@ import { processStriker } from './striker.js';
 import { processVanguard } from './vanguard.js';
 import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
-import { handleAutoCraft } from './crafting.js';
 import { handleUseConsumable } from './inventory.js';
-import { handleBuyItem, handleSellItem } from './shop.js';
-import { renderHeroes, autoEquipBestArmor } from './heroes.js';
+import { handleBuyItem, handleSellItem, handleBuySkill } from './shop.js';
+import { renderHeroes, autoEquipBestGear } from './heroes.js';
 import { renderMonsters } from './monsters.js';
 import { renderHeader, renderTabs, renderBuildings, renderCars, renderCity, renderLog } from './ui.js';
 
@@ -148,7 +147,7 @@ function gameLoop() {
 	manageCombatAssignments();
 	
 	gameState.heroes.forEach(hero => {
-		autoEquipBestArmor(hero);
+		autoEquipBestGear(hero);
 		
 		if (!hero.targetMonsterId) { // Check targetMonsterId for regen.
 			if (hero.hp.current > 0) {
@@ -288,7 +287,7 @@ function gameLoop() {
 					// Loot Drop Chance (Striker: 25%, Vanguard: 40%)
 					const lootChance = hero.class === 'Vanguard' ? 0.4 : 0.25;
 					if (Math.random() < lootChance) {
-						const possibleDrops = gameData.items.filter(item => item.level === monster.level);
+						const possibleDrops = gameData.items.filter(item => item.level === monster.level && item.type !== 'Junk'); // Don't drop junk
 						if (possibleDrops.length > 0) {
 							const dropped = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
 							hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;
@@ -353,19 +352,15 @@ function gameLoop() {
 // --- INITIALIZATION ---
 async function init() {
 	try {
-		const [items, skills, recipes, monsters, armor, systemShop] = await Promise.all([
+		const [items, skills, monsters, systemShop] = await Promise.all([
 			fetch('./data/items.json').then(res => res.json()),
 			fetch('./data/skills.json').then(res => res.json()),
-			fetch('./data/recipes.json').then(res => res.json()),
 			fetch('./data/monsters.json').then(res => res.json()),
-			fetch('./data/armor.json').then(res => res.json()),
 			fetch('./data/system_shop.json').then(res => res.json())
 		]);
 		gameData.items = items;
 		gameData.skills = skills;
-		gameData.recipes = recipes;
 		gameData.monsters = monsters;
-		gameData.armor = armor;
 		gameData.system_shop = systemShop;
 	} catch (error) {
 		console.error('Failed to load game data:', error);
@@ -398,16 +393,16 @@ async function init() {
 				renderContent();
 			}
 		}
-		if (e.target.matches('[data-auto-craft-recipe-id]')) {
-			const heroId = parseInt(e.target.dataset.heroId, 10);
-			const recipeResultId = e.target.dataset.autoCraftRecipeId;
-			handleAutoCraft(heroId, recipeResultId);
-			renderContent();
-		}
 		if (e.target.matches('[data-buy-item-id]')) {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
 			const itemId = e.target.dataset.buyItemId;
 			handleBuyItem(heroId, itemId);
+			renderContent();
+		}
+		if (e.target.matches('[data-buy-skill-id]')) {
+			const heroId = parseInt(e.target.dataset.heroId, 10);
+			const skillId = e.target.dataset.buySkillId;
+			handleBuySkill(heroId, skillId);
 			renderContent();
 		}
 		if (e.target.matches('[data-sell-item-id]')) {

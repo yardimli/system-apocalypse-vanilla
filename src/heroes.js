@@ -5,79 +5,65 @@ import { addToLog } from './utils.js';
 const getEl = (id) => document.getElementById(id);
 
 /**
- * Automatically finds and equips the best armor a hero has in their inventory.
- * Best is determined by the armor's level.
+ * Automatically finds and equips the best gear a hero has in their inventory for each slot.
+ * Best is determined by the item's level.
  * @param {object} hero - The hero object from gameState.
  */
-export function autoEquipBestArmor(hero) {
-	// Find all armor the hero possesses in their inventory.
-	const availableArmor = Object.keys(hero.inventory)
-		.map(itemId => gameData.armor.find(a => a.id === itemId && hero.inventory[itemId] > 0))
-		.filter(Boolean); // Filter out any non-armor items.
+export function autoEquipBestGear(hero) {
+	const slots = {
+		mainHand: [],
+		offHand: [],
+		body: []
+	};
 	
-	let bestArmor = null;
-	if (availableArmor.length > 0) {
-		// Sort by level descending to find the best armor.
-		bestArmor = availableArmor.sort((a, b) => b.level - a.level)[0];
-	}
+	// 1. Categorize all owned equipment by slot
+	Object.keys(hero.inventory).forEach(itemId => {
+		const item = gameData.items.find(i => i.id === itemId);
+		// Check if the item is equippable in a valid slot
+		if (item && item.equipSlot && slots[item.equipSlot] && hero.inventory[itemId] > 0) {
+			// Check if the hero's class can use the item (if a class is specified)
+			if (!item.class || item.class === hero.class) {
+				slots[item.equipSlot].push(item);
+			}
+		}
+	});
 	
-	// Determine the ID of the best armor, or null if none exists.
-	const bestArmorId = bestArmor ? bestArmor.id : null;
-	
-	// Only update and log if the equipped armor changes.
-	if (hero.armorId !== bestArmorId) {
-		const oldArmor = gameData.armor.find(a => a.id === hero.armorId);
-		hero.armorId = bestArmorId;
+	// 2. For each slot, find the best item and equip it if it's not already the best
+	for (const slot in slots) {
+		let bestItem = null;
+		if (slots[slot].length > 0) {
+			// Sort by level descending to find the best item
+			bestItem = slots[slot].sort((a, b) => b.level - a.level)[0];
+		}
 		
-		if (bestArmor && oldArmor) {
-			addToLog(`${hero.name} automatically upgraded from ${oldArmor.name} to ${bestArmor.name}.`);
-		} else if (bestArmor) {
-			addToLog(`${hero.name} automatically equipped ${bestArmor.name}.`);
-		} else if (oldArmor) {
-			addToLog(`${hero.name} no longer has any armor equipped.`);
+		const bestItemId = bestItem ? bestItem.id : null;
+		const currentItemId = hero.equipment[slot];
+		
+		// Only update and log if the equipped item changes
+		if (currentItemId !== bestItemId) {
+			const oldItem = gameData.items.find(i => i.id === currentItemId);
+			hero.equipment[slot] = bestItemId;
+			
+			if (bestItem && oldItem) {
+				addToLog(`${hero.name} upgraded ${slot}: ${oldItem.name} -> ${bestItem.name}.`);
+			} else if (bestItem) {
+				addToLog(`${hero.name} equipped ${bestItem.name} (${slot}).`);
+			} else if (oldItem) {
+				addToLog(`${hero.name} unequipped ${oldItem.name} (${slot}).`);
+			}
 		}
 	}
 }
 
+
 /**
- * Finds an entity (item or armor) by its ID from the game data.
- * @param {string} id - The ID of the entity to find.
- * @returns {object|null} The found entity or null.
+ * Finds an item by its ID from the game data.
+ * @param {string} id - The ID of the item to find.
+ * @returns {object|null} The found item or null.
  */
 function findEntityById(id) {
 	if (!id) return null;
-	return gameData.items.find(i => i.id === id) || gameData.armor.find(a => a.id === id);
-}
-
-/**
- * Determines which recipes a hero can craft based on their current inventory.
- * @param {object} hero - The hero object from gameState.
- * @returns {Array<object>} An array of recipe objects the hero can craft.
- */
-function getCraftableRecipes(hero) {
-	const craftable = [];
-	for (const recipe of gameData.recipes) {
-		// Count the required ingredients for the current recipe
-		const ingredientsCount = {};
-		for (const ingredientId of recipe.ingredients) {
-			ingredientsCount[ingredientId] = (ingredientsCount[ingredientId] || 0) + 1;
-		}
-		
-		let canCraft = true;
-		// Check if the hero has enough of each required ingredient
-		for (const [itemId, requiredQty] of Object.entries(ingredientsCount)) {
-			const heroQty = hero.inventory[itemId] || 0;
-			if (heroQty < requiredQty) {
-				canCraft = false;
-				break;
-			}
-		}
-		
-		if (canCraft) {
-			craftable.push(recipe);
-		}
-	}
-	return craftable;
+	return gameData.items.find(i => i.id === id);
 }
 
 /**
@@ -104,13 +90,22 @@ export function renderHeroes() {
 		card.querySelector('[data-class]').textContent = hero.class;
 		card.querySelector('[data-class]').className = `badge ${hero.class === 'Aegis' ? 'badge-info' : hero.class === 'Striker' ? 'badge-error' : 'badge-success'}`;
 		
-		const armorTextEl = card.querySelector('[data-armor-text]');
-		const armor = gameData.armor.find(a => a.id === hero.armorId);
+		// Render multi-slot equipment instead of single armor piece
+		const equipmentContainer = card.querySelector('[data-equipment-container]');
+		const equippedItems = Object.entries(hero.equipment)
+			.map(([slot, itemId]) => ({ slot, item: findEntityById(itemId) }))
+			.filter(e => e.item);
 		
-		if (armor) {
-			armorTextEl.textContent = `Equipped: ${armor.name} (Mitigation: ${armor.damageMitigation})`;
+		if (equippedItems.length > 0) {
+			equipmentContainer.innerHTML = equippedItems.map(({ slot, item }) => {
+				let details = '';
+				if (item.damageMitigation) details = `Mit: ${item.damageMitigation}`;
+				if (item.damage) details = `Dmg: ${item.damage}`;
+				if (item.spellPower) details = `SP: x${item.spellPower}`;
+				return `<div class="badge badge-outline" title="${slot}">${item.name} (${details})</div>`;
+			}).join(' ');
 		} else {
-			armorTextEl.textContent = 'Equipped: No Armor';
+			equipmentContainer.innerHTML = '<span class="text-xs italic text-gray-500">Nothing Equipped</span>';
 		}
 		
 		card.querySelector('[data-xp-label]').textContent = `XP: ${hero.xp.current}/${hero.xp.max}`;
@@ -181,40 +176,6 @@ export function renderHeroes() {
 			}
 		}
 		
-		const hintsContainer = card.querySelector('[data-crafting-hints-list]');
-		if (hintsContainer) {
-			const craftableRecipes = getCraftableRecipes(hero);
-			if (craftableRecipes.length > 0) {
-				hintsContainer.innerHTML = craftableRecipes.map(recipe => {
-					const resultEntity = findEntityById(recipe.resultId);
-					if (!resultEntity) return '';
-					
-					// Count ingredients for a concise display (e.g., "2x Salvaged Parts").
-					const ingredientsCount = {};
-					recipe.ingredients.forEach(id => {
-						ingredientsCount[id] = (ingredientsCount[id] || 0) + 1;
-					});
-					
-					const ingredientsHtml = Object.entries(ingredientsCount).map(([id, qty]) => {
-						const ingredientEntity = findEntityById(id);
-						return `${qty}x ${ingredientEntity ? ingredientEntity.name : 'Unknown'}`;
-					}).join(' + ');
-					
-					return `
-                        <div class="flex flex-col p-2 bg-base-100 rounded gap-1">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-sm">${resultEntity.name}</span>
-                                <button class="btn btn-xs btn-secondary" data-auto-craft-recipe-id="${recipe.resultId}" data-hero-id="${hero.id}">Craft</button>
-                            </div>
-                            <div class="text-[10px] text-gray-400 italic">${ingredientsHtml}</div>
-                        </div>
-                    `;
-				}).join('');
-			} else {
-				hintsContainer.innerHTML = '<span class="text-xs text-gray-500 italic text-center w-full block">None</span>';
-			}
-		}
-		
 		const invContainer = card.querySelector('[data-inventory-container]');
 		if (invContainer) {
 			let inventoryHtml = '';
@@ -225,7 +186,8 @@ export function renderHeroes() {
 					if (qty <= 0) return;
 					const entity = findEntityById(id);
 					if (entity) {
-						const isEquipped = hero.armorId === id;
+						// Check all equipment slots
+						const isEquipped = Object.values(hero.equipment).includes(id);
 						const isConsumable = entity.type === 'Consumable';
 						
 						let displayName = entity.name;
@@ -241,7 +203,7 @@ export function renderHeroes() {
 						
 						// Render each item individually with its controls
 						for (let i = 0; i < qty; i++) {
-							// Only mark the first instance of an equipped armor
+							// Only mark the first instance of an equipped item
 							const equippedThisInstance = isEquipped && i === 0;
 							
 							inventoryHtml += `
@@ -275,20 +237,33 @@ export function renderHeroes() {
 		// Render System Shop
 		const shopContainer = card.querySelector('[data-shop-list]');
 		if (shopContainer) {
+			// Shop now renders items and skills
 			shopContainer.innerHTML = gameData.system_shop.map(shopItem => {
-				const entity = findEntityById(shopItem.itemId);
+				const isSkill = !!shopItem.skillId;
+				const entity = isSkill
+					? gameData.skills.find(s => s.id === shopItem.skillId)
+					: findEntityById(shopItem.itemId);
+				
 				if (!entity) return '';
 				
 				let details = '';
-				if (entity.damageMitigation) { // It's armor
+				if (isSkill) {
+					details = entity.description;
+				} else if (entity.damageMitigation) {
 					details = `(Mitigation: ${entity.damageMitigation})`;
-				} else if (entity.effect) { // It's a consumable
+				} else if (entity.damage) {
+					details = `(Damage: ${entity.damage})`;
+				} else if (entity.spellPower) {
+					details = `(Spell Power: x${entity.spellPower})`;
+				} else if (entity.effect) {
 					const { type, value } = entity.effect;
 					const effectText = type === 'heal_hp' ? `+${value} HP` : `+${value} MP`;
 					details = `(${effectText})`;
 				}
 				
 				const canAfford = hero.tokens >= shopItem.price;
+				// For skills, also check if the hero already has it
+				const hasSkill = isSkill && hero.skills.some(s => s.id === shopItem.skillId);
 				
 				return `
 					<div class="flex flex-col p-2 bg-base-100 rounded gap-1">
@@ -296,11 +271,11 @@ export function renderHeroes() {
 							<span class="font-bold text-sm">${entity.name}</span>
 							<button
 								class="btn btn-xs btn-accent"
-								data-buy-item-id="${shopItem.itemId}"
+								data-buy-${isSkill ? 'skill' : 'item'}-id="${isSkill ? entity.id : entity.id}"
 								data-hero-id="${hero.id}"
-								${!canAfford ? 'disabled' : ''}
+								${!canAfford || hasSkill ? 'disabled' : ''}
 							>
-								Buy (${shopItem.price} T)
+								${hasSkill ? 'Learned' : `Buy (${shopItem.price} T)`}
 							</button>
 						</div>
 						<div class="text-[10px] text-gray-400 italic">${details}</div>

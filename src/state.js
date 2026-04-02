@@ -40,8 +40,8 @@ export const gameState = {
 			mpMaxPerLevel: 50,
 			hpRegenPerLevel: 0.1,
 			mpRegenPerLevel: 1.0,
-			armorId: 'ARM001',
-			tokens: 100, // Added tokens to hero state
+			equipment: { mainHand: null, offHand: null, body: 'ARM001' },
+			tokens: 100,
 			skills:[
 				{ id: 'AEG001', xp: 0 },
 				{ id: 'AEG002', xp: 0 },
@@ -52,11 +52,10 @@ export const gameState = {
 			autoUse: { hp: false, mp: false },
 			inventory: {
 				'ARM001': 1,
-				'ITM001': 5,
 				'ITM003': 2,
 				'ITM006': 3,
-				'ITM016': 4, // 4x Lesser Healing Salve
-				'ITM017': 2 // 2x Lesser Mana Vial
+				'ITM016': 4,
+				'ITM017': 2
 			}
 		},
 		{
@@ -73,15 +72,15 @@ export const gameState = {
 			mpMaxPerLevel: 10,
 			hpRegenPerLevel: 0.2,
 			mpRegenPerLevel: 0.5,
-			armorId: 'ARM001',
+			equipment: { mainHand: 'WAND001', offHand: null, body: 'ARM001' },
 			carId: null,
 			targetMonsterId: null,
-			tokens: 100, // Added tokens to hero state
+			tokens: 100,
 			skills: [{ id: 'STR001', xp: 0 }],
 			autoUse: { hp: false, mp: false },
 			inventory: {
-				'ARM001': 2,
-				'ITM001': 4,
+				'ARM001': 1,
+				'WAND001': 1,
 				'ITM016': 4,
 				'ITM017': 2
 			}
@@ -100,15 +99,16 @@ export const gameState = {
 			mpMaxPerLevel: 5,
 			hpRegenPerLevel: 0.5,
 			mpRegenPerLevel: 0.2,
-			armorId: 'ARM001',
+			equipment: { mainHand: 'SWD001', offHand: 'SHD001', body: 'ARM001' },
 			carId: null,
 			targetMonsterId: null,
-			tokens: 100, // Added tokens to hero state
-			skills: [{ id: 'VAN001', xp: 0 }],
+			tokens: 100,
+			skills: [{ id: 'VAN001', xp: 0 }, { id: 'VAN002', xp: 0 }],
 			autoUse: { hp: false, mp: false },
 			inventory: {
-				'ITM001' : 4,
-				'ARM001': 2,
+				'ARM001': 1,
+				'SWD001': 1,
+				'SHD001': 1,
 				'ITM016': 4,
 				'ITM017': 2
 			}
@@ -120,8 +120,6 @@ export const gameState = {
 export const gameData = {
 	items: [],
 	skills: [],
-	recipes:[],
 	monsters:[],
-	armor:[],
-	system_shop: [] // Added system_shop to gameData
+	system_shop: []
 };

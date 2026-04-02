@@ -17,8 +17,6 @@ export function renderSandbox(contentArea) {
                 ${buildTableSection('Monsters', 'monsters')}
                 ${buildTableSection('Skills', 'skills')}
                 ${buildTableSection('Items', 'items')}
-                ${buildTableSection('Recipes', 'recipes')}
-                ${buildTableSection('Armor', 'armor')}
             </div>
 
             <div class="mt-6 flex gap-4 items-end">

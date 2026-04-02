@@ -24,37 +24,55 @@ export function processStriker(hero) {
 			return;
 		}
 		
-		const levelBoost = 1 + (hero.level * 0.1);
+		// Active spell casting logic. Find the best usable skill based on available MP.
+		const usableSkills = hero.skills
+			.map(s => gameData.skills.find(gs => gs.id === s.id))
+			.filter(s => s && s.class === 'Striker' && s.type === 'Combat' && hero.mp.current >= s.mpCost)
+			.sort((a, b) => b.mpCost - a.mpCost); // Prioritize more expensive (and powerful) spells.
 		
-		const damageBoost = getSkillEffect(hero, 'damage') || 0;
-		const baseDamage = parseRange('10-20');
-		const damageDealt = Math.ceil((baseDamage + damageBoost) * levelBoost);
-		monster.currentHp -= damageDealt;
-		addToLog(`${hero.name} dealt ${damageDealt} damage to ${monster.name} (#${monster.id}).`);
+		if (usableSkills.length > 0) {
+			const skillToUse = usableSkills[0];
+			hero.mp.current -= skillToUse.mpCost;
+			
+			const levelBoost = 1 + (hero.level * 0.1);
+			const wand = gameData.items.find(i => i.id === hero.equipment.mainHand);
+			const spellPower = wand && wand.spellPower ? wand.spellPower : 1;
+			
+			const baseDamage = parseRange(skillToUse.value);
+			// Damage is now multiplied by the wand's spell power.
+			const damageDealt = Math.ceil((baseDamage * spellPower) * levelBoost);
+			monster.currentHp -= damageDealt;
+			addToLog(`${hero.name} casts ${skillToUse.name}, dealing ${damageDealt} damage to ${monster.name} (#${monster.id}).`);
+			
+			// Grant skill XP to the used skill
+			const heroSkill = hero.skills.find(s => s.id === skillToUse.id);
+			if (heroSkill) {
+				heroSkill.xp += 5; // Grant 5 XP per cast in combat
+			}
+		} else {
+			// If no mana for any skill, do nothing this tick.
+			addToLog(`${hero.name} is low on mana and conserves energy.`);
+		}
 		
-		const armor = gameData.armor.find(a => a.id === hero.armorId);
+		const armor = gameData.items.find(a => a.id === hero.equipment.body);
 		const armorMitigation = armor ? parseRange(armor.damageMitigation) : 0;
 		const monsterDamage = parseRange(monster.damage);
 		const damageTaken = Math.max(1, monsterDamage - armorMitigation);
 		hero.hp.current -= damageTaken;
 		addToLog(`${monster.name} (#${monster.id}) attacked ${hero.name}, dealing ${damageTaken} damage (${monsterDamage} raw - ${armorMitigation} mitigated).`);
 		
-		const activeSkill = hero.skills.find(s => {
-			const data = gameData.skills.find(d => d.id === s.id);
-			return data && data.effect === 'damage';
-		});
-		if (activeSkill) {
-			activeSkill.xp += 1; // Grant 1 XP per tick of combat
-			const skillData = gameData.skills.find(s => s.id === activeSkill.id);
-			if (skillData && activeSkill.xp >= skillData.xpMax) {
-				const upgradeSkill = gameData.skills.find(s => s.replaces === activeSkill.id);
+		// Check for skill level-ups
+		hero.skills.forEach(heroSkill => {
+			const skillData = gameData.skills.find(s => s.id === heroSkill.id);
+			if (skillData && heroSkill.xp >= skillData.xpMax) {
+				const upgradeSkill = gameData.skills.find(s => s.replaces === heroSkill.id);
 				if (upgradeSkill) {
-					activeSkill.id = upgradeSkill.id;
-					activeSkill.xp = 0;
+					heroSkill.id = upgradeSkill.id;
+					heroSkill.xp = 0;
 					addToLog(`${hero.name}'s ${skillData.name} has upgraded to ${upgradeSkill.name}!`);
 				}
 			}
-		}
+		});
 		
 		if (hero.hp.current <= 0) {
 			hero.hp.current = 0;

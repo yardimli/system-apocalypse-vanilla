@@ -1,15 +1,15 @@
 import { gameState, gameData } from './state.js';
 import { addToLog } from './utils.js';
-import { autoEquipBestArmor } from './heroes.js';
+import { autoEquipBestGear } from './heroes.js';
 
 /**
- * Finds an entity (item or armor) by its ID from the game data.
+ * Finds an entity (item) by its ID from the game data.
  * @param {string} id - The ID of the entity to find.
  * @returns {object|null} The found entity or null.
  */
 function findEntityById(id) {
 	if (!id) return null;
-	return gameData.items.find(i => i.id === id) || gameData.armor.find(a => a.id === id);
+	return gameData.items.find(i => i.id === id);
 }
 
 /**
@@ -38,11 +38,44 @@ export function handleBuyItem(heroId, itemId) {
 	
 	addToLog(`${hero.name} bought ${itemData.name} for ${shopEntry.price} tokens.`);
 	
-	// If the bought item was armor, run auto-equip logic
-	if (gameData.armor.some(a => a.id === itemId)) {
-		autoEquipBestArmor(hero);
+	// If the bought item was equippable, run auto-equip logic
+	if (itemData.equipSlot) {
+		autoEquipBestGear(hero);
 	}
 }
+
+/**
+ * Added: Handles a hero buying a skill from the System Shop.
+ * @param {number} heroId - The ID of the hero buying the skill.
+ * @param {string} skillId - The ID of the skill to buy.
+ */
+export function handleBuySkill(heroId, skillId) {
+	const hero = gameState.heroes.find(h => h.id === heroId);
+	const shopEntry = gameData.system_shop.find(item => item.skillId === skillId);
+	const skillData = gameData.skills.find(s => s.id === skillId);
+	
+	if (!hero || !shopEntry || !skillData) {
+		addToLog('Shop Error: Hero or skill not found.');
+		return;
+	}
+	
+	if (hero.tokens < shopEntry.price) {
+		addToLog(`${hero.name} does not have enough tokens to learn ${skillData.name}.`);
+		return;
+	}
+	
+	if (hero.skills.some(s => s.id === skillId)) {
+		addToLog(`${hero.name} already knows ${skillData.name}.`);
+		return;
+	}
+	
+	// Process transaction
+	hero.tokens -= shopEntry.price;
+	hero.skills.push({ id: skillId, xp: 0 });
+	
+	addToLog(`${hero.name} learned ${skillData.name} for ${shopEntry.price} tokens.`);
+}
+
 
 /**
  * Handles a hero selling an item from their inventory.
@@ -58,9 +91,9 @@ export function handleSellItem(heroId, itemId) {
 		return;
 	}
 	
-	// Cannot sell equipped armor
-	if (hero.armorId === itemId) {
-		addToLog(`Cannot sell equipped armor. Unequip ${itemData.name} first.`);
+	// Cannot sell equipped items from any slot
+	if (Object.values(hero.equipment).includes(itemId)) {
+		addToLog(`Cannot sell equipped item. Unequip ${itemData.name} first.`);
 		return;
 	}
 	

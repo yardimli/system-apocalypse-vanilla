@@ -26,36 +26,43 @@ export function processVanguard(hero) {
 		
 		const levelBoost = 1 + (hero.level * 0.1);
 		
-		const baseDamage = parseRange('5-10');
-		const damageBoost = getSkillEffect(hero, 'damage') || 0;
+		// Damage calculation based on equipped weapon and passive skills
+		const sword = gameData.items.find(i => i.id === hero.equipment.mainHand);
+		const baseDamage = sword ? parseRange(sword.damage) : parseRange('1-2'); // Unarmed damage
+		
+		const damageBoost = getSkillEffect(hero, 'damage'); // From passive skills like Shield Bash
 		const damageDealt = Math.ceil((baseDamage + damageBoost) * levelBoost);
 		monster.currentHp -= damageDealt;
 		addToLog(`${hero.name} dealt ${damageDealt} damage to ${monster.name} (#${monster.id}).`);
 		
-		const armor = gameData.armor.find(a => a.id === hero.armorId);
+		// Mitigation from both armor and shield
+		const armor = gameData.items.find(a => a.id === hero.equipment.body);
+		const shield = gameData.items.find(s => s.id === hero.equipment.offHand);
 		const armorMitigation = armor ? parseRange(armor.damageMitigation) : 0;
+		const shieldMitigation = shield ? parseRange(shield.damageMitigation) : 0;
+		const totalMitigation = armorMitigation + shieldMitigation;
+		
 		const monsterDamage = parseRange(monster.damage);
-		const damageTaken = Math.max(1, monsterDamage - armorMitigation);
+		const damageTaken = Math.max(1, monsterDamage - totalMitigation);
 		
 		hero.hp.current -= damageTaken;
-		addToLog(`${monster.name} (#${monster.id}) attacked ${hero.name}, dealing ${damageTaken} damage (${monsterDamage} raw - ${armorMitigation} mitigated).`);
+		addToLog(`${monster.name} (#${monster.id}) attacked ${hero.name}, dealing ${damageTaken} damage (${monsterDamage} raw - ${totalMitigation} mitigated).`);
 		
-		const activeSkill = hero.skills.find(s => {
-			const data = gameData.skills.find(d => d.id === s.id);
-			return data && data.effect === 'damage';
-		});
-		if (activeSkill) {
-			activeSkill.xp += 1; // Grant 1 XP per tick of combat
-			const skillData = gameData.skills.find(s => s.id === activeSkill.id);
-			if (skillData && activeSkill.xp >= skillData.xpMax) {
-				const upgradeSkill = gameData.skills.find(s => s.replaces === activeSkill.id);
-				if (upgradeSkill) {
-					activeSkill.id = upgradeSkill.id;
-					activeSkill.xp = 0;
-					addToLog(`${hero.name}'s ${skillData.name} has upgraded to ${upgradeSkill.name}!`);
+		// Grant XP to all passive combat skills
+		hero.skills.forEach(heroSkill => {
+			const skillData = gameData.skills.find(s => s.id === heroSkill.id);
+			if (skillData && skillData.type === 'Passive' && skillData.class === 'Vanguard') {
+				heroSkill.xp += 1; // Grant 1 XP per tick of combat
+				if (skillData && heroSkill.xp >= skillData.xpMax) {
+					const upgradeSkill = gameData.skills.find(s => s.replaces === heroSkill.id);
+					if (upgradeSkill) {
+						heroSkill.id = upgradeSkill.id;
+						heroSkill.xp = 0;
+						addToLog(`${hero.name}'s ${skillData.name} has upgraded to ${upgradeSkill.name}!`);
+					}
 				}
 			}
-		}
+		});
 		
 		if (hero.hp.current <= 0) {
 			hero.hp.current = 0;

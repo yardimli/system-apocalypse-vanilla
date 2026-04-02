@@ -129,110 +129,74 @@
   },
   {
     "id": "STR001",
-    "name": "Mana Bolt I",
+    "name": "Mana Bolt",
     "class": "Striker",
-    "type": "Auto",
-    "effect": "damage",
-    "value": "3-7",
-    "xpMax": 25,
-    "description": "Passively increases damage dealt by 3-7."
+    "type": "Combat",
+    "mpCost": 10,
+    "value": "8-12",
+    "xpMax": 100,
+    "description": "A basic bolt of mana energy."
+  },
+  {
+    "id": "STR002",
+    "name": "Ice Shard",
+    "class": "Striker",
+    "type": "Combat",
+    "mpCost": 25,
+    "value": "20-30",
+    "xpMax": 250,
+    "description": "A shard of magical ice that pierces armor."
+  },
+  {
+    "id": "STR003",
+    "name": "Fireball",
+    "class": "Striker",
+    "type": "Combat",
+    "mpCost": 50,
+    "value": "50-70",
+    "xpMax": 500,
+    "description": "An explosive ball of fire."
   },
   {
     "id": "VAN001",
     "name": "Shield Bash I",
     "class": "Vanguard",
-    "type": "Auto",
+    "type": "Passive",
     "effect": "damage",
     "value": "1-3",
-    "xpMax": 25,
-    "description": "Passively increases damage dealt by 1-3."
+    "xpMax": 100,
+    "description": "Passively increases damage dealt by 1-3 when a shield is equipped."
   },
   {
-    "id": "STR_C01",
-    "name": "Mana Bolt II",
-    "class": "Striker",
-    "type": "Auto",
-    "effect": "damage",
-    "value": "12-20",
-    "replaces": "STR001",
-    "xpMax": 50,
-    "description": "Passively increases damage dealt by 12-20. (Crafted)"
-  },
-  {
-    "id": "VAN_C01",
+    "id": "VAN001_II",
     "name": "Shield Bash II",
     "class": "Vanguard",
-    "type": "Auto",
+    "type": "Passive",
     "effect": "damage",
     "value": "4-8",
     "replaces": "VAN001",
-    "xpMax": 50,
-    "description": "Passively increases damage dealt by 4-8. (Crafted)"
+    "xpMax": 250,
+    "description": "Passively increases damage dealt by 4-8 when a shield is equipped."
   },
   {
-    "id": "STR_C02",
-    "name": "Core Powered Strike",
-    "class": "Striker",
-    "type": "Auto",
+    "id": "VAN002",
+    "name": "Swordsmanship I",
+    "class": "Vanguard",
+    "type": "Passive",
     "effect": "damage",
-    "value": "25-40",
-    "replaces": "STR_C01",
+    "value": "2-4",
     "xpMax": 100,
-    "description": "Massively increases damage dealt by 25-40. (Crafted)"
+    "description": "Passively increases damage dealt by 2-4 when a sword is equipped."
   },
   {
-    "id": "VAN_C02",
-    "name": "Steel Breaker",
+    "id": "VAN002_II",
+    "name": "Swordsmanship II",
     "class": "Vanguard",
-    "type": "Auto",
+    "type": "Passive",
     "effect": "damage",
-    "value": "10-15",
-    "replaces": "VAN_C01",
-    "xpMax": 100,
-    "description": "Massively increases damage dealt by 10-15. (Crafted)"
-  },
-  {
-    "id": "STR_C03",
-    "name": "Mana Bolt III",
-    "class": "Striker",
-    "type": "Auto",
-    "effect": "damage",
-    "value": "50-75",
-    "replaces": "STR_C02",
-    "xpMax": 200,
-    "description": "Increases damage dealt by 50-75. (Crafted)"
-  },
-  {
-    "id": "VAN_C03",
-    "name": "Shield Bash III",
-    "class": "Vanguard",
-    "type": "Auto",
-    "effect": "damage",
-    "value": "18-25",
-    "replaces": "VAN_C02",
-    "xpMax": 200,
-    "description": "Increases damage dealt by 18-25. (Crafted)"
-  },
-  {
-    "id": "STR_C04",
-    "name": "Mana Bolt IV",
-    "class": "Striker",
-    "type": "Auto",
-    "effect": "damage",
-    "value": "80-120",
-    "replaces": "STR_C03",
-    "xpMax": 350,
-    "description": "Increases damage dealt by 80-120. (Crafted)"
-  },
-  {
-    "id": "VAN_C04",
-    "name": "Shield Bash IV",
-    "class": "Vanguard",
-    "type": "Auto",
-    "effect": "damage",
-    "value": "30-40",
-    "replaces": "VAN_C03",
-    "xpMax": 350,
-    "description": "Reduces incoming damage by 30-40. (Crafted)"
+    "value": "6-10",
+    "replaces": "VAN002",
+    "xpMax": 250,
+    "description": "Passively increases damage dealt by 6-10 when a sword is equipped."
   }
 ]
