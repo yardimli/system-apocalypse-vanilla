@@ -64,6 +64,7 @@ export function handleBuySkill(heroId, skillId) {
 		return;
 	}
 	
+	// MODIFIED: Skill check updated for new data structure
 	if (hero.skills.some(s => s.id === skillId)) {
 		addToLog(`${hero.name} already knows ${skillData.name}.`, hero.id); // MODIFIED
 		return;
@@ -71,7 +72,8 @@ export function handleBuySkill(heroId, skillId) {
 	
 	// Process transaction
 	hero.tokens -= shopEntry.price;
-	hero.skills.push({ id: skillId, xp: 0 });
+	// MODIFIED: Skill object no longer has an xp property.
+	hero.skills.push({ id: skillId });
 	
 	addToLog(`${hero.name} learned ${skillData.name} for ${shopEntry.price} tokens.`, hero.id); // MODIFIED
 }

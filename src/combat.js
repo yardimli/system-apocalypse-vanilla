@@ -10,7 +10,8 @@ export function handleCombatAction(heroId, skillId) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
 	const skill = gameData.skills.find(s => s.id === skillId);
 	
-	if (!hero || !skill || !hero.targetMonsterId) return;
+	// MODIFIED: Added check for skill level requirement
+	if (!hero || !skill || !hero.targetMonsterId || (skill.levelRequirement && hero.level < skill.levelRequirement)) return;
 	
 	const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
 	if (!monster) return;
@@ -101,22 +102,6 @@ export function handleCombatAction(heroId, skillId) {
 			hero.mp.current -= mpCost;
 		}
 		
-		// Grant skill XP
-		const heroSkill = hero.skills.find(s => s.id === skillId);
-		if (heroSkill) {
-			heroSkill.xp += 5;
-			const skillData = gameData.skills.find(s => s.id === skillId);
-			if (skillData && heroSkill.xp >= skillData.xpMax) {
-				const upgradeSkill = gameData.skills.find(s => s.replaces === skillId);
-				if (upgradeSkill) {
-					heroSkill.id = upgradeSkill.id;
-					heroSkill.xp = 0;
-					if (hero.autoCastSkillId === skillId) {
-						hero.autoCastSkillId = upgradeSkill.id;
-					}
-					addToLog(`${hero.name}'s ${skillData.name} has upgraded to ${upgradeSkill.name}!`, hero.id);
-				}
-			}
-		}
+		// MODIFIED: Removed all skill XP and skill upgrade logic
 	}
 }

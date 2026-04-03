@@ -63,10 +63,10 @@ export const gameState = {
 			targetMonsterId: null,
 			location: 'field', // NEW: Hero's current location ('field' or building ID)
 			tokens: 100,
+			// MODIFIED: Skills no longer have XP.
 			skills:[
-				// MODIFIED: Removed repair and shield skills
-				{ id: 'AEG003', xp: 0 },
-				{ id: 'AEG004', xp: 0 }
+				{ id: 'AEG003' },
+				{ id: 'AEG004' }
 			],
 			autoCastSkillId: null,
 			skillTargets: { 'AEG004': 1 },
@@ -99,7 +99,7 @@ export const gameState = {
 			targetMonsterId: null,
 			location: 'field', // NEW
 			tokens: 100,
-			skills: [{ id: 'STR001', xp: 0 }],
+			skills: [{ id: 'STR001' }],
 			autoCastSkillId: 'STR001',
 			skillTargets: {},
 			log: [],
@@ -126,7 +126,8 @@ export const gameState = {
 			targetMonsterId: null,
 			location: 'field', // NEW
 			tokens: 100,
-			skills: [{ id: 'VAN003', xp: 0 }, { id: 'VAN004', xp: 0 }, { id: 'VAN005', xp: 0 }],
+			// MODIFIED: Vanguard starts with the new 'Challenge' and 'Heroic Strike' skills.
+			skills: [{ id: 'VAN001' }, { id: 'VAN003' }],
 			autoCastSkillId: 'VAN003',
 			skillTargets: {},
 			log: [],

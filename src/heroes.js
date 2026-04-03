@@ -228,19 +228,19 @@ export function renderHeroes () {
 		}
 		updateHtmlIfChanged(dynamicArea, dynamicHtml, dynamicStateKey);
 		
-		// Skills list rendering modified to use updateHtmlIfChanged
+		// MODIFIED: Skills list rendering updated for new card layout with footer button.
 		const skillsListContainer = card.querySelector('[data-skills-list]');
 		if (skillsListContainer) {
 			let skillsHtml = '';
 			
-			const manualSkills = hero.skills
+			const learnedSkills = hero.skills
 				.map(hs => gameData.skills.find(s => s.id === hs.id))
-				.filter(s => s && s.type === 'Manual');
+				.filter(Boolean);
 			
-			if (manualSkills.length > 0) {
-				skillsHtml = manualSkills.map(skillData => {
-					const heroSkill = hero.skills.find(hs => hs.id === skillData.id);
+			if (learnedSkills.length > 0) {
+				skillsHtml = learnedSkills.map(skillData => {
 					const isAutoCasting = hero.autoCastSkillId === skillData.id;
+					const meetsLevelReq = !skillData.levelRequirement || hero.level >= skillData.levelRequirement;
 					
 					let baseSkill = skillData;
 					while (baseSkill.replaces) {
@@ -285,36 +285,37 @@ export function renderHeroes () {
 						targetSelectorHtml = `<div class="btn-group">${buttons}</div>`;
 					}
 					
-					// MODIFIED: Vanguards can always attempt to cast skills.
 					const mpCost = skillData.mpCost || 0;
 					const rageCost = skillData.rageCost || 0;
-					const isCastDisabled = hero.class !== 'Vanguard' && (hero.mp.current < mpCost);
+					const hasResources = hero.class === 'Vanguard' || (hero.mp.current >= mpCost);
+					const isCastDisabled = !meetsLevelReq || !hasResources;
 					const costText = rageCost > 0 ? `${rageCost} Rage` : (mpCost > 0 ? `${mpCost} MP` : '');
 					
-					// MODIFIED: Reworked skill display to have inline progress bar with text overlay.
+					// NEW: Skill card layout with a full-width footer for the cast button.
 					return `
-						<div class="text-xs bg-base-100 p-2 rounded">
-							<div class="flex justify-between items-center">
-								<div class="flex items-center gap-2 flex-wrap">
-									<span class="font-bold">${skillData.name}</span>
-									<button class="btn btn-xs btn-ghost" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${isCastDisabled ? 'disabled' : ''}>
-										Cast ${costText ? `(${costText})` : ''}
-									</button>
+						<div class="card bg-base-100 shadow-md flex flex-col">
+							<div class="p-2 flex-grow">
+								<div class="flex justify-between items-center">
+									<div class="font-bold text-xs">${skillData.name}</div>
+									${skillData.levelRequirement > 1 ? `<div class="badge badge-neutral badge-sm">Lvl ${skillData.levelRequirement}</div>` : ''}
+								</div>
+								<p class="text-[10px] italic text-gray-400 my-1 min-h-[20px]">${skillData.description}</p>
+								<div class="flex flex-wrap gap-1 items-center justify-end mt-1">
 									${targetSelectorHtml}
 									${autoButtonHtml}
 								</div>
-								<!-- NEW: Progress bar with text overlay, right-aligned -->
-								<div class="relative w-[30%]">
-									<progress class="progress progress-secondary w-full" value="${heroSkill.xp}" max="${skillData.xpMax}"></progress>
-									<span class="absolute inset-0 flex items-center justify-center text-white text-[10px] font-bold mix-blend-difference">${heroSkill.xp}/${skillData.xpMax}</span>
-								</div>
+							</div>
+							<div class="card-actions p-1">
+								<button class="btn btn-sm btn-ghost w-full" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${isCastDisabled ? 'disabled' : ''}>
+									Cast ${costText ? `(${costText})` : ''}
+								</button>
 							</div>
 						</div>
 					`;
 				}).join('');
 			}
 			
-			const skillsStateKey = JSON.stringify(hero.skills) + hero.autoCastSkillId + (hero.mp ? hero.mp.current : '') + (hero.rage ? hero.rage.current : '') + JSON.stringify(hero.skillTargets);
+			const skillsStateKey = JSON.stringify(hero.skills) + hero.autoCastSkillId + hero.level + (hero.mp ? hero.mp.current : '') + (hero.rage ? hero.rage.current : '') + JSON.stringify(hero.skillTargets);
 			updateHtmlIfChanged(skillsListContainer, skillsHtml, skillsStateKey);
 		}
 		
@@ -338,10 +339,12 @@ export function renderShopModal (heroId) {
 	
 	const modal = getEl('system-shop-modal');
 	const header = getEl('shop-modal-header');
-	const content = getEl('shop-modal-content');
-	const inventoryContent = getEl('shop-modal-inventory');
+	// MODIFIED: Get content panels for each tab
+	const itemsContent = getEl('shop-modal-items-content');
+	const skillsContent = getEl('shop-modal-skills-content');
+	const inventoryContent = getEl('shop-modal-inventory-content');
 	
-	if (!modal || !header || !content || !inventoryContent) return;
+	if (!modal || !header || !itemsContent || !skillsContent || !inventoryContent) return;
 	
 	// Populate header
 	header.innerHTML = `
@@ -351,39 +354,26 @@ export function renderShopModal (heroId) {
         </div>
     `;
 	
-	content.innerHTML = gameData.system_shop.map(shopItem => {
-		const isSkill = !!shopItem.skillId;
-		const entity = isSkill
-			? gameData.skills.find(s => s.id === shopItem.skillId)
-			: findEntityById(shopItem.itemId);
-		
+	// --- Render Items Tab ---
+	const shopItems = gameData.system_shop.filter(si => si.itemId);
+	itemsContent.innerHTML = shopItems.map(shopItem => {
+		const entity = findEntityById(shopItem.itemId);
 		if (!entity) return '';
 		
 		let details = '';
-		if (isSkill) {
-			details = `MP Cost: ${entity.mpCost || 0}`;
-		} else if (entity.damageMitigation) {
-			details = `Mitigation: ${entity.damageMitigation}`;
-		} else if (entity.damage) {
-			details = `Damage: ${entity.damage}`;
-		} else if (entity.spellPower) {
-			details = `Spell Power: x${entity.spellPower}`;
-		} else if (entity.effect) {
+		if (entity.damageMitigation) details = `Mitigation: ${entity.damageMitigation}`;
+		else if (entity.damage) details = `Damage: ${entity.damage}`;
+		else if (entity.spellPower) details = `Spell Power: x${entity.spellPower}`;
+		else if (entity.effect) {
 			const { type, value } = entity.effect;
-			const effectText = type === 'heal_hp' ? `+${value} HP` : `+${value} MP`;
-			details = `Effect: ${effectText}`;
+			details = `Effect: ${type === 'heal_hp' ? `+${value} HP` : `+${value} MP`}`;
 		}
 		
 		const canAfford = hero.tokens >= shopItem.price;
-		const hasSkill = isSkill && hero.skills.some(s => s.id === shopItem.skillId);
-		
-		const imageHtml = !isSkill && entity.image
-			? `<img src="${entity.image}" alt="${entity.name}" class="w-[50px] h-[50px] object-contain bg-base-100 rounded" />`
-			: '<div class="w-[50px] h-[50px] flex items-center justify-center bg-base-100 rounded"><span class="text-2xl">📜</span></div>'; // Placeholder for skills
 		
 		return `
-			<div class="bg-base-100 rounded p-2 flex gap-2">
-				<div class="flex-shrink-0">${imageHtml}</div>
+			<div class="bg-base-300/50 rounded p-2 flex gap-2">
+				<div class="flex-shrink-0"><img src="${entity.image}" alt="${entity.name}" class="w-[50px] h-[50px] object-contain bg-base-100 rounded" /></div>
 				<div class="flex-grow flex flex-col justify-between gap-1">
 					<div>
 						<div class="flex justify-between items-center">
@@ -391,25 +381,46 @@ export function renderShopModal (heroId) {
 							<span class="badge badge-warning">${shopItem.price} T</span>
 						</div>
 						<div class="text-[10px] text-gray-400 italic">${details}</div>
-						<p class="text-xs mt-1">${entity.description || 'No description available.'}</p>
+						<p class="text-xs mt-1">${entity.description || ''}</p>
 					</div>
-					<button
-						class="btn btn-sm btn-accent w-full mt-1"
-						data-buy-${isSkill ? 'skill' : 'item'}-id="${isSkill ? entity.id : entity.id}"
-						data-hero-id="${hero.id}"
-						${!canAfford || hasSkill ? 'disabled' : ''}
-					>
-						${hasSkill ? 'Learned' : `Buy (${shopItem.price} T)`}
-					</button>
+					<button class="btn btn-sm btn-accent w-full mt-1" data-buy-item-id="${entity.id}" data-hero-id="${hero.id}" ${!canAfford ? 'disabled' : ''}>Buy</button>
 				</div>
 			</div>
 		`;
-	}).join('');
+	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No items for sale.</p>';
 	
-	let inventoryHtml = '';
+	// --- Render Skills Tab ---
+	const shopSkills = gameData.system_shop.filter(si => si.skillId);
+	skillsContent.innerHTML = shopSkills.map(shopItem => {
+		const entity = gameData.skills.find(s => s.id === shopItem.skillId);
+		if (!entity) return '';
+		
+		const details = `Req: Lvl ${entity.levelRequirement} | Cost: ${entity.mpCost || entity.rageCost || 0} ${entity.rageCost ? 'Rage' : 'MP'}`;
+		const canAfford = hero.tokens >= shopItem.price;
+		const hasSkill = hero.skills.some(s => s.id === shopItem.skillId);
+		
+		return `
+			<div class="bg-base-300/50 rounded p-2 flex gap-2">
+				<div class="w-[50px] h-[50px] flex-shrink-0 flex items-center justify-center bg-base-100 rounded"><span class="text-2xl">📜</span></div>
+				<div class="flex-grow flex flex-col justify-between gap-1">
+					<div>
+						<div class="flex justify-between items-center">
+							<span class="font-bold text-sm">${entity.name}</span>
+							<span class="badge badge-warning">${shopItem.price} T</span>
+						</div>
+						<div class="text-[10px] text-gray-400 italic">${details}</div>
+						<p class="text-xs mt-1">${entity.description || ''}</p>
+					</div>
+					<button class="btn btn-sm btn-accent w-full mt-1" data-buy-skill-id="${entity.id}" data-hero-id="${hero.id}" ${!canAfford || hasSkill ? 'disabled' : ''}>${hasSkill ? 'Learned' : 'Buy'}</button>
+				</div>
+			</div>
+		`;
+	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No skills for sale.</p>';
+	
+	// --- Render Inventory Tab ---
 	const inventoryItems = Object.entries(hero.inventory);
 	if (inventoryItems.length > 0) {
-		inventoryHtml = inventoryItems.map(([itemId, totalQty]) => {
+		inventoryContent.innerHTML = inventoryItems.map(([itemId, totalQty]) => {
 			if (totalQty <= 0) return '';
 			const entity = findEntityById(itemId);
 			if (!entity) return '';
@@ -427,28 +438,23 @@ export function renderShopModal (heroId) {
 					</div>
 					<div class="flex-grow flex flex-col justify-between gap-1">
 						<div>
-							<span class="font-bold text-sm">${entity.name}</span>
+							<div class="flex justify-between items-center">
+								<span class="font-bold text-sm">${entity.name}</span>
+								<span class="badge badge-warning">${entity.sellPrice} T</span>
+							</div>
 							<div class="text-[10px] text-gray-400 italic">${entity.type} - Lvl ${entity.level}</div>
-							<p class="text-xs mt-1">${entity.description || 'No description available.'}</p>
 						</div>
 						<div>
-							<button
-								class="btn btn-sm btn-error w-full mt-1"
-								data-sell-item-id="${itemId}"
-								data-hero-id="${hero.id}"
-								${!canSell ? 'disabled' : ''}
-							>
-								Sell (${entity.sellPrice} T)
-							</button>
+							<button class="btn btn-sm btn-error w-full mt-1" data-sell-item-id="${itemId}" data-hero-id="${hero.id}" ${!canSell ? 'disabled' : ''}>Sell</button>
 							${!canSell && isAnyEquipped ? '<p class="text-xs text-center text-error mt-1">Cannot sell last equipped item.</p>' : ''}
 						</div>
 					</div>
 				</div>
 			`;
 		}).join('');
+	} else {
+		inventoryContent.innerHTML = '<p class="text-xs italic text-center text-gray-500 col-span-full">Inventory is empty.</p>';
 	}
-	
-	inventoryContent.innerHTML = inventoryHtml || '<p class="text-xs italic text-center text-gray-500 col-span-full">Inventory is empty.</p>';
 	
 	modal.showModal();
 }

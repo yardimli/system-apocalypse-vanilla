@@ -6,8 +6,7 @@
     "type": "Manual",
     "actionType": "repair",
     "mpCost": 160,
-    "replaces": "AEG001_II",
-    "xpMax": 2500,
+    "levelRequirement": 15,
     "description": "Repairs up to 3 broken buildings."
   },
   {
@@ -17,8 +16,7 @@
     "type": "Manual",
     "actionType": "shield",
     "mpCost": 240,
-    "replaces": "AEG002_II",
-    "xpMax": 4000,
+    "levelRequirement": 18,
     "description": "Adds a shield to up to 3 functional buildings."
   },
   {
@@ -28,7 +26,7 @@
     "type": "Manual",
     "actionType": "battery",
     "mpCost": 40,
-    "xpMax": 1000,
+    "levelRequirement": 1,
     "autoCastUnlockLevel": 7,
     "description": "Recharges 1 empty car battery (lasts 10 days)."
   },
@@ -39,8 +37,7 @@
     "type": "Manual",
     "actionType": "battery",
     "mpCost": 70,
-    "replaces": "AEG003",
-    "xpMax": 2500,
+    "levelRequirement": 8,
     "description": "Recharges up to 2 empty car batteries."
   },
   {
@@ -50,8 +47,7 @@
     "type": "Manual",
     "actionType": "battery",
     "mpCost": 100,
-    "replaces": "AEG003_II",
-    "xpMax": 5000,
+    "levelRequirement": 16,
     "description": "Recharges up to 3 empty car batteries."
   },
   {
@@ -62,7 +58,7 @@
     "actionType": "heal",
     "mpCost": 25,
     "agroValue": 50,
-    "xpMax": 500,
+    "levelRequirement": 1,
     "autoCastUnlockLevel": 5,
     "description": "Restores 100 HP to a hero, generating threat."
   },
@@ -74,8 +70,7 @@
     "actionType": "heal",
     "mpCost": 35,
     "agroValue": 125,
-    "replaces": "AEG004",
-    "xpMax": 1000,
+    "levelRequirement": 6,
     "description": "Restores 250 HP to a hero, generating threat."
   },
   {
@@ -86,8 +81,7 @@
     "actionType": "heal",
     "mpCost": 50,
     "agroValue": 250,
-    "replaces": "AEG004_II",
-    "xpMax": 1500,
+    "levelRequirement": 12,
     "description": "Restores 500 HP to a hero, generating threat."
   },
   {
@@ -99,7 +93,7 @@
     "mpCost": 3,
     "damage": "8-12",
     "agroMultiplier": 1.0,
-    "xpMax": 300,
+    "levelRequirement": 1,
     "autoCastUnlockLevel": 1,
     "description": "A basic bolt of mana energy."
   },
@@ -112,8 +106,7 @@
     "mpCost": 25,
     "damage": "20-30",
     "agroMultiplier": 1.0,
-    "replaces": "STR001",
-    "xpMax": 750,
+    "levelRequirement": 3,
     "autoCastUnlockLevel": 3,
     "description": "A shard of magical ice that pierces armor."
   },
@@ -126,10 +119,21 @@
     "mpCost": 50,
     "damage": "50-70",
     "agroMultiplier": 1.0,
-    "replaces": "STR002",
-    "xpMax": 1500,
+    "levelRequirement": 6,
     "autoCastUnlockLevel": 5,
     "description": "An explosive ball of fire."
+  },
+  {
+    "id": "VAN001",
+    "name": "Challenge",
+    "class": "Vanguard",
+    "type": "Manual",
+    "actionType": "taunt",
+    "rageCost": 20,
+    "value": 250,
+    "levelRequirement": 1,
+    "autoCastUnlockLevel": 1,
+    "description": "A challenging shout that generates a small amount of threat."
   },
   {
     "id": "VAN003",
@@ -140,7 +144,7 @@
     "rageGen": 15,
     "damage": "5-8",
     "agroMultiplier": 2.0,
-    "xpMax": 400,
+    "levelRequirement": 1,
     "autoCastUnlockLevel": 1,
     "description": "A powerful strike that generates Rage and high threat."
   },
@@ -152,7 +156,7 @@
     "actionType": "taunt",
     "rageCost": 50,
     "value": 1000,
-    "xpMax": 800,
+    "levelRequirement": 2,
     "autoCastUnlockLevel": 2,
     "description": "Consume a large amount of Rage to force a monster to focus on you. Can be used without Rage for a minor effect."
   },
@@ -165,7 +169,7 @@
     "rageCost": 30,
     "damage": "10-15",
     "agroMultiplier": 1.5,
-    "xpMax": 600,
+    "levelRequirement": 4,
     "autoCastUnlockLevel": 4,
     "description": "Slam your shield into the enemy, consuming Rage to deal damage and generate threat. Can be used without Rage for a minor effect."
   }

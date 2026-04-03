@@ -157,11 +157,13 @@ function gameLoop() {
 	gameState.heroes.forEach(hero => {
 		autoEquipBestGear(hero);
 		
-		// NEW: If hero is in a safezone, apply boosted regen and skip other actions.
+		// MODIFIED: If hero is in a safezone, apply boosted regen based on building HP.
 		if (hero.location !== 'field') {
 			const building = gameState.city.buildings.find(b => b.id === hero.location);
-			// Placeholder for future regen multiplier upgrades
-			const regenMultiplier = building?.regenMultiplier || 10;
+			// NEW: Regen multiplier is based on building HP percentage.
+			const baseRegenMultiplier = building?.regenMultiplier || 10;
+			const hpPercentage = (building && building.maxHp > 0) ? (building.hp / building.maxHp) : 1;
+			const regenMultiplier = baseRegenMultiplier * hpPercentage;
 			
 			if (hero.hp.current > 0) {
 				hero.hp.current = Math.min(hero.hp.max, hero.hp.current + (hero.hpRegen * regenMultiplier));
@@ -246,6 +248,9 @@ function gameLoop() {
 			const skill = gameData.skills.find(s => s.id === skillId);
 			
 			if (skill) {
+				// MODIFIED: Level check for auto-casting
+				const meetsLevelReq = !skill.levelRequirement || hero.level >= skill.levelRequirement;
+				
 				let baseSkill = skill;
 				while (baseSkill.replaces) {
 					const parent = gameData.skills.find(s => s.id === baseSkill.replaces);
@@ -262,7 +267,7 @@ function gameLoop() {
 				const hasRage = !rageCost || (hero.rage && hero.rage.current >= rageCost);
 				const hasResources = hasMp && hasRage;
 				
-				if (canAutoCast && hasResources) {
+				if (meetsLevelReq && canAutoCast && hasResources) { // MODIFIED: Added meetsLevelReq
 					let shouldCast = false;
 					if (skill.class === 'Aegis') {
 						// MODIFIED: Removed repair/shield auto-cast checks
@@ -342,15 +347,18 @@ function gameLoop() {
 					if (bldg.shieldHp > 0) {
 						const damageToShield = Math.min(bldg.shieldHp, monsterDamage);
 						bldg.shieldHp -= damageToShield;
+						// NEW: Player-owned buildings cannot drop below 1 shield/hp
+						if (bldg.owner === 'player' && bldg.shieldHp < 1) bldg.shieldHp = 1;
 						addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToShield} damage to the shield on ${bldg.name || `Building #${bldg.id}`}.`);
-						if (bldg.shieldHp === 0) {
-							addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) destroyed the shield on ${bldg.name || `Building #${bldg.id}`}!`);
+						if (bldg.shieldHp === 0 || (bldg.owner === 'player' && bldg.shieldHp === 1)) {
+							addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) effectively destroyed the shield on ${bldg.name || `Building #${bldg.id}`}!`);
 						}
 					} else {
 						const damageToHp = Math.min(bldg.hp, monsterDamage);
 						bldg.hp -= damageToHp;
+						if (bldg.owner === 'player' && bldg.hp < 1) bldg.hp = 1;
 						addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToHp} damage to ${bldg.name || `Building #${bldg.id}`}.`);
-						if (bldg.hp <= 0) {
+						if (bldg.hp <= 0 && bldg.owner !== 'player') { // MODIFIED: Only non-player buildings can be ruined
 							bldg.hp = 0;
 							bldg.state = 'ruined';
 							bldg.population = 0;
@@ -611,6 +619,15 @@ async function init() {
 			const buildingId = parseInt(e.target.dataset.openUpgradeModal, 10);
 			alert(`Placeholder: Open upgrade modal for Building #${buildingId}`);
 			// renderBuildingUpgradeModal(buildingId);
+		}
+		// NEW: Event handler for collapsible hero log
+		const logToggler = e.target.closest('[data-toggle-log]');
+		if (logToggler) {
+			const logContainer = logToggler.nextElementSibling;
+			if (logContainer && logContainer.matches('[data-hero-log-list]')) {
+				logContainer.classList.toggle('hidden');
+			}
+			return; // Prevent other actions
 		}
 		if (e.target.id === 'sandbox-apply') {
 			applySandboxChanges();

@@ -316,3 +316,10 @@ make hero logs invisible at first clicking on the log title should open/collapse
 update the skills.json for the new structure.
 also update so purchases buildings hp and shields never falls bellow 1 and starts from 1000/1000  for both, the lower hp will effect the regen rate in the building
 
+--------
+
+on the ui for skill cards have the skill card being cast lightly flash, also when auto casting it should do it. add a cooldown timer to the skills write it as countdown seconds besides the title. update the skills.json for the cooldown. cooldown should be 1-3 seconds for most skills. when in cooldown the cast button should be disabled.
+
+------
+
+

@@ -22,24 +22,38 @@
 
 </div>
 
-<!-- System Shop Modal -->
+<!-- MODIFIED: System Shop Modal with Tabs -->
 <dialog id="system-shop-modal" class="modal">
 	<div class="modal-box w-11/12 max-w-3xl">
 		<div id="shop-modal-header">
 			<!-- Hero name and tokens will be injected here by JS -->
 		</div>
-		<!-- A single scrollable container for both shop and inventory to reduce nested scrollbars. -->
-		<div class="mt-4 max-h-[70vh] overflow-y-auto pr-2">
-			<div class="divider my-2">Items for Sale</div>
-			<div id="shop-modal-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
-				<!-- Shop items will be injected here by JS -->
+		
+		<!-- NEW: Tabbed interface for the shop -->
+		<div role="tablist" class="tabs tabs-lifted mt-4">
+			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Items" checked />
+			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 max-h-[60vh] overflow-y-auto">
+				<div id="shop-modal-items-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+					<!-- Items for sale will be injected here -->
+				</div>
 			</div>
-			<div class="divider my-2">Your Inventory</div>
-			<div id="shop-modal-inventory" class="grid grid-cols-1 md:grid-cols-2 gap-2">
-				<!-- Hero inventory items will be injected here by JS -->
+			
+			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Skills" />
+			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 max-h-[60vh] overflow-y-auto">
+				<div id="shop-modal-skills-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+					<!-- Skills for sale will be injected here -->
+				</div>
+			</div>
+			
+			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Inventory" />
+			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 max-h-[60vh] overflow-y-auto">
+				<div id="shop-modal-inventory-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+					<!-- Hero inventory will be injected here -->
+				</div>
 			</div>
 		</div>
-		<div class="modal-action">
+		
+		<div class="modal-action mt-4">
 			<form method="dialog">
 				<button class="btn">Close</button>
 			</form>
@@ -47,7 +61,8 @@
 	</div>
 </dialog>
 
-<!-- NEW: Building Upgrade Modal -->
+
+<!-- Building Upgrade Modal -->
 <dialog id="building-upgrade-modal" class="modal">
 	<div class="modal-box w-11/12 max-w-3xl">
 		<div id="upgrade-modal-header">
@@ -135,15 +150,18 @@
 			<!-- Skill Progression Area -->
 			<div class="mt-2 border-t border-base-300 pt-2" data-skills-container>
 				<div class="divider my-1">Skills</div>
-				<div class="flex flex-col gap-2 max-h-72 overflow-y-auto" data-skills-list>
-					<!-- Skill items will be rendered here by JS -->
+				<!-- MODIFIED: Removed max-height and overflow to fix scrollbar issue. -->
+				<div class="grid grid-cols-2 gap-2" data-skills-list>
+					<!-- Skill cards will be rendered here by JS -->
 				</div>
 			</div>
 			
-			<!-- Hero Log Area -->
+			<!-- MODIFIED: Hero Log Area is now collapsible -->
 			<div class="mt-2 border-t border-base-300 pt-2" data-log-container>
-				<div class="divider my-1">Log</div>
-				<div class="flex flex-col gap-1 bg-base-100 rounded p-2 h-60 overflow-y-auto text-xs font-mono" data-hero-log-list>
+				<!-- NEW: Added cursor-pointer and data-toggle-log for clickability -->
+				<div class="divider my-1 cursor-pointer" data-toggle-log>Log</div>
+				<!-- NEW: Added 'hidden' class to start collapsed -->
+				<div class="flex flex-col gap-1 bg-base-100 rounded p-2 h-60 overflow-y-auto text-xs font-mono hidden" data-hero-log-list>
 					<!-- Hero log entries will be rendered here by JS -->
 				</div>
 			</div>

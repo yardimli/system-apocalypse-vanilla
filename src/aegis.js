@@ -6,7 +6,8 @@ export function handleAegisAction(heroId, skillId, options = {}) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
 	const skill = gameData.skills.find(s => s.id === skillId);
 	
-	if (!hero || !skill || hero.mp.current < skill.mpCost) return;
+	// MODIFIED: Added check for skill level requirement
+	if (!hero || !skill || hero.mp.current < skill.mpCost || (skill.levelRequirement && hero.level < skill.levelRequirement)) return;
 	
 	let success = false;
 	
@@ -78,23 +79,7 @@ export function handleAegisAction(heroId, skillId, options = {}) {
 		hero.mp.current -= skill.mpCost;
 		hero.xp.current += 25; // Aegis gains XP per successful cast
 		
-		const heroSkill = hero.skills.find(s => s.id === skillId);
-		if (heroSkill) {
-			heroSkill.xp += 10; // Grant 10 XP per cast
-			const skillData = gameData.skills.find(s => s.id === skillId);
-			if (skillData && heroSkill.xp >= skillData.xpMax) {
-				const upgradeSkill = gameData.skills.find(s => s.replaces === skillId);
-				if (upgradeSkill) {
-					heroSkill.id = upgradeSkill.id;
-					heroSkill.xp = 0;
-					// MODIFIED: If the upgraded skill was on auto-cast, update the ID there too
-					if (hero.autoCastSkillId === skillId) {
-						hero.autoCastSkillId = upgradeSkill.id;
-					}
-					addToLog(`${hero.name}'s ${skillData.name} has upgraded to ${upgradeSkill.name}!`, hero.id);
-				}
-			}
-		}
+		// MODIFIED: Removed all skill XP and skill upgrade logic
 		
 		if (hero.xp.current >= hero.xp.max) {
 			hero.level++;

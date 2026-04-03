@@ -131,11 +131,14 @@ export function handleBuyBuilding(buildingId) {
 		contributionLog.push(`${hero.name}: ${contributions[heroId]}`);
 	}
 	
-	// Update building state
+	// MODIFIED: Update building state with new HP and Shield values
 	building.owner = 'player';
 	building.name = buildingName;
 	building.state = 'functional';
-	building.hp = building.maxHp;
+	building.maxHp = 1000;
+	building.hp = 1000;
+	building.maxShieldHp = 1000;
+	building.shieldHp = 1000;
 	building.isSafezone = true;
 	
 	addToLog(`Party purchased ${building.name} for ${price} tokens! (${contributionLog.join(', ')})`);

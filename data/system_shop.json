@@ -15,8 +15,12 @@
   { "itemId": "SWD002", "price": 250 },
   { "itemId": "SHD001", "price": 40 },
   { "itemId": "SHD002", "price": 220 },
+  { "skillId": "AEG003_II", "price": 800 },
+  { "skillId": "AEG003_III", "price": 2000 },
+  { "skillId": "AEG004_II", "price": 600 },
+  { "skillId": "AEG004_III", "price": 1500 },
   { "skillId": "STR002", "price": 500 },
   { "skillId": "STR003", "price": 1200 },
-  { "skillId": "VAN001_II", "price": 400 },
-  { "skillId": "VAN002_II", "price": 400 }
+  { "skillId": "VAN004", "price": 400 },
+  { "skillId": "VAN005", "price": 600 }
 ]
