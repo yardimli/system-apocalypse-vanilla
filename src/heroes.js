@@ -137,11 +137,11 @@ export function renderHeroes () {
 		updateProgressIfChanged(card.querySelector('[data-hp-bar]'), hero.hp.current, hero.hp.max);
 		
 		// MODIFIED: Hide MP bar for Vanguard
-		const mpContainer = card.querySelector('[data-mp-bar]').closest('.my-2');
+		const mpContainer = card.querySelector('[data-mp-container]'); // MODIFIED: Selector updated
 		if (hero.class === 'Vanguard') {
 			mpContainer.style.display = 'none';
 		} else {
-			mpContainer.style.display = 'block';
+			mpContainer.style.display = 'flex'; // MODIFIED: Use flex to match new layout
 			const mpText = `MP: ${Math.floor(hero.mp.current)}/${hero.mp.max} (+${formatRegen(hero.mpRegen)}/s)`;
 			updateTextIfChanged(card.querySelector('[data-mp-label]'), mpText);
 			updateProgressIfChanged(card.querySelector('[data-mp-bar]'), hero.mp.current, hero.mp.max);
@@ -149,7 +149,7 @@ export function renderHeroes () {
 		
 		const rageContainer = card.querySelector('[data-rage-container]');
 		if (hero.class === 'Vanguard') {
-			rageContainer.style.display = 'block';
+			rageContainer.style.display = 'flex'; // MODIFIED: Use flex to match new layout
 			const rageText = `Rage: ${Math.floor(hero.rage.current)}/${hero.rage.max}`;
 			updateTextIfChanged(card.querySelector('[data-rage-label]'), rageText);
 			updateProgressIfChanged(card.querySelector('[data-rage-bar]'), hero.rage.current, hero.rage.max);
@@ -171,19 +171,26 @@ export function renderHeroes () {
 		} else if (hero.targetMonsterId) {
 			const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
 			if (monster) {
-				// MODIFIED: Added agro list rendering to the hero card's combat view
+				// MODIFIED: Changed agro list to render as badges on a single line
 				const agroEntries = Object.entries(monster.agro)
 					.map(([heroId, value]) => ({ heroId: parseInt(heroId, 10), value }))
 					.sort((a, b) => b.value - a.value);
 				
 				let agroHtml = '<div class="text-xs text-gray-500 italic">No threat</div>';
 				if (agroEntries.length > 0) {
-					agroHtml = agroEntries.slice(0, 3).map((entry, index) => {
+					// NEW: Generate badges for each hero in the threat list
+					agroHtml = agroEntries.map((entry, index) => {
 						const threatHero = gameState.heroes.find(h => h.id === entry.heroId);
 						if (!threatHero) return '';
 						const isTarget = index === 0;
-						return `<div class="text-xs ${isTarget ? 'text-error font-bold' : ''}">${threatHero.name}: ${Math.floor(entry.value)}</div>`;
-					}).join('');
+						// Using a badge with a circular badge inside for the agro value
+						return `
+							<div class="badge ${isTarget ? 'badge-error' : 'badge-neutral'} gap-1">
+								${threatHero.name}
+								<div class="badge badge-sm badge-circle ${isTarget ? 'badge-ghost' : 'badge-secondary'}">${Math.floor(entry.value)}</div>
+							</div>
+						`;
+					}).join(' ');
 				}
 				
 				dynamicHtml = `
@@ -192,7 +199,8 @@ export function renderHeroes () {
                     <p class="text-xs text-right mt-1">${Math.floor(monster.currentHp)}/${monster.maxHp} HP</p>
                     <div class="mt-2 border-t border-base-100 pt-1">
                         <h4 class="font-semibold text-xs mb-1 text-center">Threat List</h4>
-                        ${agroHtml}
+                        <!-- MODIFIED: Wrapper for badges -->
+                        <div class="flex flex-wrap gap-1 justify-center">${agroHtml}</div>
                     </div>
                 `;
 				// MODIFIED: Update state key to include agro state for re-rendering
@@ -277,9 +285,10 @@ export function renderHeroes () {
 					const isCastDisabled = hero.class !== 'Vanguard' && (hero.mp.current < mpCost);
 					const costText = rageCost > 0 ? `${rageCost} Rage` : (mpCost > 0 ? `${mpCost} MP` : '');
 					
+					// MODIFIED: Reworked skill display to have inline progress bar with text overlay.
 					return `
 						<div class="text-xs bg-base-100 p-2 rounded">
-							<div class="flex justify-between items-center mb-1">
+							<div class="flex justify-between items-center">
 								<div class="flex items-center gap-2 flex-wrap">
 									<span class="font-bold">${skillData.name}</span>
 									<button class="btn btn-xs btn-ghost" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${isCastDisabled ? 'disabled' : ''}>
@@ -288,9 +297,12 @@ export function renderHeroes () {
 									${targetSelectorHtml}
 									${autoButtonHtml}
 								</div>
-								<span class="text-gray-400">${heroSkill.xp} / ${skillData.xpMax}</span>
+								<!-- NEW: Progress bar with text overlay, right-aligned -->
+								<div class="relative w-[30%]">
+									<progress class="progress progress-secondary w-full" value="${heroSkill.xp}" max="${skillData.xpMax}"></progress>
+									<span class="absolute inset-0 flex items-center justify-center text-white text-[10px] font-bold mix-blend-difference">${heroSkill.xp}/${skillData.xpMax}</span>
+								</div>
 							</div>
-							<progress class="progress progress-secondary w-full" value="${heroSkill.xp}" max="${skillData.xpMax}"></progress>
 						</div>
 					`;
 				}).join('');
