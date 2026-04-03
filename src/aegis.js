@@ -1,7 +1,8 @@
 import {gameState, gameData} from './state.js';
 import {addToLog} from './utils.js';
 
-export function handleAegisAction(heroId, skillId) {
+// MODIFIED: Function signature updated to accept an options object for targeting
+export function handleAegisAction(heroId, skillId, options = {}) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
 	const skill = gameData.skills.find(s => s.id === skillId);
 	
@@ -75,13 +76,39 @@ export function handleAegisAction(heroId, skillId) {
 			}
 			break;
 		case 'heal':
-			const injured = gameState.heroes.filter(h => h.hp.current < h.hp.max).sort((a, b) => a.hp.current - b.hp.current)[0];
-			if (injured) {
+			// MODIFIED: Prioritize manual target, fallback to auto-cast logic
+			const targetHero = gameState.heroes.find(h => h.id === options.targetHeroId);
+			const injured = targetHero || gameState.heroes.filter(h => h.hp.current < h.hp.max).sort((a, b) => a.hp.current - b.hp.current)[0];
+			
+			if (injured && injured.hp.current < injured.hp.max) { // MODIFIED: Ensure target actually needs healing
+				// NEW: Factor in spell power from wands
+				const wand = gameData.items.find(i => i.id === hero.equipment.mainHand);
+				const spellPower = wand && wand.spellPower ? wand.spellPower : 1;
+				
 				const baseHealAmount = skill.id.includes('III') ? 500 : skill.id.includes('II') ? 250 : 100;
-				const healAmount = Math.ceil(baseHealAmount * levelBoost);
+				const healAmount = Math.ceil((baseHealAmount * spellPower) * levelBoost);
+				
 				injured.hp.current = Math.min(injured.hp.max, injured.hp.current + healAmount);
 				addToLog(`${hero.name} healed ${injured.name} for ${healAmount} HP.`, hero.id);
 				success = true;
+				
+				// NEW: Agro generation logic for healing
+				if (injured.targetMonsterId) {
+					const monster = gameState.activeMonsters.find(m => m.id === injured.targetMonsterId);
+					if (monster) {
+						const agroAmount = skill.agroValue || 0;
+						monster.agro[hero.id] = (monster.agro[hero.id] || 0) + agroAmount;
+						
+						// Add Aegis to the combat encounter if not already present
+						if (!monster.assignedTo.includes(hero.id)) {
+							monster.assignedTo.push(hero.id);
+						}
+						// Aegis now targets this monster
+						hero.targetMonsterId = monster.id;
+						
+						addToLog(`${hero.name} drew the attention of ${monster.name} (#${monster.id}) by healing!`, hero.id);
+					}
+				}
 			}
 			break;
 	}

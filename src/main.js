@@ -1,7 +1,6 @@
 import { gameState, gameData } from './state.js';
 import { handleAegisAction } from './aegis.js';
-import { processStriker } from './striker.js';
-import { processVanguard } from './vanguard.js';
+import { handleCombatAction } from './combat.js';
 import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { handleUseConsumable } from './inventory.js';
@@ -139,7 +138,8 @@ function gameLoop() {
 				xp: monsterData.xp,
 				tokens: monsterData.tokens,
 				assignedTo: [],
-				targetBuilding: null
+				targetBuilding: null,
+				agro: {} // NEW: Agro table for each monster
 			};
 			gameState.activeMonsters.push(newMonster);
 			addToLog(`A Lv.${monsterData.level} ${monsterData.name} (#${newMonster.id}) has appeared!`);
@@ -152,11 +152,27 @@ function gameLoop() {
 	gameState.heroes.forEach(hero => {
 		autoEquipBestGear(hero);
 		
-		if (!hero.targetMonsterId) { // Check targetMonsterId for regen.
-			if (hero.hp.current > 0) {
-				hero.hp.current = Math.min(hero.hp.max, hero.hp.current + hero.hpRegen);
+		// NEW: Generic car assignment logic for all heroes
+		if (!hero.carId && hero.hp.current > 0) {
+			const availableCar = gameState.city.cars.find(c => c.battery > 0 && c.driverId === null);
+			if (availableCar) {
+				hero.carId = availableCar.id;
+				availableCar.driverId = hero.id;
+				addToLog(`${hero.name} entered Car #${availableCar.id}.`, hero.id);
+			}
+		}
+		
+		if (hero.hp.current > 0) {
+			hero.hp.current = Math.min(hero.hp.max, hero.hp.current + hero.hpRegen);
+			// MODIFIED: Only regenerate MP if the hero has an MP pool
+			if (hero.mp) {
 				hero.mp.current = Math.min(hero.mp.max, hero.mp.current + hero.mpRegen);
 			}
+		}
+		
+		// NEW: Vanguard rage decay when out of combat
+		if (hero.class === 'Vanguard' && !hero.targetMonsterId && hero.rage.current > 0) {
+			hero.rage.current = Math.max(0, hero.rage.current - 1); // Decay 1 rage per tick
 		}
 		
 		if (hero.hp.current < hero.hp.max) {
@@ -169,11 +185,9 @@ function gameLoop() {
 				let bestItemToUse = null;
 				const hpThreshold = hero.hp.max * 0.25;
 				
-				// If HP is below 25%, use the strongest item available, even if it's wasteful.
 				if (hero.hp.current < hpThreshold) {
 					bestItemToUse = availableHpItems.sort((a, b) => b.effect.value - a.effect.value)[0];
 				} else {
-					// Otherwise, use the strongest item that won't be wasted.
 					bestItemToUse = availableHpItems
 						.filter(item => missingHp >= item.effect.value)
 						.sort((a, b) => b.effect.value - a.effect.value)[0];
@@ -185,7 +199,8 @@ function gameLoop() {
 			}
 		}
 		
-		if (hero.mp.current < hero.mp.max) {
+		// MODIFIED: Only check for MP potion usage if the hero has an MP pool
+		if (hero.mp && hero.mp.current < hero.mp.max) {
 			const missingMp = hero.mp.max - hero.mp.current;
 			const availableMpItems = Object.keys(hero.inventory)
 				.map(itemId => gameData.items.find(i => i.id === itemId && hero.inventory[itemId] > 0))
@@ -211,44 +226,94 @@ function gameLoop() {
 			}
 		}
 		
-		// Simplified Aegis auto-cast logic
-		if (hero.class === 'Aegis' && hero.autoCastSkillId) {
+		// MODIFIED: Generic auto-cast logic for all heroes
+		if (hero.autoCastSkillId && hero.hp.current > 0) {
 			const skillId = hero.autoCastSkillId;
 			const skill = gameData.skills.find(s => s.id === skillId);
 			
-			// MODIFIED: Add check to ensure hero meets level requirement for auto-cast
-			let baseSkill = skill;
-			if (baseSkill) {
+			if (skill) {
+				let baseSkill = skill;
 				while (baseSkill.replaces) {
 					const parent = gameData.skills.find(s => s.id === baseSkill.replaces);
 					if (!parent) break;
 					baseSkill = parent;
 				}
-			}
-			
-			const unlockLevel = baseSkill ? baseSkill.autoCastUnlockLevel : null;
-			const canAutoCast = unlockLevel && hero.level >= unlockLevel;
-			// END MODIFICATION
-			
-			if (skill && canAutoCast && hero.mp.current >= skill.mpCost) { // MODIFIED: Added canAutoCast check
-				let shouldCast = false;
-				if (skill.actionType === 'repair' && gameState.city.buildings.some(b => b.state !== 'functional')) shouldCast = true;
-				if (skill.actionType === 'shield' && gameState.city.buildings.some(b => b.state === 'functional' && b.shieldHp === 0)) shouldCast = true;
-				if (skill.actionType === 'battery' && gameState.city.cars.some(c => c.battery <= 0)) shouldCast = true;
-				// Heal is only auto-cast if a hero is below 70% HP.
-				if (skill.actionType === 'heal' && gameState.heroes.some(h => h.hp.current < (h.hp.max * 0.7))) shouldCast = true;
 				
-				if (shouldCast) {
-					handleAegisAction(hero.id, skill.id);
+				const unlockLevel = baseSkill ? baseSkill.autoCastUnlockLevel : null;
+				const canAutoCast = unlockLevel && hero.level >= unlockLevel;
+				
+				// MODIFIED: Reworked resource check to handle heroes with/without MP or Rage
+				const mpCost = skill.mpCost || 0;
+				const rageCost = skill.rageCost || 0;
+				const hasMp = !mpCost || (hero.mp && hero.mp.current >= mpCost);
+				const hasRage = !rageCost || (hero.rage && hero.rage.current >= rageCost);
+				const hasResources = hasMp && hasRage;
+				
+				if (canAutoCast && hasResources) {
+					let shouldCast = false;
+					if (skill.class === 'Aegis') {
+						if (skill.actionType === 'repair' && gameState.city.buildings.some(b => b.state !== 'functional')) shouldCast = true;
+						if (skill.actionType === 'shield' && gameState.city.buildings.some(b => b.state === 'functional' && b.shieldHp === 0)) shouldCast = true;
+						if (skill.actionType === 'battery' && gameState.city.cars.some(c => c.battery <= 0)) shouldCast = true;
+						if (skill.actionType === 'heal' && gameState.heroes.some(h => h.hp.current < (h.hp.max * 0.7))) shouldCast = true;
+						
+						if (shouldCast) handleAegisAction(hero.id, skill.id);
+					} else { // For Striker and Vanguard
+						if (hero.targetMonsterId) {
+							shouldCast = true; // Always attack if a target is present
+						}
+						if (shouldCast) handleCombatAction(hero.id, skill.id);
+					}
 				}
 			}
 		}
-		
-		if (hero.class === 'Striker') processStriker(hero);
-		if (hero.class === 'Vanguard') processVanguard(hero);
 	});
 	
-	// 3. Unassigned Monsters Attack City
+	// 3. Monsters Attack Heroes based on Agro
+	gameState.activeMonsters.forEach(monster => {
+		if (monster.assignedTo.length > 0) {
+			// Find the hero with the most agro
+			let targetHeroId = null;
+			let maxAgro = -1;
+			
+			for (const heroId in monster.agro) {
+				// Ensure the hero is still alive and assigned to this monster
+				const hero = gameState.heroes.find(h => h.id === parseInt(heroId, 10));
+				if (hero && hero.hp.current > 0 && monster.assignedTo.includes(hero.id)) {
+					if (monster.agro[heroId] > maxAgro) {
+						maxAgro = monster.agro[heroId];
+						targetHeroId = parseInt(heroId, 10);
+					}
+				}
+			}
+			
+			if (targetHeroId) {
+				const targetHero = gameState.heroes.find(h => h.id === targetHeroId);
+				const armor = gameData.items.find(a => a.id === targetHero.equipment.body);
+				const shield = gameData.items.find(s => s.id === targetHero.equipment.offHand);
+				const armorMitigation = armor ? parseRange(armor.damageMitigation) : 0;
+				const shieldMitigation = shield ? parseRange(shield.damageMitigation) : 0;
+				const totalMitigation = armorMitigation + shieldMitigation;
+				
+				const monsterDamage = parseRange(monster.damage);
+				const damageTaken = Math.max(1, monsterDamage - totalMitigation);
+				
+				targetHero.hp.current -= damageTaken;
+				addToLog(`${monster.name} (#${monster.id}) attacked ${targetHero.name}, dealing ${damageTaken} damage!`, targetHero.id);
+				
+				if (targetHero.hp.current <= 0) {
+					targetHero.hp.current = 0;
+					const car = gameState.city.cars.find(c => c.id === targetHero.carId);
+					if (car) car.driverId = null;
+					targetHero.carId = null;
+					targetHero.targetMonsterId = null;
+					addToLog(`${targetHero.name} was incapacitated by ${monster.name} (#${monster.id})!`, targetHero.id);
+				}
+			}
+		}
+	});
+	
+	// 4. Unassigned Monsters Attack City
 	gameState.activeMonsters.forEach(monster => {
 		if (monster.assignedTo.length === 0) { // A monster attacks if no one is fighting it.
 			if (!monster.targetBuilding) {
@@ -291,7 +356,7 @@ function gameLoop() {
 		}
 	});
 	
-	// Centralized monster defeat and reward logic
+	// 5. Centralized monster defeat and reward logic
 	const defeatedMonsters = gameState.activeMonsters.filter(m => m.currentHp <= 0);
 	if (defeatedMonsters.length > 0) {
 		defeatedMonsters.forEach(monster => {
@@ -348,7 +413,7 @@ function gameLoop() {
 		gameState.activeMonsters = gameState.activeMonsters.filter(m => m.currentHp > 0);
 	}
 	
-	// 4. Daily Updates
+	// 6. Daily Updates
 	if (gameState.time % 10 === 0) {
 		gameState.city.buildings.forEach(b => {
 			if (b.state !== 'ruined' && b.population < 10) {
@@ -477,11 +542,40 @@ async function init() {
 			return; // Prevent other handlers
 		}
 		
+		// NEW: Handle healing target selection buttons
+		const setTargetBtn = e.target.closest('[data-set-target-hero-id]');
+		if (setTargetBtn) {
+			const casterId = parseInt(setTargetBtn.dataset.casterHeroId, 10);
+			const targetId = parseInt(setTargetBtn.dataset.setTargetHeroId, 10);
+			const skillId = setTargetBtn.dataset.skillId;
+			const caster = gameState.heroes.find(h => h.id === casterId);
+			if (caster) {
+				caster.skillTargets[skillId] = targetId;
+				renderContent();
+			}
+			return;
+		}
+		
+		// MODIFIED: Generic skill cast handler
 		if (e.target.matches('[data-skill-id]')) {
-			const { heroId, skillId } = e.target.dataset;
-			handleAegisAction(parseInt(heroId), skillId);
+			const heroId = parseInt(e.target.dataset.heroId, 10);
+			const skillId = e.target.dataset.skillId;
+			const hero = gameState.heroes.find(h => h.id === heroId);
+			const skillData = gameData.skills.find(s => s.id === skillId);
+			
+			if (skillData.class === 'Aegis') {
+				const options = {};
+				// MODIFIED: Read target from hero's state instead of a selector
+				if (skillData.actionType === 'heal') {
+					options.targetHeroId = hero.skillTargets[skillId];
+				}
+				handleAegisAction(heroId, skillId, options);
+			} else {
+				handleCombatAction(heroId, skillId);
+			}
 			renderContent();
 		}
+		
 		if (e.target.matches('[data-buy-item-id]')) {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
 			const itemId = e.target.dataset.buyItemId;

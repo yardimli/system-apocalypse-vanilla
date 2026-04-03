@@ -32,7 +32,7 @@ export function renderMonsters (contentArea) {
 	}
 	
 	// Generate a state string to check if an update is actually needed
-	const stateStr = JSON.stringify(gameState.activeMonsters.map(m => [m.id, m.currentHp, m.targetBuilding, m.assignedTo]));
+	const stateStr = JSON.stringify(gameState.activeMonsters.map(m => [m.id, m.currentHp, m.targetBuilding, m.assignedTo, m.agro]));
 	if (grid.getAttribute('data-prev-state') === stateStr) return;
 	
 	// Generate a card for each active monster individually
@@ -49,6 +49,21 @@ export function renderMonsters (contentArea) {
 			targetText = `Attacking Bldg #${monster.targetBuilding}`;
 		}
 		
+		// NEW: Generate the agro list display
+		const agroEntries = Object.entries(monster.agro)
+			.map(([heroId, value]) => ({ heroId: parseInt(heroId, 10), value }))
+			.sort((a, b) => b.value - a.value);
+		
+		let agroHtml = '<div class="text-xs text-gray-500 italic">No threat</div>';
+		if (agroEntries.length > 0) {
+			agroHtml = agroEntries.slice(0, 3).map((entry, index) => {
+				const hero = gameState.heroes.find(h => h.id === entry.heroId);
+				if (!hero) return '';
+				const isTarget = index === 0;
+				return `<div class="text-xs ${isTarget ? 'text-error font-bold' : ''}">${hero.name}: ${Math.floor(entry.value)}</div>`;
+			}).join('');
+		}
+		
 		// Calculate monster's age in days from its spawn time.
 		const ageInDays = Math.floor((gameState.time - monster.spawnTime) / 10);
 		
@@ -61,6 +76,11 @@ export function renderMonsters (contentArea) {
                 <div class="mt-2">
                     <progress class="progress progress-error w-full" value="${monster.currentHp}" max="${monster.maxHp}"></progress>
                     <p class="text-xs text-right mt-1">${Math.floor(monster.currentHp)} / ${monster.maxHp} HP</p>
+                </div>
+                <!-- NEW: Agro list display -->
+                <div class="mt-2 border-t border-base-300 pt-2">
+                    <h4 class="font-semibold text-sm mb-1">Threat List</h4>
+                    ${agroHtml}
                 </div>
                 <div class="text-xs text-gray-400 mt-2">Age: ${ageInDays} day(s)</div>
             </div>

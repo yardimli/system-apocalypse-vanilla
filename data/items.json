@@ -121,7 +121,7 @@
     "description": "A small vial that restores a bit of MP.",
     "effect": {
       "type": "heal_mp",
-      "value": 20
+      "value": 80
     },
     "level": 1,
     "sellPrice": 6
@@ -147,7 +147,7 @@
     "description": "Restores a moderate amount of MP.",
     "effect": {
       "type": "heal_mp",
-      "value": 40
+      "value": 200
     },
     "level": 2,
     "sellPrice": 20
@@ -173,7 +173,7 @@
     "description": "A potent elixir that restores a large amount of MP.",
     "effect": {
       "type": "heal_mp",
-      "value": 100
+      "value": 400
     },
     "level": 3,
     "sellPrice": 60
@@ -272,11 +272,11 @@
     "image": "images/WAND001.png",
     "type": "Weapon",
     "equipSlot": "mainHand",
-    "class": "Striker",
+    "class": ["Striker", "Aegis"],
     "spellPower": 2,
     "level": 1,
     "sellPrice": 25,
-    "description": "A simple wooden wand for novice Strikers."
+    "description": "A simple wooden wand for novice magic users."
   },
   {
     "id": "WAND002",
@@ -284,11 +284,11 @@
     "image": "images/WAND002.png",
     "type": "Weapon",
     "equipSlot": "mainHand",
-    "class": "Striker",
+    "class": ["Striker", "Aegis"],
     "spellPower": 3,
     "level": 2,
     "sellPrice": 100,
-    "description": "A well-balanced wand for an experienced Striker."
+    "description": "A well-balanced wand for an experienced magic user."
   },
   {
     "id": "WAND003",
@@ -296,11 +296,11 @@
     "image": "images/WAND003.png",
     "type": "Weapon",
     "equipSlot": "mainHand",
-    "class": "Striker",
+    "class": ["Striker", "Aegis"],
     "spellPower": 5,
     "level": 3,
     "sellPrice": 350,
-    "description": "A powerful scepter that greatly amplifies a Striker's magic."
+    "description": "A powerful scepter that greatly amplifies a user's magic."
   },
   {
     "id": "SWD001",

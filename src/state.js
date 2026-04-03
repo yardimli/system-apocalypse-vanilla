@@ -40,7 +40,9 @@ export const gameState = {
 			mpMaxPerLevel: 50,
 			hpRegenPerLevel: 0.1,
 			mpRegenPerLevel: 1.0,
-			equipment: { mainHand: null, offHand: null, body: 'ARM001' },
+			equipment: { mainHand: 'WAND001', offHand: null, body: 'ARM001' },
+			carId: null,
+			targetMonsterId: null,
 			tokens: 100,
 			skills:[
 				{ id: 'AEG001', xp: 0 },
@@ -49,9 +51,11 @@ export const gameState = {
 				{ id: 'AEG004', xp: 0 }
 			],
 			autoCastSkillId: null,
+			skillTargets: { 'AEG004': 1 },
 			log: [],
 			inventory: {
 				'ARM001': 1,
+				'WAND001': 1,
 				'ITM003': 2,
 				'ITM006': 3,
 				'ITM016': 4,
@@ -77,6 +81,8 @@ export const gameState = {
 			targetMonsterId: null,
 			tokens: 100,
 			skills: [{ id: 'STR001', xp: 0 }],
+			autoCastSkillId: 'STR001',
+			skillTargets: {},
 			log: [],
 			inventory: {
 				'ARM001': 1,
@@ -92,18 +98,17 @@ export const gameState = {
 			level: 1,
 			xp: { current: 0, max: 250 },
 			hp: { current: 250, max: 250 },
-			mp: { current: 50, max: 50 },
+			rage: { current: 0, max: 100 },
 			hpRegen: 2.0,
-			mpRegen: 0.5,
 			hpMaxPerLevel: 30,
-			mpMaxPerLevel: 5,
 			hpRegenPerLevel: 0.5,
-			mpRegenPerLevel: 0.2,
 			equipment: { mainHand: 'SWD001', offHand: 'SHD001', body: 'ARM001' },
 			carId: null,
 			targetMonsterId: null,
 			tokens: 100,
-			skills: [{ id: 'VAN001', xp: 0 }, { id: 'VAN002', xp: 0 }],
+			skills: [{ id: 'VAN003', xp: 0 }, { id: 'VAN004', xp: 0 }, { id: 'VAN005', xp: 0 }], // MODIFIED: New active skills
+			autoCastSkillId: 'VAN003', // MODIFIED: Auto-cast Heroic Strike
+			skillTargets: {},
 			log: [],
 			inventory: {
 				'ARM001': 1,

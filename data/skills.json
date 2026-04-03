@@ -5,8 +5,8 @@
     "class": "Aegis",
     "type": "Manual",
     "actionType": "repair",
-    "mpCost": 20,
-    "xpMax": 100,
+    "mpCost": 80,
+    "xpMax": 1000,
     "autoCastUnlockLevel": 3,
     "description": "Repairs 1 broken building."
   },
@@ -16,9 +16,9 @@
     "class": "Aegis",
     "type": "Manual",
     "actionType": "repair",
-    "mpCost": 35,
+    "mpCost": 120,
     "replaces": "AEG001",
-    "xpMax": 250,
+    "xpMax": 1500,
     "description": "Repairs up to 2 broken buildings."
   },
   {
@@ -27,9 +27,9 @@
     "class": "Aegis",
     "type": "Manual",
     "actionType": "repair",
-    "mpCost": 50,
+    "mpCost": 160,
     "replaces": "AEG001_II",
-    "xpMax": 500,
+    "xpMax": 2500,
     "description": "Repairs up to 3 broken buildings."
   },
   {
@@ -38,8 +38,8 @@
     "class": "Aegis",
     "type": "Manual",
     "actionType": "shield",
-    "mpCost": 30,
-    "xpMax": 100,
+    "mpCost": 120,
+    "xpMax": 2000,
     "autoCastUnlockLevel": 3,
     "description": "Adds a shield to 1 functional building."
   },
@@ -49,9 +49,9 @@
     "class": "Aegis",
     "type": "Manual",
     "actionType": "shield",
-    "mpCost": 50,
+    "mpCost": 180,
     "replaces": "AEG002",
-    "xpMax": 250,
+    "xpMax": 3000,
     "description": "Adds a shield to up to 2 functional buildings."
   },
   {
@@ -60,9 +60,9 @@
     "class": "Aegis",
     "type": "Manual",
     "actionType": "shield",
-    "mpCost": 70,
+    "mpCost": 240,
     "replaces": "AEG002_II",
-    "xpMax": 500,
+    "xpMax": 4000,
     "description": "Adds a shield to up to 3 functional buildings."
   },
   {
@@ -72,7 +72,7 @@
     "type": "Manual",
     "actionType": "battery",
     "mpCost": 40,
-    "xpMax": 100,
+    "xpMax": 1000,
     "autoCastUnlockLevel": 7,
     "description": "Recharges 1 empty car battery (lasts 10 days)."
   },
@@ -84,7 +84,7 @@
     "actionType": "battery",
     "mpCost": 70,
     "replaces": "AEG003",
-    "xpMax": 250,
+    "xpMax": 2500,
     "description": "Recharges up to 2 empty car batteries."
   },
   {
@@ -95,7 +95,7 @@
     "actionType": "battery",
     "mpCost": 100,
     "replaces": "AEG003_II",
-    "xpMax": 500,
+    "xpMax": 5000,
     "description": "Recharges up to 3 empty car batteries."
   },
   {
@@ -105,9 +105,10 @@
     "type": "Manual",
     "actionType": "heal",
     "mpCost": 25,
-    "xpMax": 100,
+    "agroValue": 50,
+    "xpMax": 500,
     "autoCastUnlockLevel": 5,
-    "description": "Restores 100 HP to the most injured hero."
+    "description": "Restores 100 HP to a hero, generating threat."
   },
   {
     "id": "AEG004_II",
@@ -116,9 +117,10 @@
     "type": "Manual",
     "actionType": "heal",
     "mpCost": 35,
+    "agroValue": 125,
     "replaces": "AEG004",
-    "xpMax": 250,
-    "description": "Restores 250 HP to the most injured hero."
+    "xpMax": 1000,
+    "description": "Restores 250 HP to a hero, generating threat."
   },
   {
     "id": "AEG004_III",
@@ -127,82 +129,88 @@
     "type": "Manual",
     "actionType": "heal",
     "mpCost": 50,
+    "agroValue": 250,
     "replaces": "AEG004_II",
-    "xpMax": 500,
-    "description": "Restores 500 HP to the most injured hero."
+    "xpMax": 1500,
+    "description": "Restores 500 HP to a hero, generating threat."
   },
   {
     "id": "STR001",
     "name": "Mana Bolt",
     "class": "Striker",
-    "type": "Combat",
-    "mpCost": 10,
-    "value": "8-12",
-    "xpMax": 100,
+    "type": "Manual",
+    "actionType": "attack",
+    "mpCost": 3,
+    "damage": "8-12",
+    "agroMultiplier": 1.0,
+    "xpMax": 300,
+    "autoCastUnlockLevel": 1,
     "description": "A basic bolt of mana energy."
   },
   {
     "id": "STR002",
     "name": "Ice Shard",
     "class": "Striker",
-    "type": "Combat",
+    "type": "Manual",
+    "actionType": "attack",
     "mpCost": 25,
-    "value": "20-30",
+    "damage": "20-30",
+    "agroMultiplier": 1.0,
     "replaces": "STR001",
-    "xpMax": 250,
+    "xpMax": 750,
+    "autoCastUnlockLevel": 3,
     "description": "A shard of magical ice that pierces armor."
   },
   {
     "id": "STR003",
     "name": "Fireball",
     "class": "Striker",
-    "type": "Combat",
+    "type": "Manual",
+    "actionType": "attack",
     "mpCost": 50,
-    "value": "50-70",
+    "damage": "50-70",
+    "agroMultiplier": 1.0,
     "replaces": "STR002",
-    "xpMax": 500,
+    "xpMax": 1500,
+    "autoCastUnlockLevel": 5,
     "description": "An explosive ball of fire."
   },
   {
-    "id": "VAN001",
-    "name": "Shield Bash I",
+    "id": "VAN003",
+    "name": "Heroic Strike",
     "class": "Vanguard",
-    "type": "Passive",
-    "effect": "damage",
-    "value": "1-3",
-    "xpMax": 100,
-    "description": "Passively increases damage dealt by 1-3 when a shield is equipped."
+    "type": "Manual",
+    "actionType": "attack",
+    "rageGen": 15,
+    "damage": "5-8",
+    "agroMultiplier": 2.0,
+    "xpMax": 400,
+    "autoCastUnlockLevel": 1,
+    "description": "A powerful strike that generates Rage and high threat."
   },
   {
-    "id": "VAN001_II",
-    "name": "Shield Bash II",
+    "id": "VAN004",
+    "name": "Taunt",
     "class": "Vanguard",
-    "type": "Passive",
-    "effect": "damage",
-    "value": "4-8",
-    "replaces": "VAN001",
-    "xpMax": 250,
-    "description": "Passively increases damage dealt by 4-8 when a shield is equipped."
+    "type": "Manual",
+    "actionType": "taunt",
+    "rageCost": 50,
+    "value": 1000,
+    "xpMax": 800,
+    "autoCastUnlockLevel": 2,
+    "description": "Consume a large amount of Rage to force a monster to focus on you. Can be used without Rage for a minor effect."
   },
   {
-    "id": "VAN002",
-    "name": "Swordsmanship I",
+    "id": "VAN005",
+    "name": "Shield Slam",
     "class": "Vanguard",
-    "type": "Passive",
-    "effect": "damage",
-    "value": "2-4",
-    "xpMax": 100,
-    "description": "Passively increases damage dealt by 2-4 when a sword is equipped."
-  },
-  {
-    "id": "VAN002_II",
-    "name": "Swordsmanship II",
-    "class": "Vanguard",
-    "type": "Passive",
-    "effect": "damage",
-    "value": "6-10",
-    "replaces": "VAN002",
-    "xpMax": 250,
-    "description": "Passively increases damage dealt by 6-10 when a sword is equipped."
+    "type": "Manual",
+    "actionType": "attack",
+    "rageCost": 30,
+    "damage": "10-15",
+    "agroMultiplier": 1.5,
+    "xpMax": 600,
+    "autoCastUnlockLevel": 4,
+    "description": "Slam your shield into the enemy, consuming Rage to deal damage and generate threat. Can be used without Rage for a minor effect."
   }
 ]

@@ -21,8 +21,9 @@ export function autoEquipBestGear (hero) {
 		const item = gameData.items.find(i => i.id === itemId);
 		// Check if the item is equippable in a valid slot
 		if (item && item.equipSlot && slots[item.equipSlot] && hero.inventory[itemId] > 0) {
-			// Check if the hero's class can use the item (if a class is specified)
-			if (!item.class || item.class === hero.class) {
+			// MODIFIED: Check if the hero's class can use the item (handles string or array for item.class)
+			const canUse = !item.class || (Array.isArray(item.class) ? item.class.includes(hero.class) : item.class === hero.class);
+			if (canUse) {
 				slots[item.equipSlot].push(item);
 			}
 		}
@@ -45,11 +46,11 @@ export function autoEquipBestGear (hero) {
 			hero.equipment[slot] = bestItemId;
 			
 			if (bestItem && oldItem) {
-				addToLog(`${hero.name} upgraded ${slot}: ${oldItem.name} -> ${bestItem.name}.`, hero.id); // MODIFIED
+				addToLog(`${hero.name} upgraded ${slot}: ${oldItem.name} -> ${bestItem.name}.`, hero.id);
 			} else if (bestItem) {
-				addToLog(`${hero.name} equipped ${bestItem.name} (${slot}).`, hero.id); // MODIFIED
+				addToLog(`${hero.name} equipped ${bestItem.name} (${slot}).`, hero.id);
 			} else if (oldItem) {
-				addToLog(`${hero.name} unequipped ${oldItem.name} (${slot}).`, hero.id); // MODIFIED
+				addToLog(`${hero.name} unequipped ${oldItem.name} (${slot}).`, hero.id);
 			}
 		}
 	}
@@ -135,37 +136,77 @@ export function renderHeroes () {
 		updateTextIfChanged(card.querySelector('[data-hp-label]'), hpText);
 		updateProgressIfChanged(card.querySelector('[data-hp-bar]'), hero.hp.current, hero.hp.max);
 		
-		const mpText = `MP: ${Math.floor(hero.mp.current)}/${hero.mp.max} (+${formatRegen(hero.mpRegen)}/s)`;
-		updateTextIfChanged(card.querySelector('[data-mp-label]'), mpText);
-		updateProgressIfChanged(card.querySelector('[data-mp-bar]'), hero.mp.current, hero.mp.max);
+		// MODIFIED: Hide MP bar for Vanguard
+		const mpContainer = card.querySelector('[data-mp-bar]').closest('.my-2');
+		if (hero.class === 'Vanguard') {
+			mpContainer.style.display = 'none';
+		} else {
+			mpContainer.style.display = 'block';
+			const mpText = `MP: ${Math.floor(hero.mp.current)}/${hero.mp.max} (+${formatRegen(hero.mpRegen)}/s)`;
+			updateTextIfChanged(card.querySelector('[data-mp-label]'), mpText);
+			updateProgressIfChanged(card.querySelector('[data-mp-bar]'), hero.mp.current, hero.mp.max);
+		}
+		
+		const rageContainer = card.querySelector('[data-rage-container]');
+		if (hero.class === 'Vanguard') {
+			rageContainer.style.display = 'block';
+			const rageText = `Rage: ${Math.floor(hero.rage.current)}/${hero.rage.max}`;
+			updateTextIfChanged(card.querySelector('[data-rage-label]'), rageText);
+			updateProgressIfChanged(card.querySelector('[data-rage-bar]'), hero.rage.current, hero.rage.max);
+		} else {
+			rageContainer.style.display = 'none';
+		}
 		
 		const dynamicArea = card.querySelector('[data-dynamic-area]');
 		let dynamicHtml = '';
 		let dynamicStateKey = '';
 		
-		if (hero.class === 'Aegis') {
-			dynamicHtml = '<p class="text-info text-center text-sm">Manage skills below.</p>';
-			dynamicStateKey = 'aegis-idle';
-		} else {
-			if (hero.hp.current <= 0) {
-				dynamicHtml = `<p class="text-error font-bold text-center">INCAPACITATED</p><p class="text-xs text-center">Awaiting Aegis Healing...</p>`;
-				dynamicStateKey = 'incapacitated';
-			} else if (!hero.carId) {
-				dynamicHtml = `<p class="text-warning text-center text-sm">Waiting for Mana Battery Car...</p>`;
-				dynamicStateKey = 'no-car';
-			} else if (hero.targetMonsterId) {
-				const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
-				if (monster) {
-					dynamicHtml = `
+		// REFACTORED: Generic status logic for all heroes
+		if (hero.hp.current <= 0) {
+			dynamicHtml = `<p class="text-error font-bold text-center">INCAPACITATED</p><p class="text-xs text-center">Awaiting Aegis Healing...</p>`;
+			dynamicStateKey = 'incapacitated';
+		} else if (!hero.carId) {
+			dynamicHtml = `<p class="text-warning text-center text-sm">Waiting for Mana Battery Car...</p>`;
+			dynamicStateKey = 'no-car';
+		} else if (hero.targetMonsterId) {
+			const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
+			if (monster) {
+				// MODIFIED: Added agro list rendering to the hero card's combat view
+				const agroEntries = Object.entries(monster.agro)
+					.map(([heroId, value]) => ({ heroId: parseInt(heroId, 10), value }))
+					.sort((a, b) => b.value - a.value);
+				
+				let agroHtml = '<div class="text-xs text-gray-500 italic">No threat</div>';
+				if (agroEntries.length > 0) {
+					agroHtml = agroEntries.slice(0, 3).map((entry, index) => {
+						const threatHero = gameState.heroes.find(h => h.id === entry.heroId);
+						if (!threatHero) return '';
+						const isTarget = index === 0;
+						return `<div class="text-xs ${isTarget ? 'text-error font-bold' : ''}">${threatHero.name}: ${Math.floor(entry.value)}</div>`;
+					}).join('');
+				}
+				
+				dynamicHtml = `
                     <p class="text-sm font-bold text-error mb-1">Fighting: Lv.${monster.level} ${monster.name} (#${monster.id})</p>
                     <progress class="progress progress-error w-full" value="${monster.currentHp}" max="${monster.maxHp}"></progress>
                     <p class="text-xs text-right mt-1">${Math.floor(monster.currentHp)}/${monster.maxHp} HP</p>
+                    <div class="mt-2 border-t border-base-100 pt-1">
+                        <h4 class="font-semibold text-xs mb-1 text-center">Threat List</h4>
+                        ${agroHtml}
+                    </div>
                 `;
-					dynamicStateKey = `fighting-${monster.id}-${monster.currentHp}`;
-				} else {
-					dynamicHtml = `<p class="text-success text-center text-sm">Patrolling in Car #${hero.carId}. No targets.</p>`;
-					dynamicStateKey = `patrolling-${hero.carId}`;
-				}
+				// MODIFIED: Update state key to include agro state for re-rendering
+				dynamicStateKey = `fighting-${monster.id}-${monster.currentHp}-${JSON.stringify(monster.agro)}`;
+			} else {
+				// This case handles when the monster is defeated but the hero's targetId hasn't cleared yet.
+				hero.targetMonsterId = null; // Clear it here for faster UI update
+				dynamicHtml = `<p class="text-success text-center text-sm">Patrolling in Car #${hero.carId}. No targets.</p>`;
+				dynamicStateKey = `patrolling-${hero.carId}`;
+			}
+		} else {
+			if (hero.class === 'Aegis') {
+				dynamicHtml = `<p class="text-info text-center text-sm">Awaiting tasks in Car #${hero.carId}.</p>`;
+				dynamicStateKey = `aegis-idle-${hero.carId}`;
 			} else {
 				dynamicHtml = `<p class="text-success text-center text-sm">Patrolling in Car #${hero.carId}. No targets.</p>`;
 				dynamicStateKey = `patrolling-${hero.carId}`;
@@ -178,16 +219,15 @@ export function renderHeroes () {
 		if (skillsListContainer) {
 			let skillsHtml = '';
 			
-			if (hero.class === 'Aegis') {
-				const manualSkills = hero.skills
-					.map(hs => gameData.skills.find(s => s.id === hs.id))
-					.filter(s => s && s.type === 'Manual');
-				
+			const manualSkills = hero.skills
+				.map(hs => gameData.skills.find(s => s.id === hs.id))
+				.filter(s => s && s.type === 'Manual');
+			
+			if (manualSkills.length > 0) {
 				skillsHtml = manualSkills.map(skillData => {
 					const heroSkill = hero.skills.find(hs => hs.id === skillData.id);
 					const isAutoCasting = hero.autoCastSkillId === skillData.id;
 					
-					// MODIFIED: Find the base skill to check for auto-cast unlock level
 					let baseSkill = skillData;
 					while (baseSkill.replaces) {
 						const parent = gameData.skills.find(s => s.id === baseSkill.replaces);
@@ -207,41 +247,47 @@ export function renderHeroes () {
 							</button>
 						`;
 					} else if (unlockLevel) {
-						// NEW: Show a disabled button with a tooltip if auto-cast is not yet unlocked.
 						autoButtonHtml = `
 							<div class="tooltip" data-tip="Unlocks at Hero Level ${unlockLevel}">
 								<button class="btn btn-xs btn-ghost" disabled>Auto</button>
 							</div>
 						`;
 					}
-					// END MODIFICATION
+					
+					let targetSelectorHtml = '';
+					if (skillData.actionType === 'heal') {
+						const currentTargetId = hero.skillTargets[skillData.id] || hero.id;
+						const buttons = gameState.heroes.map(targetHero => {
+							return `
+								<button
+									class="btn btn-xs ${currentTargetId === targetHero.id ? 'btn-secondary' : 'btn-ghost'}"
+									data-set-target-hero-id="${targetHero.id}"
+									data-caster-hero-id="${hero.id}"
+									data-skill-id="${skillData.id}"
+									title="Set target to ${targetHero.name}"
+								>${targetHero.name.substring(0, 1)}</button>
+							`;
+						}).join('');
+						targetSelectorHtml = `<div class="btn-group">${buttons}</div>`;
+					}
+					
+					// MODIFIED: Vanguards can always attempt to cast skills.
+					const mpCost = skillData.mpCost || 0;
+					const rageCost = skillData.rageCost || 0;
+					const isCastDisabled = hero.class !== 'Vanguard' && (hero.mp.current < mpCost);
+					const costText = rageCost > 0 ? `${rageCost} Rage` : (mpCost > 0 ? `${mpCost} MP` : '');
 					
 					return `
 						<div class="text-xs bg-base-100 p-2 rounded">
 							<div class="flex justify-between items-center mb-1">
-								<div class="flex items-center gap-2">
+								<div class="flex items-center gap-2 flex-wrap">
 									<span class="font-bold">${skillData.name}</span>
-									<button class="btn btn-xs btn-ghost" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${hero.mp.current < skillData.mpCost ? 'disabled' : ''}>
-										Cast (${skillData.mpCost} MP)
+									<button class="btn btn-xs btn-ghost" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${isCastDisabled ? 'disabled' : ''}>
+										Cast ${costText ? `(${costText})` : ''}
 									</button>
-									${autoButtonHtml} <!-- MODIFIED: Use the generated button HTML -->
+									${targetSelectorHtml}
+									${autoButtonHtml}
 								</div>
-								<span class="text-gray-400">${heroSkill.xp} / ${skillData.xpMax}</span>
-							</div>
-							<progress class="progress progress-secondary w-full" value="${heroSkill.xp}" max="${skillData.xpMax}"></progress>
-						</div>
-					`;
-				}).join('');
-			} else {
-				// Original rendering for other classes
-				skillsHtml = hero.skills.map(heroSkill => {
-					const skillData = gameData.skills.find(s => s.id === heroSkill.id);
-					if (!skillData) return '';
-					
-					return `
-						<div class="text-xs">
-							<div class="flex justify-between items-center">
-								<span>${skillData.name}</span>
 								<span class="text-gray-400">${heroSkill.xp} / ${skillData.xpMax}</span>
 							</div>
 							<progress class="progress progress-secondary w-full" value="${heroSkill.xp}" max="${skillData.xpMax}"></progress>
@@ -250,7 +296,7 @@ export function renderHeroes () {
 				}).join('');
 			}
 			
-			const skillsStateKey = JSON.stringify(hero.skills) + hero.autoCastSkillId + hero.mp.current;
+			const skillsStateKey = JSON.stringify(hero.skills) + hero.autoCastSkillId + (hero.mp ? hero.mp.current : '') + (hero.rage ? hero.rage.current : '') + JSON.stringify(hero.skillTargets);
 			updateHtmlIfChanged(skillsListContainer, skillsHtml, skillsStateKey);
 		}
 		

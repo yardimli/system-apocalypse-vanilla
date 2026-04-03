@@ -277,3 +277,20 @@ in inventory don't show equipped items. if hero has duplicates show the ones tha
 remove the tooltip on hover from the inventory in the game ui
 in the shop dialog add hero's inventory with a sell button under each of their items. have the hover tooltip show up in the shop dialog when hovering over items instead.
 in hero's skills for aegis remove the auto radio button, instead add a auto button that will be active/inactive, if player clicks on another auto cast button the existing one should be turned inactive, put the two buttons cast and auto besides the skills title to make the ui more compact.
+
+----
+
+update striker and vanguard to cast same as aegis. the low level skills should have auto cast enabled at the start and be enabled when the game begins
+higher level skills should have auto cast enabled later.
+none of the hero's will attack automatically unless they have auto cast enabled
+for aegis healing add target selection for which hero it should cast on
+update vanguard to have a rage bar, it will generate when the tank attacks
+add agro to monsters, monsters should be attacking one hero who has the agro
+update vanguard to have a skill that will pull agro when cast.
+on the ui under the monster hp bar add agro list for the monster so player will know when to use vanguards agro skill
+rage should start dropping when out of battle
+add new rage agro drawing skills to the skill.json for the vanguard
+update code so ageis is also part of the new system, and everytime ageis casts healing she will draw agro from the monster, ageis also will need to occupy a car
+
+update Vanguard remove the passive skills all skils are active and have cast button with auto enabled at higher levels
+remove the MP bar from Vanguard, vanguard dont have an energy level when casting but instead consue Rage. Vanguard should still be able to cast with no rage but without rage the monsters will pay him less attention and he will have a hard time drawing agro away from the other party members. vanguards different skills will use different amounts of rage and draw different amonts of agro from the monster. heroic strike should be the top agro drawing skill and has auto cast enabled at level 1
