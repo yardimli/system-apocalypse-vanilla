@@ -1,13 +1,31 @@
 // Initialize 100 buildings with their respective states, HP, and population
 const initialBuildings =[];
 for (let i = 1; i <= 100; i++) {
+	// NEW: Added properties for ownership, naming, and safezone status.
+	// Removed shield properties as they are now an upgrade.
+	const newBuilding = {
+		id: i,
+		state: 'ruined', // All start as ruined
+		hp: 0,
+		maxHp: 10,
+		population: 0,
+		owner: null, // 'player' if bought
+		name: null,
+		isSafezone: false,
+		upgrades: [],
+		heroesInside: [] // Array of hero IDs
+	};
+	
 	if (i <= 3) {
-		initialBuildings.push({ id: i, state: 'functional', hp: 10, maxHp: 10, shieldHp: 0, maxShieldHp: 70, population: 10 });
+		newBuilding.state = 'functional';
+		newBuilding.hp = 10;
+		newBuilding.population = 10;
 	} else if (i <= 15) {
-		initialBuildings.push({ id: i, state: 'damaged', hp: 5, maxHp: 10, shieldHp: 0, maxShieldHp: 70, population: 5 });
-	} else {
-		initialBuildings.push({ id: i, state: 'ruined', hp: 0, maxHp: 10, shieldHp: 0, maxShieldHp: 70, population: 0 });
+		newBuilding.state = 'damaged';
+		newBuilding.hp = 5;
+		newBuilding.population = 5;
 	}
+	initialBuildings.push(newBuilding);
 }
 
 // Initialize 40 cars
@@ -43,10 +61,10 @@ export const gameState = {
 			equipment: { mainHand: 'WAND001', offHand: null, body: 'ARM001' },
 			carId: null,
 			targetMonsterId: null,
+			location: 'field', // NEW: Hero's current location ('field' or building ID)
 			tokens: 100,
 			skills:[
-				{ id: 'AEG001', xp: 0 },
-				{ id: 'AEG002', xp: 0 },
+				// MODIFIED: Removed repair and shield skills
 				{ id: 'AEG003', xp: 0 },
 				{ id: 'AEG004', xp: 0 }
 			],
@@ -79,6 +97,7 @@ export const gameState = {
 			equipment: { mainHand: 'WAND001', offHand: null, body: 'ARM001' },
 			carId: null,
 			targetMonsterId: null,
+			location: 'field', // NEW
 			tokens: 100,
 			skills: [{ id: 'STR001', xp: 0 }],
 			autoCastSkillId: 'STR001',
@@ -105,9 +124,10 @@ export const gameState = {
 			equipment: { mainHand: 'SWD001', offHand: 'SHD001', body: 'ARM001' },
 			carId: null,
 			targetMonsterId: null,
+			location: 'field', // NEW
 			tokens: 100,
-			skills: [{ id: 'VAN003', xp: 0 }, { id: 'VAN004', xp: 0 }, { id: 'VAN005', xp: 0 }], // MODIFIED: New active skills
-			autoCastSkillId: 'VAN003', // MODIFIED: Auto-cast Heroic Strike
+			skills: [{ id: 'VAN003', xp: 0 }, { id: 'VAN004', xp: 0 }, { id: 'VAN005', xp: 0 }],
+			autoCastSkillId: 'VAN003',
 			skillTargets: {},
 			log: [],
 			inventory: {
@@ -126,5 +146,6 @@ export const gameData = {
 	items: [],
 	skills: [],
 	monsters:[],
-	system_shop: []
+	system_shop: [],
+	building_upgrades: [] // NEW: To hold building upgrade data
 };

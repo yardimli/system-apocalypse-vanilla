@@ -294,3 +294,25 @@ update code so ageis is also part of the new system, and everytime ageis casts h
 
 update Vanguard remove the passive skills all skils are active and have cast button with auto enabled at higher levels
 remove the MP bar from Vanguard, vanguard dont have an energy level when casting but instead consue Rage. Vanguard should still be able to cast with no rage but without rage the monsters will pay him less attention and he will have a hard time drawing agro away from the other party members. vanguards different skills will use different amounts of rage and draw different amonts of agro from the monster. heroic strike should be the top agro drawing skill and has auto cast enabled at level 1
+
+----
+
+i want to remove the restore and shield building skills from the Aegis
+instead the hero's can buy buildings from the buildings page, buildings are bought from the system. each building will initially be in disrepair and after purchased the building will become modestly livable repaired and designated a safezone
+safezone building should have an upgrade button that will open a dialog similar to the system shop. for now add placeholder items in the dialog.
+building prices should use all party members tokens. they should pay equally as much as possible. if the party have enough cash they can purchase the building.
+ first building should cost 300 tokens, then after that each extra building price should increase by 30% of the previous paid price.
+allow the player to name the building they purchased.
+add a button to the building that have been purchased that is enter and exit, when heros enter the building they will not fight and their mana/health should restore 10 times faster. heros can escape to a building in mid-fight if they own one.
+create a new javascript for buildings and move the code into it. also create a building_upgrades.json
+
+-----
+
+i want to remove the xp from skills instead each skill should be based on hero's level.
+also skills should not be upgrades but the hero should be able to cast them all. on the interface show all skills the ones they cant cast should be grayed out.
+each skill should cost tokens to learn plus having to reach the level to use it.
+in the skills part make each skill into a card show two skills on each row inside each hero's panel
+make hero logs invisible at first clicking on the log title should open/collapse the log view.
+update the skills.json for the new structure.
+also update so purchases buildings hp and shields never falls bellow 1 and starts from 1000/1000  for both, the lower hp will effect the regen rate in the building
+

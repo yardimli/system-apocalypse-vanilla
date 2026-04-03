@@ -165,6 +165,12 @@ export function renderHeroes () {
 		if (hero.hp.current <= 0) {
 			dynamicHtml = `<p class="text-error font-bold text-center">INCAPACITATED</p><p class="text-xs text-center">Awaiting Aegis Healing...</p>`;
 			dynamicStateKey = 'incapacitated';
+			// NEW: Check if hero is inside a building safezone
+		} else if (hero.location !== 'field') {
+			const building = gameState.city.buildings.find(b => b.id === hero.location);
+			const buildingName = building ? building.name : `Building #${hero.location}`;
+			dynamicHtml = `<p class="text-info text-center text-sm">Resting in ${buildingName}.</p>`;
+			dynamicStateKey = `resting-${hero.location}`;
 		} else if (!hero.carId) {
 			dynamicHtml = `<p class="text-warning text-center text-sm">Waiting for Mana Battery Car...</p>`;
 			dynamicStateKey = 'no-car';

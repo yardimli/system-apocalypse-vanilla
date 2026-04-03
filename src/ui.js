@@ -35,7 +35,8 @@ export function renderHeader () {
 	
 	const totalPop = gameState.city.buildings.reduce((sum, b) => sum + b.population, 0);
 	const functional = gameState.city.buildings.filter(b => b.state === 'functional').length;
-	const shielded = gameState.city.buildings.filter(b => b.shieldHp > 0).length;
+	// MODIFIED: Shielded count is now based on player-owned buildings with shield properties.
+	const shielded = gameState.city.buildings.filter(b => b.owner === 'player' && b.shieldHp > 0).length;
 	const broken = gameState.city.buildings.filter(b => b.state !== 'functional').length;
 	
 	const attackingBldg = gameState.activeMonsters.filter(m => !m.assigned && m.targetBuilding).length;
@@ -63,49 +64,7 @@ export function renderTabs (activeTab, TABS) {
     `).join('');
 }
 
-/**
- * Renders the grid of city buildings.
- * @param {HTMLElement} contentArea - The main content DOM element.
- */
-export function renderBuildings (contentArea) {
-	let grid = getEl('buildings-grid');
-	if (!grid) {
-		contentArea.innerHTML = `<div id="buildings-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>`;
-		grid = getEl('buildings-grid');
-		
-		gameState.city.buildings.forEach(b => {
-			const el = document.createElement('div');
-			el.id = `bldg-${b.id}`;
-			el.className = 'card bg-base-200 shadow-sm p-3 text-xs border border-base-300';
-			el.innerHTML = `
-                <div class="font-bold text-sm mb-1">Bldg #${b.id}</div>
-                <div data-state class="font-semibold"></div>
-                <div data-hp></div>
-                <div data-shield class="text-info"></div>
-                <div data-pop class="text-success mt-1"></div>
-            `;
-			grid.appendChild(el);
-		});
-	}
-	
-	// Update each building's properties only if they have changed.
-	gameState.city.buildings.forEach(b => {
-		const el = getEl(`bldg-${b.id}`);
-		if (!el) return;
-		
-		const stateEl = el.querySelector('[data-state]');
-		updateTextIfChanged(stateEl, `State: ${b.state}`);
-		
-		const newClassName = `font-semibold ${b.state === 'functional' ? 'text-success' : b.state === 'damaged' ? 'text-warning' : 'text-error'}`;
-		if (stateEl.className !== newClassName) {
-			stateEl.className = newClassName;
-		}
-		
-		updateTextIfChanged(el.querySelector('[data-hp]'), `HP: ${b.hp}/${b.maxHp}`);
-		updateTextIfChanged(el.querySelector('[data-shield]'), `Shield: ${b.shieldHp}/${b.maxShieldHp}`);
-		updateTextIfChanged(el.querySelector('[data-pop]'), `Pop: ${b.population}/10`);
-	});
-}
+// MODIFIED: renderBuildings has been moved to the new src/buildings.js file.
 
 /**
  * Renders the grid of mana battery cars.
@@ -156,7 +115,7 @@ export function renderCity (contentArea) {
 	}
 	
 	const functional = gameState.city.buildings.filter(b => b.state === 'functional').length;
-	const shielded = gameState.city.buildings.filter(b => b.shieldHp > 0).length;
+	const shielded = gameState.city.buildings.filter(b => b.owner === 'player' && b.shieldHp > 0).length;
 	const broken = gameState.city.buildings.filter(b => b.state !== 'functional').length;
 	const activeCars = gameState.city.cars.filter(c => c.battery > 0).length;
 	

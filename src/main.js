@@ -7,7 +7,10 @@ import { handleUseConsumable } from './inventory.js';
 import { handleBuyItem, handleSellItem, handleBuySkill } from './shop.js';
 import { renderHeroes, autoEquipBestGear, renderShopModal } from './heroes.js';
 import { renderMonsters } from './monsters.js';
-import { renderHeader, renderTabs, renderBuildings, renderCars, renderCity, renderLog, renderItemsOverview } from './ui.js';
+// MODIFIED: Import building functions from the new buildings.js file
+import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding } from './buildings.js';
+// MODIFIED: renderBuildings is no longer imported from ui.js
+import { renderHeader, renderTabs, renderCars, renderCity, renderLog, renderItemsOverview } from './ui.js';
 
 const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'City', 'Items', 'Log', 'Sandbox'];
 let activeTab = 'Heroes';
@@ -58,7 +61,9 @@ function renderContent() {
  * Vanguards taunt monsters, and Strikers prioritize those taunted monsters.
  */
 function manageCombatAssignments() {
+	// MODIFIED: Heroes inside buildings cannot participate in combat.
 	const combatHeroes = gameState.heroes.filter(h =>
+		h.location === 'field' && // NEW: Must be in the field
 		(h.class === 'Striker' || h.class === 'Vanguard') &&
 		h.hp.current > 0 &&
 		h.carId
@@ -152,7 +157,22 @@ function gameLoop() {
 	gameState.heroes.forEach(hero => {
 		autoEquipBestGear(hero);
 		
-		// NEW: Generic car assignment logic for all heroes
+		// NEW: If hero is in a safezone, apply boosted regen and skip other actions.
+		if (hero.location !== 'field') {
+			const building = gameState.city.buildings.find(b => b.id === hero.location);
+			// Placeholder for future regen multiplier upgrades
+			const regenMultiplier = building?.regenMultiplier || 10;
+			
+			if (hero.hp.current > 0) {
+				hero.hp.current = Math.min(hero.hp.max, hero.hp.current + (hero.hpRegen * regenMultiplier));
+				if (hero.mp) {
+					hero.mp.current = Math.min(hero.mp.max, hero.mp.current + (hero.mpRegen * regenMultiplier));
+				}
+			}
+			return; // Skip the rest of the logic for this hero
+		}
+		
+		// MODIFIED: This logic now only runs for heroes in the 'field'
 		if (!hero.carId && hero.hp.current > 0) {
 			const availableCar = gameState.city.cars.find(c => c.battery > 0 && c.driverId === null);
 			if (availableCar) {
@@ -164,15 +184,13 @@ function gameLoop() {
 		
 		if (hero.hp.current > 0) {
 			hero.hp.current = Math.min(hero.hp.max, hero.hp.current + hero.hpRegen);
-			// MODIFIED: Only regenerate MP if the hero has an MP pool
 			if (hero.mp) {
 				hero.mp.current = Math.min(hero.mp.max, hero.mp.current + hero.mpRegen);
 			}
 		}
 		
-		// NEW: Vanguard rage decay when out of combat
 		if (hero.class === 'Vanguard' && !hero.targetMonsterId && hero.rage.current > 0) {
-			hero.rage.current = Math.max(0, hero.rage.current - 1); // Decay 1 rage per tick
+			hero.rage.current = Math.max(0, hero.rage.current - 1);
 		}
 		
 		if (hero.hp.current < hero.hp.max) {
@@ -199,7 +217,6 @@ function gameLoop() {
 			}
 		}
 		
-		// MODIFIED: Only check for MP potion usage if the hero has an MP pool
 		if (hero.mp && hero.mp.current < hero.mp.max) {
 			const missingMp = hero.mp.max - hero.mp.current;
 			const availableMpItems = Object.keys(hero.inventory)
@@ -210,11 +227,9 @@ function gameLoop() {
 				let bestItemToUse = null;
 				const mpThreshold = hero.mp.max * 0.25;
 				
-				// If MP is below 25%, use the strongest item available, even if it's wasteful.
 				if (hero.mp.current < mpThreshold) {
 					bestItemToUse = availableMpItems.sort((a, b) => b.effect.value - a.effect.value)[0];
 				} else {
-					// Otherwise, use the strongest item that won't be wasted.
 					bestItemToUse = availableMpItems
 						.filter(item => missingMp >= item.effect.value)
 						.sort((a, b) => b.effect.value - a.effect.value)[0];
@@ -226,7 +241,6 @@ function gameLoop() {
 			}
 		}
 		
-		// MODIFIED: Generic auto-cast logic for all heroes
 		if (hero.autoCastSkillId && hero.hp.current > 0) {
 			const skillId = hero.autoCastSkillId;
 			const skill = gameData.skills.find(s => s.id === skillId);
@@ -242,7 +256,6 @@ function gameLoop() {
 				const unlockLevel = baseSkill ? baseSkill.autoCastUnlockLevel : null;
 				const canAutoCast = unlockLevel && hero.level >= unlockLevel;
 				
-				// MODIFIED: Reworked resource check to handle heroes with/without MP or Rage
 				const mpCost = skill.mpCost || 0;
 				const rageCost = skill.rageCost || 0;
 				const hasMp = !mpCost || (hero.mp && hero.mp.current >= mpCost);
@@ -252,15 +265,14 @@ function gameLoop() {
 				if (canAutoCast && hasResources) {
 					let shouldCast = false;
 					if (skill.class === 'Aegis') {
-						if (skill.actionType === 'repair' && gameState.city.buildings.some(b => b.state !== 'functional')) shouldCast = true;
-						if (skill.actionType === 'shield' && gameState.city.buildings.some(b => b.state === 'functional' && b.shieldHp === 0)) shouldCast = true;
+						// MODIFIED: Removed repair/shield auto-cast checks
 						if (skill.actionType === 'battery' && gameState.city.cars.some(c => c.battery <= 0)) shouldCast = true;
 						if (skill.actionType === 'heal' && gameState.heroes.some(h => h.hp.current < (h.hp.max * 0.7))) shouldCast = true;
 						
 						if (shouldCast) handleAegisAction(hero.id, skill.id);
 					} else { // For Striker and Vanguard
 						if (hero.targetMonsterId) {
-							shouldCast = true; // Always attack if a target is present
+							shouldCast = true;
 						}
 						if (shouldCast) handleCombatAction(hero.id, skill.id);
 					}
@@ -272,12 +284,10 @@ function gameLoop() {
 	// 3. Monsters Attack Heroes based on Agro
 	gameState.activeMonsters.forEach(monster => {
 		if (monster.assignedTo.length > 0) {
-			// Find the hero with the most agro
 			let targetHeroId = null;
 			let maxAgro = -1;
 			
 			for (const heroId in monster.agro) {
-				// Ensure the hero is still alive and assigned to this monster
 				const hero = gameState.heroes.find(h => h.id === parseInt(heroId, 10));
 				if (hero && hero.hp.current > 0 && monster.assignedTo.includes(hero.id)) {
 					if (monster.agro[heroId] > maxAgro) {
@@ -303,6 +313,8 @@ function gameLoop() {
 				
 				if (targetHero.hp.current <= 0) {
 					targetHero.hp.current = 0;
+					// MODIFIED: When incapacitated, hero also exits any building they were in (shouldn't happen, but good failsafe)
+					handleExitBuilding(targetHero.id);
 					const car = gameState.city.cars.find(c => c.id === targetHero.carId);
 					if (car) car.driverId = null;
 					targetHero.carId = null;
@@ -315,7 +327,7 @@ function gameLoop() {
 	
 	// 4. Unassigned Monsters Attack City
 	gameState.activeMonsters.forEach(monster => {
-		if (monster.assignedTo.length === 0) { // A monster attacks if no one is fighting it.
+		if (monster.assignedTo.length === 0) {
 			if (!monster.targetBuilding) {
 				const validTargets = gameState.city.buildings.filter(b => b.state !== 'ruined');
 				if (validTargets.length > 0) {
@@ -330,23 +342,23 @@ function gameLoop() {
 					if (bldg.shieldHp > 0) {
 						const damageToShield = Math.min(bldg.shieldHp, monsterDamage);
 						bldg.shieldHp -= damageToShield;
-						addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToShield} damage to the shield on Building #${bldg.id}.`);
+						addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToShield} damage to the shield on ${bldg.name || `Building #${bldg.id}`}.`);
 						if (bldg.shieldHp === 0) {
-							addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) destroyed the shield on Building #${bldg.id}!`);
+							addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) destroyed the shield on ${bldg.name || `Building #${bldg.id}`}!`);
 						}
 					} else {
 						const damageToHp = Math.min(bldg.hp, monsterDamage);
 						bldg.hp -= damageToHp;
-						addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToHp} damage to Building #${bldg.id}.`);
+						addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToHp} damage to ${bldg.name || `Building #${bldg.id}`}.`);
 						if (bldg.hp <= 0) {
 							bldg.hp = 0;
 							bldg.state = 'ruined';
 							bldg.population = 0;
 							monster.targetBuilding = null;
-							addToLog(`Building #${bldg.id} was ruined by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
+							addToLog(`${bldg.name || `Building #${bldg.id}`} was ruined by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
 						} else if (bldg.hp <= 5 && bldg.state === 'functional') {
 							bldg.state = 'damaged';
-							addToLog(`Building #${bldg.id} was damaged by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
+							addToLog(`${bldg.name || `Building #${bldg.id}`} was damaged by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
 						}
 					}
 				} else {
@@ -362,30 +374,26 @@ function gameLoop() {
 		defeatedMonsters.forEach(monster => {
 			addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) was defeated!`);
 			
-			// Find heroes who were assigned to this monster
 			const attackers = monster.assignedTo
 				.map(id => gameState.heroes.find(h => h.id === id))
-				.filter(Boolean); // Filter out any nulls if a hero somehow disappears
+				.filter(Boolean);
 			
 			if (attackers.length > 0) {
 				const xpPerHero = Math.ceil(monster.xp / attackers.length);
 				const tokensPerHero = Math.ceil((monster.tokens || 0) / attackers.length);
 				
 				attackers.forEach(hero => {
-					// Clear target so they don't keep attacking a dead monster
 					if (hero.targetMonsterId === monster.id) {
 						hero.targetMonsterId = null;
 					}
 					
-					// Grant XP and Tokens
 					hero.xp.current += xpPerHero;
 					hero.tokens += tokensPerHero;
 					addToLog(`${hero.name} gained ${xpPerHero} XP and ${tokensPerHero} Tokens.`, hero.id);
 					
-					// Loot Drop Chance (Striker: 25%, Vanguard: 40%)
 					const lootChance = hero.class === 'Vanguard' ? 0.4 : 0.25;
 					if (Math.random() < lootChance) {
-						const possibleDrops = gameData.items.filter(item => item.level === monster.level && item.type !== 'Junk'); // Don't drop junk
+						const possibleDrops = gameData.items.filter(item => item.level === monster.level && item.type !== 'Junk');
 						if (possibleDrops.length > 0) {
 							const dropped = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
 							hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;
@@ -393,7 +401,6 @@ function gameLoop() {
 						}
 					}
 					
-					// Check for Level Up
 					if (hero.xp.current >= hero.xp.max) {
 						hero.level++;
 						hero.xp.current -= hero.xp.max;
@@ -409,7 +416,6 @@ function gameLoop() {
 			}
 		});
 		
-		// Remove defeated monsters from the active list
 		gameState.activeMonsters = gameState.activeMonsters.filter(m => m.currentHp > 0);
 	}
 	
@@ -451,16 +457,19 @@ function gameLoop() {
 // --- INITIALIZATION ---
 async function init() {
 	try {
-		const [items, skills, monsters, systemShop] = await Promise.all([
+		// NEW: Load building upgrades data
+		const [items, skills, monsters, systemShop, buildingUpgrades] = await Promise.all([
 			fetch('./data/items.json').then(res => res.json()),
 			fetch('./data/skills.json').then(res => res.json()),
 			fetch('./data/monsters.json').then(res => res.json()),
-			fetch('./data/system_shop.json').then(res => res.json())
+			fetch('./data/system_shop.json').then(res => res.json()),
+			fetch('./data/building_upgrades.json').then(res => res.json()) // NEW
 		]);
 		gameData.items = items;
 		gameData.skills = skills;
 		gameData.monsters = monsters;
 		gameData.system_shop = systemShop;
+		gameData.building_upgrades = buildingUpgrades; // NEW
 	} catch (error) {
 		console.error('Failed to load game data:', error);
 		contentArea.innerHTML = `<p class="text-error">Error: Could not load game data. Please check the console.</p>`;
@@ -485,32 +494,28 @@ async function init() {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
 			const itemId = e.target.dataset.sellItemId;
 			handleSellItem(heroId, itemId);
-			// If the shop is open, re-render it to reflect the change.
 			const modal = getEl('system-shop-modal');
 			if (modal.open) {
 				renderShopModal(heroId);
 			}
 			renderContent();
-			return; // Stop further processing
+			return;
 		}
 		
-		// Handle clicking on an inventory item on the HERO CARD to use it
 		const inventoryItem = e.target.closest('[data-inventory-item]');
 		const inShopModal = e.target.closest('#system-shop-modal');
-		if (inventoryItem && !inShopModal) { // Only process clicks outside the shop modal
+		if (inventoryItem && !inShopModal) {
 			const heroId = parseInt(inventoryItem.dataset.heroId, 10);
 			const itemId = inventoryItem.dataset.itemId;
 			const itemData = gameData.items.find(i => i.id === itemId);
-			// Only try to use items that are consumables
 			if (itemData && itemData.type === 'Consumable') {
 				if (handleUseConsumable(heroId, itemId)) {
-					renderContent(); // Re-render to show updated inventory count
+					renderContent();
 				}
 			}
-			return; // Prevent other click handlers from firing
+			return;
 		}
 		
-		// Handle opening the system shop modal
 		if (e.target.matches('[data-open-shop-btn]')) {
 			const card = e.target.closest('.card');
 			if (card && card.id.startsWith('hero-card-')) {
@@ -520,29 +525,25 @@ async function init() {
 			return;
 		}
 		
-		// Handle Aegis auto-cast buttons
 		const autoCastBtn = e.target.closest('[data-autocast-skill-id]');
 		if (autoCastBtn) {
 			const heroId = parseInt(autoCastBtn.dataset.heroId, 10);
 			const skillId = autoCastBtn.dataset.autocastSkillId;
 			const hero = gameState.heroes.find(h => h.id === heroId);
 			if (hero) {
-				// If clicking the currently active skill, toggle it off.
 				if (hero.autoCastSkillId === skillId) {
 					hero.autoCastSkillId = null;
 					addToLog(`${hero.name} disabled auto-cast.`, hero.id);
 				} else {
-					// Otherwise, set the new skill as active.
 					hero.autoCastSkillId = skillId;
 					const skillName = gameData.skills.find(s => s.id === skillId).name;
 					addToLog(`${hero.name} set auto-cast skill to: ${skillName}.`, hero.id);
 				}
 				renderContent();
 			}
-			return; // Prevent other handlers
+			return;
 		}
 		
-		// NEW: Handle healing target selection buttons
 		const setTargetBtn = e.target.closest('[data-set-target-hero-id]');
 		if (setTargetBtn) {
 			const casterId = parseInt(setTargetBtn.dataset.casterHeroId, 10);
@@ -556,7 +557,6 @@ async function init() {
 			return;
 		}
 		
-		// MODIFIED: Generic skill cast handler
 		if (e.target.matches('[data-skill-id]')) {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
 			const skillId = e.target.dataset.skillId;
@@ -565,7 +565,6 @@ async function init() {
 			
 			if (skillData.class === 'Aegis') {
 				const options = {};
-				// MODIFIED: Read target from hero's state instead of a selector
 				if (skillData.actionType === 'heal') {
 					options.targetHeroId = hero.skillTargets[skillId];
 				}
@@ -580,7 +579,6 @@ async function init() {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
 			const itemId = e.target.dataset.buyItemId;
 			handleBuyItem(heroId, itemId);
-			// Re-render the modal content after a purchase
 			renderShopModal(heroId);
 			renderContent();
 		}
@@ -588,9 +586,31 @@ async function init() {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
 			const skillId = e.target.dataset.buySkillId;
 			handleBuySkill(heroId, skillId);
-			// Re-render the modal content after a purchase
 			renderShopModal(heroId);
 			renderContent();
+		}
+		// NEW: Event handlers for building actions
+		if (e.target.matches('[data-buy-building-id]')) {
+			const buildingId = parseInt(e.target.dataset.buyBuildingId, 10);
+			handleBuyBuilding(buildingId);
+			renderContent();
+		}
+		if (e.target.matches('[data-enter-building-hero]')) {
+			const heroId = parseInt(e.target.dataset.enterBuildingHero, 10);
+			const buildingId = parseInt(e.target.dataset.enterBuildingBldg, 10);
+			handleEnterBuilding(heroId, buildingId);
+			renderContent();
+		}
+		if (e.target.matches('[data-exit-building-hero]')) {
+			const heroId = parseInt(e.target.dataset.exitBuildingHero, 10);
+			handleExitBuilding(heroId);
+			renderContent();
+		}
+		if (e.target.matches('[data-open-upgrade-modal]')) {
+			// Placeholder for rendering the upgrade modal
+			const buildingId = parseInt(e.target.dataset.openUpgradeModal, 10);
+			alert(`Placeholder: Open upgrade modal for Building #${buildingId}`);
+			// renderBuildingUpgradeModal(buildingId);
 		}
 		if (e.target.id === 'sandbox-apply') {
 			applySandboxChanges();

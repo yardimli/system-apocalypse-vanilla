@@ -1,27 +1,5 @@
 [
   {
-    "id": "AEG001",
-    "name": "Repair Building",
-    "class": "Aegis",
-    "type": "Manual",
-    "actionType": "repair",
-    "mpCost": 80,
-    "xpMax": 1000,
-    "autoCastUnlockLevel": 3,
-    "description": "Repairs 1 broken building."
-  },
-  {
-    "id": "AEG001_II",
-    "name": "Repair Building II",
-    "class": "Aegis",
-    "type": "Manual",
-    "actionType": "repair",
-    "mpCost": 120,
-    "replaces": "AEG001",
-    "xpMax": 1500,
-    "description": "Repairs up to 2 broken buildings."
-  },
-  {
     "id": "AEG001_III",
     "name": "Repair Building III",
     "class": "Aegis",
@@ -31,28 +9,6 @@
     "replaces": "AEG001_II",
     "xpMax": 2500,
     "description": "Repairs up to 3 broken buildings."
-  },
-  {
-    "id": "AEG002",
-    "name": "Shield Building",
-    "class": "Aegis",
-    "type": "Manual",
-    "actionType": "shield",
-    "mpCost": 120,
-    "xpMax": 2000,
-    "autoCastUnlockLevel": 3,
-    "description": "Adds a shield to 1 functional building."
-  },
-  {
-    "id": "AEG002_II",
-    "name": "Shield Building II",
-    "class": "Aegis",
-    "type": "Manual",
-    "actionType": "shield",
-    "mpCost": 180,
-    "replaces": "AEG002",
-    "xpMax": 3000,
-    "description": "Adds a shield to up to 2 functional buildings."
   },
   {
     "id": "AEG002_III",

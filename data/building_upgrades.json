@@ -1,0 +1,32 @@
+[
+  {
+    "id": "UPG_WALLS_1",
+    "name": "Reinforce Walls",
+    "description": "Increases the building's maximum HP by 50.",
+    "cost": 200,
+    "effect": {
+      "type": "increase_max_hp",
+      "value": 50
+    }
+  },
+  {
+    "id": "UPG_SHIELD_1",
+    "name": "Install Basic Shield",
+    "description": "Adds a basic shield generator to the building with 100 max shield HP.",
+    "cost": 500,
+    "effect": {
+      "type": "add_shield",
+      "value": 100
+    }
+  },
+  {
+    "id": "UPG_REGEN_AURA_1",
+    "name": "Soothing Ambiance",
+    "description": "Slightly increases the HP/MP regeneration bonus for heroes inside.",
+    "cost": 1000,
+    "effect": {
+      "type": "increase_regen_multiplier",
+      "value": 2
+    }
+  }
+]

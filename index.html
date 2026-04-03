@@ -22,7 +22,7 @@
 
 </div>
 
-<!-- Added a modal for the System Shop -->
+<!-- System Shop Modal -->
 <dialog id="system-shop-modal" class="modal">
 	<div class="modal-box w-11/12 max-w-3xl">
 		<div id="shop-modal-header">
@@ -37,6 +37,26 @@
 			<div class="divider my-2">Your Inventory</div>
 			<div id="shop-modal-inventory" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 				<!-- Hero inventory items will be injected here by JS -->
+			</div>
+		</div>
+		<div class="modal-action">
+			<form method="dialog">
+				<button class="btn">Close</button>
+			</form>
+		</div>
+	</div>
+</dialog>
+
+<!-- NEW: Building Upgrade Modal -->
+<dialog id="building-upgrade-modal" class="modal">
+	<div class="modal-box w-11/12 max-w-3xl">
+		<div id="upgrade-modal-header">
+			<!-- Building name and party tokens will be injected here by JS -->
+		</div>
+		<div class="mt-4 max-h-[70vh] overflow-y-auto pr-2">
+			<div class="divider my-2">Available Upgrades</div>
+			<div id="upgrade-modal-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+				<!-- Building upgrades will be injected here by JS -->
 			</div>
 		</div>
 		<div class="modal-action">

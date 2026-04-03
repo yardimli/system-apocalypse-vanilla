@@ -15,47 +15,7 @@ export function handleAegisAction(heroId, skillId, options = {}) {
 	
 	// Pre-check conditions to avoid wasting MP and spamming logs
 	switch (skill.actionType) {
-		case 'repair':
-			const baseRepairCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
-			const repairCount = Math.ceil(baseRepairCount * levelBoost);
-			let repaired = 0;
-			const repairedBuildingIds = []; // Array to store IDs of repaired buildings
-			for (let i = 0; i < repairCount; i++) {
-				let targetBldg = gameState.city.buildings.find(b => b.state === 'ruined');
-				if (!targetBldg) targetBldg = gameState.city.buildings.find(b => b.state === 'damaged');
-				
-				if (targetBldg) {
-					targetBldg.state = 'functional';
-					targetBldg.hp = targetBldg.maxHp;
-					repairedBuildingIds.push(targetBldg.id); // store ID
-					repaired++;
-				} else break;
-			}
-			if (repaired > 0) {
-				// Update log message with building IDs
-				addToLog(`${hero.name} repaired ${repaired} building(s): #${repairedBuildingIds.join(', #')}.`, hero.id);
-				success = true;
-			}
-			break;
-		case 'shield':
-			const baseShieldCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
-			const shieldCount = Math.ceil(baseShieldCount * levelBoost);
-			let shielded = 0;
-			const shieldedBuildingIds = []; // Array to store IDs of shielded buildings
-			for (let i = 0; i < shieldCount; i++) {
-				const unshieldedBldg = gameState.city.buildings.find(b => b.state === 'functional' && b.shieldHp === 0);
-				if (unshieldedBldg) {
-					unshieldedBldg.shieldHp = unshieldedBldg.maxShieldHp;
-					shieldedBuildingIds.push(unshieldedBldg.id); // MODIFIED: store ID
-					shielded++;
-				} else break;
-			}
-			if (shielded > 0) {
-				// Update log message with building IDs
-				addToLog(`${hero.name} shielded ${shielded} building(s): #${shieldedBuildingIds.join(', #')}.`, hero.id);
-				success = true;
-			}
-			break;
+		// MODIFIED: Removed 'repair' and 'shield' cases as these skills are no longer part of the Aegis kit.
 		case 'battery':
 			const baseChargeCount = skill.id.includes('III') ? 3 : skill.id.includes('II') ? 2 : 1;
 			const chargeCount = Math.ceil(baseChargeCount * levelBoost);
