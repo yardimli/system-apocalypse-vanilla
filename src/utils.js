@@ -13,7 +13,7 @@ export function addToLog (message, heroId = null) {
 	
 	// Add to global log
 	gameState.log.unshift(fullMessage);
-	if (gameState.log.length > 100) {
+	if (gameState.log.length > 2000) {
 		gameState.log.pop();
 	}
 	
@@ -22,7 +22,7 @@ export function addToLog (message, heroId = null) {
 		const hero = gameState.heroes.find(h => h.id === heroId);
 		if (hero) {
 			hero.log.unshift(fullMessage); // Add the same full message for consistency
-			if (hero.log.length > 20) { // Keep hero logs shorter
+			if (hero.log.length > 300) { // Keep hero logs shorter
 				hero.log.pop();
 			}
 		}
