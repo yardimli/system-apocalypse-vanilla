@@ -35,7 +35,6 @@ export function renderHeader () {
 	
 	const totalPop = gameState.city.buildings.reduce((sum, b) => sum + b.population, 0);
 	const functional = gameState.city.buildings.filter(b => b.state === 'functional').length;
-	// MODIFIED: Shielded count is now based on player-owned buildings with shield properties.
 	const shielded = gameState.city.buildings.filter(b => b.owner === 'player' && b.shieldHp > 0).length;
 	const broken = gameState.city.buildings.filter(b => b.state !== 'functional').length;
 	
@@ -43,12 +42,13 @@ export function renderHeader () {
 	const attackingHero = gameState.activeMonsters.filter(m => m.assigned).length;
 	const roaming = gameState.activeMonsters.filter(m => !m.assigned && !m.targetBuilding).length;
 	
-	const activeCars = gameState.city.cars.filter(c => c.battery > 0).length;
+	// MODIFIED: Car count is now based on player-owned cars.
+	const activeCars = gameState.city.cars.filter(c => c.owner === 'player').length;
 	
 	const bldgText = `F:${functional} | S:${shielded} | B:${broken}`;
 	headerContainer.querySelector('[data-stat="population"]').textContent = totalPop;
 	headerContainer.querySelector('[data-stat="buildings"]').textContent = bldgText;
-	headerContainer.querySelector('[data-stat="cars"]').textContent = `${activeCars}/40`;
+	headerContainer.querySelector('[data-stat="cars"]').textContent = `${activeCars}/${gameState.city.cars.length}`;
 	headerContainer.querySelector('[data-stat="monsters"]').textContent = `${attackingBldg} / ${attackingHero}`;
 	headerContainer.querySelector('[data-stat="roaming"]').textContent = roaming;
 }
@@ -64,37 +64,7 @@ export function renderTabs (activeTab, TABS) {
     `).join('');
 }
 
-// MODIFIED: renderBuildings has been moved to the new src/buildings.js file.
-
-/**
- * Renders the grid of mana battery cars.
- * @param {HTMLElement} contentArea - The main content DOM element.
- */
-export function renderCars (contentArea) {
-	if (!getEl('cars-grid')) {
-		contentArea.innerHTML = `<div id="cars-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4"></div>`;
-	}
-	const grid = getEl('cars-grid');
-	
-	// Generate a state string to check if an update is actually needed
-	const stateStr = JSON.stringify(gameState.city.cars.map(car => [car.id, car.battery, car.driverId]));
-	if (grid.getAttribute('data-prev-state') === stateStr) return;
-	
-	grid.innerHTML = gameState.city.cars.map(car => {
-		const driver = car.driverId ? gameState.heroes.find(h => h.id === car.driverId) : null;
-		const driverText = driver ? `${driver.name} (${driver.class})` : 'None';
-		return `
-            <div class="card bg-base-200 shadow-sm p-3 text-xs border ${car.battery > 0 ? 'border-success' : 'border-error'}">
-                <div class="font-bold mb-1">Car #${car.id}</div>
-                <div>Battery: ${car.battery}/30</div>
-                <div class="truncate text-gray-400 mt-1">Driver: ${driverText}</div>
-            </div>
-        `;
-	}).join('');
-	
-	// Save the current state to prevent unnecessary updates
-	grid.setAttribute('data-prev-state', stateStr);
-}
+// MODIFIED: renderCars has been moved to the new src/cars.js file.
 
 /**
  * Renders the main city status overview.
@@ -109,7 +79,7 @@ export function renderCity (contentArea) {
                 <div class="stat"><div class="stat-title">Functional</div><div class="stat-value text-success" id="city-func-stat"></div></div>
                 <div class="stat"><div class="stat-title">Shielded</div><div class="stat-value text-info" id="city-shield-stat"></div></div>
                 <div class="stat"><div class="stat-title">Broken</div><div class="stat-value text-error" id="city-broken-stat"></div></div>
-                <div class="stat"><div class="stat-title">Active Cars</div><div class="stat-value text-warning" id="city-cars-stat"></div></div>
+                <div class="stat"><div class="stat-title">Player Cars</div><div class="stat-value text-warning" id="city-cars-stat"></div></div>
             </div>
         </div>`;
 	}
@@ -117,12 +87,13 @@ export function renderCity (contentArea) {
 	const functional = gameState.city.buildings.filter(b => b.state === 'functional').length;
 	const shielded = gameState.city.buildings.filter(b => b.owner === 'player' && b.shieldHp > 0).length;
 	const broken = gameState.city.buildings.filter(b => b.state !== 'functional').length;
-	const activeCars = gameState.city.cars.filter(c => c.battery > 0).length;
+	// MODIFIED: Car count is now based on player-owned cars.
+	const activeCars = gameState.city.cars.filter(c => c.owner === 'player').length;
 	
 	getEl('city-func-stat').textContent = functional;
 	getEl('city-shield-stat').textContent = shielded;
 	getEl('city-broken-stat').textContent = broken;
-	getEl('city-cars-stat').textContent = `${activeCars}/40`;
+	getEl('city-cars-stat').textContent = `${activeCars}/${gameState.city.cars.length}`;
 }
 
 /**

@@ -1,0 +1,102 @@
+[
+  {
+    "id": "CAR_DMG_1",
+    "name": "Reinforced Bumper",
+    "description": "Increases damage dealt by occupants by 10%.",
+    "cost": 500,
+    "effect": {
+      "type": "increase_occupant_damage_bonus",
+      "value": 0.10
+    }
+  },
+  {
+    "id": "CAR_DMG_2",
+    "name": "Spiked Wheels",
+    "description": "Increases damage dealt by occupants by 15%.",
+    "cost": 1000,
+    "effect": {
+      "type": "increase_occupant_damage_bonus",
+      "value": 0.15
+    }
+  },
+  {
+    "id": "CAR_DMG_3",
+    "name": "Mounted Machine Gun",
+    "description": "Increases damage dealt by occupants by 20%.",
+    "cost": 2500,
+    "effect": {
+      "type": "increase_occupant_damage_bonus",
+      "value": 0.20
+    }
+  },
+  {
+    "id": "CAR_DMG_4",
+    "name": "Charged Laser Cannon",
+    "description": "Increases damage dealt by occupants by 25%.",
+    "cost": 5000,
+    "effect": {
+      "type": "increase_occupant_damage_bonus",
+      "value": 0.25
+    }
+  },
+  {
+    "id": "CAR_DMG_5",
+    "name": "System-Enhanced Munitions",
+    "description": "Increases damage dealt by occupants by 30%.",
+    "cost": 10000,
+    "effect": {
+      "type": "increase_occupant_damage_bonus",
+      "value": 0.30
+    }
+  },
+  {
+    "id": "CAR_MIT_1",
+    "name": "Armor Plating",
+    "description": "Reduces damage taken by occupants by 5%.",
+    "cost": 400,
+    "effect": {
+      "type": "increase_occupant_mitigation_bonus",
+      "value": 0.05
+    }
+  },
+  {
+    "id": "CAR_MIT_2",
+    "name": "Bulletproof Glass",
+    "description": "Reduces damage taken by occupants by 10%.",
+    "cost": 800,
+    "effect": {
+      "type": "increase_occupant_mitigation_bonus",
+      "value": 0.10
+    }
+  },
+  {
+    "id": "CAR_MIT_3",
+    "name": "Reactive Armor",
+    "description": "Reduces damage taken by occupants by 15%.",
+    "cost": 2000,
+    "effect": {
+      "type": "increase_occupant_mitigation_bonus",
+      "value": 0.15
+    }
+  },
+  {
+    "id": "CAR_MIT_4",
+    "name": "Energy Shield Emitter",
+    "description": "Reduces damage taken by occupants by 20%.",
+    "cost": 4000,
+    "effect": {
+      "type": "increase_occupant_mitigation_bonus",
+      "value": 0.20
+    }
+  },
+  {
+    "id": "CAR_MIT_5",
+    "name": "Aegis Barrier Field",
+    "description": "Reduces damage taken by occupants by 25%.",
+    "cost": 8000,
+    "effect": {
+      "type": "increase_occupant_mitigation_bonus",
+      "value": 0.25
+    }
+  }
+]

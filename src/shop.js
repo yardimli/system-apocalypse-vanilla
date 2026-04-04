@@ -28,7 +28,7 @@ export function handleBuyItem(heroId, itemId) {
 	}
 	
 	if (hero.tokens < shopEntry.price) {
-		addToLog(`${hero.name} does not have enough tokens to buy ${itemData.name}.`, hero.id); // MODIFIED
+		addToLog(`${hero.name} does not have enough tokens to buy ${itemData.name}.`, hero.id);
 		return;
 	}
 	
@@ -36,7 +36,7 @@ export function handleBuyItem(heroId, itemId) {
 	hero.tokens -= shopEntry.price;
 	hero.inventory[itemId] = (hero.inventory[itemId] || 0) + 1;
 	
-	addToLog(`${hero.name} bought ${itemData.name} for ${shopEntry.price} tokens.`, hero.id); // MODIFIED
+	addToLog(`${hero.name} bought ${itemData.name} for ${shopEntry.price} tokens.`, hero.id);
 	
 	// If the bought item was equippable, run auto-equip logic
 	if (itemData.equipSlot) {
@@ -60,22 +60,20 @@ export function handleBuySkill(heroId, skillId) {
 	}
 	
 	if (hero.tokens < shopEntry.price) {
-		addToLog(`${hero.name} does not have enough tokens to learn ${skillData.name}.`, hero.id); // MODIFIED
+		addToLog(`${hero.name} does not have enough tokens to learn ${skillData.name}.`, hero.id);
 		return;
 	}
 	
-	// MODIFIED: Skill check updated for new data structure
 	if (hero.skills.some(s => s.id === skillId)) {
-		addToLog(`${hero.name} already knows ${skillData.name}.`, hero.id); // MODIFIED
+		addToLog(`${hero.name} already knows ${skillData.name}.`, hero.id);
 		return;
 	}
 	
 	// Process transaction
 	hero.tokens -= shopEntry.price;
-	// MODIFIED: Skill object no longer has an xp property.
 	hero.skills.push({ id: skillId });
 	
-	addToLog(`${hero.name} learned ${skillData.name} for ${shopEntry.price} tokens.`, hero.id); // MODIFIED
+	addToLog(`${hero.name} learned ${skillData.name} for ${shopEntry.price} tokens.`, hero.id);
 }
 
 
@@ -99,7 +97,7 @@ export function handleSellItem(heroId, itemId) {
 	
 	// Cannot sell if the number of items is less than or equal to the number equipped.
 	if (totalQty <= equippedCount) {
-		addToLog(`Cannot sell. All ${itemData.name}(s) are currently equipped.`, hero.id); // MODIFIED
+		addToLog(`Cannot sell. All ${itemData.name}(s) are currently equipped.`, hero.id);
 		return;
 	}
 	
@@ -112,5 +110,81 @@ export function handleSellItem(heroId, itemId) {
 	}
 	hero.tokens += sellPrice;
 	
-	addToLog(`${hero.name} sold ${itemData.name} for ${sellPrice} tokens.`, hero.id); // MODIFIED
+	addToLog(`${hero.name} sold ${itemData.name} for ${sellPrice} tokens.`, hero.id);
+}
+
+/**
+ * NEW: Handles the party buying an upgrade for a car or building.
+ * @param {string} upgradeId - The ID of the upgrade to buy.
+ */
+export function handleBuyUpgrade(upgradeId) {
+	const upgrade = gameData.building_upgrades.find(u => u.id === upgradeId) || gameData.car_upgrades.find(u => u.id === upgradeId);
+	if (!upgrade) {
+		addToLog(`Shop Error: Upgrade with ID ${upgradeId} not found.`);
+		return;
+	}
+	
+	const totalTokens = gameState.heroes.reduce((sum, h) => sum + h.tokens, 0);
+	if (totalTokens < upgrade.cost) {
+		addToLog(`The party doesn't have enough tokens to buy ${upgrade.name}. (Need ${upgrade.cost})`);
+		return;
+	}
+	
+	const isCarUpgrade = upgrade.id.startsWith('CAR_');
+	const targetType = isCarUpgrade ? 'car' : 'building';
+	const ownedAssets = isCarUpgrade
+		? gameState.city.cars.filter(c => c.owner === 'player')
+		: gameState.city.buildings.filter(b => b.owner === 'player');
+	
+	if (ownedAssets.length === 0) {
+		addToLog(`There are no player-owned ${targetType}s to upgrade.`);
+		return;
+	}
+	
+	const validIds = ownedAssets.map(a => a.id).join(', ');
+	const targetIdStr = prompt(`Enter the ID of the ${targetType} to apply "${upgrade.name}" to.\nValid IDs: ${validIds}`);
+	if (!targetIdStr) {
+		addToLog('Upgrade purchase cancelled.');
+		return;
+	}
+	
+	const targetId = parseInt(targetIdStr, 10);
+	const targetAsset = ownedAssets.find(a => a.id === targetId);
+	
+	if (!targetAsset) {
+		addToLog(`Invalid ID. No player-owned ${targetType} with ID #${targetId} found.`);
+		return;
+	}
+	
+	if (targetAsset.upgrades.includes(upgradeId)) {
+		addToLog(`${targetAsset.name || `${targetType} #${targetId}`} already has the ${upgrade.name} upgrade.`);
+		return;
+	}
+	
+	// Deduct cost from party, starting with the richest heroes.
+	let remainingCost = upgrade.cost;
+	const payers = gameState.heroes.slice().sort((a, b) => b.tokens - a.tokens);
+	for (const hero of payers) {
+		const payment = Math.min(hero.tokens, remainingCost);
+		hero.tokens -= payment;
+		remainingCost -= payment;
+		if (remainingCost <= 0) break;
+	}
+	
+	// Apply upgrade
+	targetAsset.upgrades.push(upgradeId);
+	
+	// Handle one-time effects of upgrades (e.g., adding a shield)
+	const { effect } = upgrade;
+	if (effect) {
+		if (effect.type === 'add_shield') {
+			targetAsset.maxShieldHp = (targetAsset.maxShieldHp || 0) + effect.value;
+			targetAsset.shieldHp = (targetAsset.shieldHp || 0) + effect.value;
+		} else if (effect.type === 'increase_max_hp') {
+			targetAsset.maxHp += effect.value;
+			targetAsset.hp += effect.value;
+		}
+	}
+	
+	addToLog(`Party purchased ${upgrade.name} for ${targetAsset.name || `${targetType} #${targetId}`} for ${upgrade.cost} tokens!`);
 }

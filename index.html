@@ -29,7 +29,7 @@
 			<!-- Hero name and tokens will be injected here by JS -->
 		</div>
 		
-		<!-- NEW: Tabbed interface for the shop -->
+		<!-- MODIFIED: Tabbed interface for the shop -->
 		<div role="tablist" class="tabs tabs-lifted mt-4">
 			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Items" checked />
 			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 max-h-[60vh] overflow-y-auto">
@@ -42,6 +42,14 @@
 			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 max-h-[60vh] overflow-y-auto">
 				<div id="shop-modal-skills-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Skills for sale will be injected here -->
+				</div>
+			</div>
+			
+			<!-- NEW: Upgrades Tab -->
+			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Upgrades" />
+			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 max-h-[60vh] overflow-y-auto">
+				<div id="shop-modal-upgrades-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+					<!-- Upgrades for sale will be injected here -->
 				</div>
 			</div>
 			
@@ -137,7 +145,7 @@
 			</div>
 			
 			<!-- Dynamic Action/Combat Area -->
-			<div class="w-full mt-2 min-h-[80px] bg-base-300 rounded p-2 flex flex-col justify-center" data-dynamic-area>
+			<div class="w-full mt-2 min-h-[150px] bg-base-300 rounded p-2 flex flex-col justify-center" data-dynamic-area>
 			</div>
 			
 			<!-- System Shop Area is now a button -->

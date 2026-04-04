@@ -4,13 +4,12 @@ import { handleCombatAction } from './combat.js';
 import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { handleUseConsumable } from './inventory.js';
-import { handleBuyItem, handleSellItem, handleBuySkill } from './shop.js';
+import { handleBuyItem, handleSellItem, handleBuySkill, handleBuyUpgrade } from './shop.js'; // MODIFIED: Import handleBuyUpgrade
 import { renderHeroes, autoEquipBestGear, renderShopModal } from './heroes.js';
 import { renderMonsters } from './monsters.js';
-// MODIFIED: Import building functions from the new buildings.js file
 import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding } from './buildings.js';
-// MODIFIED: renderBuildings is no longer imported from ui.js
-import { renderHeader, renderTabs, renderCars, renderCity, renderLog, renderItemsOverview } from './ui.js';
+import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview } from './ui.js';
+import { renderCars, handleBuyCar, handleEnterCar, handleExitCar } from './cars.js'; // NEW: Import car handlers
 
 const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'City', 'Items', 'Log', 'Sandbox'];
 let activeTab = 'Heroes';
@@ -36,7 +35,7 @@ function renderContent() {
 			renderBuildings(contentArea);
 			break;
 		case 'Cars':
-			renderCars(contentArea);
+			renderCars(contentArea); // MODIFIED: Now calls the new renderCars function
 			break;
 		case 'Monsters':
 			renderMonsters(contentArea);
@@ -56,20 +55,14 @@ function renderContent() {
 	}
 }
 
-/**
- * Manages combat assignments for Strikers and Vanguards.
- * Vanguards taunt monsters, and Strikers prioritize those taunted monsters.
- */
 function manageCombatAssignments() {
-	// MODIFIED: Heroes inside buildings cannot participate in combat.
 	const combatHeroes = gameState.heroes.filter(h =>
-		h.location === 'field' && // NEW: Must be in the field
+		h.location === 'field' &&
 		(h.class === 'Striker' || h.class === 'Vanguard') &&
 		h.hp.current > 0 &&
 		h.carId
 	);
 	
-	// Clear targets for heroes whose monster is already defeated
 	combatHeroes.forEach(hero => {
 		if (hero.targetMonsterId && !gameState.activeMonsters.some(m => m.id === hero.targetMonsterId)) {
 			hero.targetMonsterId = null;
@@ -79,10 +72,8 @@ function manageCombatAssignments() {
 	const vanguards = combatHeroes.filter(h => h.class === 'Vanguard');
 	const strikers = combatHeroes.filter(h => h.class === 'Striker');
 	
-	// 1. Vanguards find targets if they are idle
 	vanguards.forEach(vanguard => {
 		if (!vanguard.targetMonsterId) {
-			// Prefer monsters not engaged by anyone
 			const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
 			if (target) {
 				vanguard.targetMonsterId = target.id;
@@ -90,7 +81,6 @@ function manageCombatAssignments() {
 		}
 	});
 	
-	// 2. Strikers prioritize Vanguard targets
 	const vanguardTargets = vanguards
 		.map(v => gameState.activeMonsters.find(m => m.id === v.targetMonsterId))
 		.filter(Boolean);
@@ -99,10 +89,8 @@ function manageCombatAssignments() {
 		const isTargetingVanguardMonster = vanguardTargets.some(m => m.id === striker.targetMonsterId);
 		
 		if (vanguardTargets.length > 0 && !isTargetingVanguardMonster) {
-			// If Vanguards have targets, Strikers MUST assist.
-			striker.targetMonsterId = vanguardTargets[0].id; // Assist the first Vanguard's target.
+			striker.targetMonsterId = vanguardTargets[0].id;
 		} else if (vanguardTargets.length === 0 && !striker.targetMonsterId) {
-			// No Vanguards fighting, Striker is idle. Find a target.
 			const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
 			if (target) {
 				striker.targetMonsterId = target.id;
@@ -110,7 +98,6 @@ function manageCombatAssignments() {
 		}
 	});
 	
-	// Sync monster 'assignedTo' arrays based on final hero targets
 	gameState.activeMonsters.forEach(m => {
 		m.assignedTo = gameState.heroes
 			.filter(h => h.targetMonsterId === m.id)
@@ -125,12 +112,9 @@ function gameLoop() {
 	
 	// 1. Spawn Monsters
 	const currentDay = Math.floor(gameState.time / 10) + 1;
-	
-	// Filter monsters that are eligible to spawn based on the current day.
 	const availableMonsters = gameData.monsters.filter(m => m.spawnDay <= currentDay);
 	
 	availableMonsters.forEach(monsterData => {
-		// Each monster has its own independent chance to spawn each tick.
 		if (Math.random() < monsterData.spawnRatio) {
 			const newMonster = {
 				id: gameState.nextMonsterId++,
@@ -144,7 +128,7 @@ function gameLoop() {
 				tokens: monsterData.tokens,
 				assignedTo: [],
 				targetBuilding: null,
-				agro: {} // NEW: Agro table for each monster
+				agro: {}
 			};
 			gameState.activeMonsters.push(newMonster);
 			addToLog(`A Lv.${monsterData.level} ${monsterData.name} (#${newMonster.id}) has appeared!`);
@@ -157,10 +141,8 @@ function gameLoop() {
 	gameState.heroes.forEach(hero => {
 		autoEquipBestGear(hero);
 		
-		// MODIFIED: If hero is in a safezone, apply boosted regen based on building HP.
 		if (hero.location !== 'field') {
 			const building = gameState.city.buildings.find(b => b.id === hero.location);
-			// NEW: Regen multiplier is based on building HP percentage.
 			const baseRegenMultiplier = building?.regenMultiplier || 10;
 			const hpPercentage = (building && building.maxHp > 0) ? (building.hp / building.maxHp) : 1;
 			const regenMultiplier = baseRegenMultiplier * hpPercentage;
@@ -171,16 +153,16 @@ function gameLoop() {
 					hero.mp.current = Math.min(hero.mp.max, hero.mp.current + (hero.mpRegen * regenMultiplier));
 				}
 			}
-			return; // Skip the rest of the logic for this hero
+			return;
 		}
 		
-		// MODIFIED: This logic now only runs for heroes in the 'field'
+		// MODIFIED: Auto-enter an available player-owned car instead of finding one with battery.
 		if (!hero.carId && hero.hp.current > 0) {
-			const availableCar = gameState.city.cars.find(c => c.battery > 0 && c.driverId === null);
+			const availableCar = gameState.city.cars.find(c => c.owner === 'player' && c.occupants.length < c.maxOccupants);
 			if (availableCar) {
 				hero.carId = availableCar.id;
-				availableCar.driverId = hero.id;
-				addToLog(`${hero.name} entered Car #${availableCar.id}.`, hero.id);
+				availableCar.occupants.push(hero.id);
+				addToLog(`${hero.name} automatically entered ${availableCar.name || `Car #${availableCar.id}`}.`, hero.id);
 			}
 		}
 		
@@ -248,7 +230,6 @@ function gameLoop() {
 			const skill = gameData.skills.find(s => s.id === skillId);
 			
 			if (skill) {
-				// MODIFIED: Level check for auto-casting
 				const meetsLevelReq = !skill.levelRequirement || hero.level >= skill.levelRequirement;
 				
 				let baseSkill = skill;
@@ -267,11 +248,12 @@ function gameLoop() {
 				const hasRage = !rageCost || (hero.rage && hero.rage.current >= rageCost);
 				const hasResources = hasMp && hasRage;
 				
-				if (meetsLevelReq && canAutoCast && hasResources) { // MODIFIED: Added meetsLevelReq
+				const isOnCooldown = (hero.skillCooldowns[skillId] || 0) > gameState.time;
+				
+				if (meetsLevelReq && canAutoCast && hasResources && !isOnCooldown) {
 					let shouldCast = false;
 					if (skill.class === 'Aegis') {
-						// MODIFIED: Removed repair/shield auto-cast checks
-						if (skill.actionType === 'battery' && gameState.city.cars.some(c => c.battery <= 0)) shouldCast = true;
+						// MODIFIED: Removed 'battery' auto-cast check.
 						if (skill.actionType === 'heal' && gameState.heroes.some(h => h.hp.current < (h.hp.max * 0.7))) shouldCast = true;
 						
 						if (shouldCast) handleAegisAction(hero.id, skill.id);
@@ -311,18 +293,38 @@ function gameLoop() {
 				const totalMitigation = armorMitigation + shieldMitigation;
 				
 				const monsterDamage = parseRange(monster.damage);
-				const damageTaken = Math.max(1, monsterDamage - totalMitigation);
+				let damageTaken = Math.max(1, monsterDamage - totalMitigation);
+				
+				// NEW: Apply mitigation bonus from car upgrades if the hero is in a car.
+				const car = targetHero.carId ? gameState.city.cars.find(c => c.id === targetHero.carId) : null;
+				if (car) {
+					const mitigationBonus = car.upgrades
+						.map(upgId => gameData.car_upgrades.find(u => u.id === upgId))
+						.filter(upg => upg && upg.effect.type === 'increase_occupant_mitigation_bonus')
+						.reduce((sum, upg) => sum + upg.effect.value, 0);
+					
+					if (mitigationBonus > 0) {
+						const mitigatedAmount = Math.floor(damageTaken * mitigationBonus);
+						damageTaken -= mitigatedAmount;
+						addToLog(`${targetHero.name}'s car mitigated ${mitigatedAmount} damage!`, targetHero.id);
+					}
+				}
+				damageTaken = Math.max(1, damageTaken); // Ensure at least 1 damage is dealt after all mitigation.
 				
 				targetHero.hp.current -= damageTaken;
 				addToLog(`${monster.name} (#${monster.id}) attacked ${targetHero.name}, dealing ${damageTaken} damage!`, targetHero.id);
 				
 				if (targetHero.hp.current <= 0) {
 					targetHero.hp.current = 0;
-					// MODIFIED: When incapacitated, hero also exits any building they were in (shouldn't happen, but good failsafe)
 					handleExitBuilding(targetHero.id);
-					const car = gameState.city.cars.find(c => c.id === targetHero.carId);
-					if (car) car.driverId = null;
-					targetHero.carId = null;
+					// MODIFIED: Remove hero from car occupants if they are incapacitated.
+					if (targetHero.carId) {
+						const car = gameState.city.cars.find(c => c.id === targetHero.carId);
+						if (car) {
+							car.occupants = car.occupants.filter(id => id !== targetHero.id);
+						}
+						targetHero.carId = null;
+					}
 					targetHero.targetMonsterId = null;
 					addToLog(`${targetHero.name} was incapacitated by ${monster.name} (#${monster.id})!`, targetHero.id);
 				}
@@ -347,7 +349,6 @@ function gameLoop() {
 					if (bldg.shieldHp > 0) {
 						const damageToShield = Math.min(bldg.shieldHp, monsterDamage);
 						bldg.shieldHp -= damageToShield;
-						// NEW: Player-owned buildings cannot drop below 1 shield/hp
 						if (bldg.owner === 'player' && bldg.shieldHp < 1) bldg.shieldHp = 1;
 						addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToShield} damage to the shield on ${bldg.name || `Building #${bldg.id}`}.`);
 						if (bldg.shieldHp === 0 || (bldg.owner === 'player' && bldg.shieldHp === 1)) {
@@ -358,7 +359,7 @@ function gameLoop() {
 						bldg.hp -= damageToHp;
 						if (bldg.owner === 'player' && bldg.hp < 1) bldg.hp = 1;
 						addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToHp} damage to ${bldg.name || `Building #${bldg.id}`}.`);
-						if (bldg.hp <= 0 && bldg.owner !== 'player') { // MODIFIED: Only non-player buildings can be ruined
+						if (bldg.hp <= 0 && bldg.owner !== 'player') {
 							bldg.hp = 0;
 							bldg.state = 'ruined';
 							bldg.population = 0;
@@ -435,27 +436,14 @@ function gameLoop() {
 			}
 		});
 		
-		gameState.city.cars.forEach(car => {
-			if (car.driverId !== null) {
-				car.battery--;
-				if (car.battery <= 0) {
-					car.battery = 0;
-					const driver = gameState.heroes.find(h => h.id === car.driverId);
-					if (driver) {
-						driver.carId = null;
-						addToLog(`${driver.name}'s car ran out of battery!`, driver.id);
-					}
-					car.driverId = null;
-				}
-			}
-		});
+		// MODIFIED: Removed car battery drain logic.
 	}
 	
 	renderHeader();
 	if (activeTab === 'Heroes') renderHeroes();
 	if (activeTab === 'Buildings') renderBuildings(contentArea);
 	if (activeTab === 'Monsters') renderMonsters(contentArea);
-	if (activeTab === 'Cars') renderCars(contentArea);
+	if (activeTab === 'Cars') renderCars(contentArea); // MODIFIED
 	if (activeTab === 'City') renderCity(contentArea);
 	if (activeTab === 'Items') renderItemsOverview(contentArea);
 	if (activeTab === 'Log') renderLog(contentArea);
@@ -465,19 +453,21 @@ function gameLoop() {
 // --- INITIALIZATION ---
 async function init() {
 	try {
-		// NEW: Load building upgrades data
-		const [items, skills, monsters, systemShop, buildingUpgrades] = await Promise.all([
+		// MODIFIED: Fetch new car_upgrades.json
+		const [items, skills, monsters, systemShop, buildingUpgrades, carUpgrades] = await Promise.all([
 			fetch('./data/items.json').then(res => res.json()),
 			fetch('./data/skills.json').then(res => res.json()),
 			fetch('./data/monsters.json').then(res => res.json()),
 			fetch('./data/system_shop.json').then(res => res.json()),
-			fetch('./data/building_upgrades.json').then(res => res.json()) // NEW
+			fetch('./data/building_upgrades.json').then(res => res.json()),
+			fetch('./data/car_upgrades.json').then(res => res.json()) // NEW
 		]);
 		gameData.items = items;
 		gameData.skills = skills;
 		gameData.monsters = monsters;
 		gameData.system_shop = systemShop;
-		gameData.building_upgrades = buildingUpgrades; // NEW
+		gameData.building_upgrades = buildingUpgrades;
+		gameData.car_upgrades = carUpgrades; // NEW
 	} catch (error) {
 		console.error('Failed to load game data:', error);
 		contentArea.innerHTML = `<p class="text-error">Error: Could not load game data. Please check the console.</p>`;
@@ -497,7 +487,6 @@ async function init() {
 	});
 	
 	document.body.addEventListener('click', (e) => {
-		// Handle selling an item - This must be checked before data-inventory-item
 		if (e.target.matches('[data-sell-item-id]')) {
 			const heroId = parseInt(e.target.dataset.heroId, 10);
 			const itemId = e.target.dataset.sellItemId;
@@ -597,7 +586,17 @@ async function init() {
 			renderShopModal(heroId);
 			renderContent();
 		}
-		// NEW: Event handlers for building actions
+		// NEW: Event listener for buying upgrades.
+		if (e.target.matches('[data-buy-upgrade-id]')) {
+			const upgradeId = e.target.dataset.buyUpgradeId;
+			handleBuyUpgrade(upgradeId);
+			const heroCard = e.target.closest('.modal-box')?.querySelector('[data-buy-item-id]');
+			if (heroCard) {
+				const heroId = parseInt(heroCard.dataset.heroId, 10);
+				renderShopModal(heroId);
+			}
+			renderContent();
+		}
 		if (e.target.matches('[data-buy-building-id]')) {
 			const buildingId = parseInt(e.target.dataset.buyBuildingId, 10);
 			handleBuyBuilding(buildingId);
@@ -614,20 +613,33 @@ async function init() {
 			handleExitBuilding(heroId);
 			renderContent();
 		}
+		// NEW: Event listeners for car actions.
+		if (e.target.matches('[data-buy-car]')) {
+			handleBuyCar();
+			renderContent();
+		}
+		if (e.target.matches('[data-enter-car-hero]')) {
+			const heroId = parseInt(e.target.dataset.enterCarHero, 10);
+			const carId = parseInt(e.target.dataset.enterCar, 10);
+			handleEnterCar(heroId, carId);
+			renderContent();
+		}
+		if (e.target.matches('[data-exit-car-hero]')) {
+			const heroId = parseInt(e.target.dataset.exitCarHero, 10);
+			handleExitCar(heroId);
+			renderContent();
+		}
 		if (e.target.matches('[data-open-upgrade-modal]')) {
-			// Placeholder for rendering the upgrade modal
 			const buildingId = parseInt(e.target.dataset.openUpgradeModal, 10);
 			alert(`Placeholder: Open upgrade modal for Building #${buildingId}`);
-			// renderBuildingUpgradeModal(buildingId);
 		}
-		// NEW: Event handler for collapsible hero log
 		const logToggler = e.target.closest('[data-toggle-log]');
 		if (logToggler) {
 			const logContainer = logToggler.nextElementSibling;
 			if (logContainer && logContainer.matches('[data-hero-log-list]')) {
 				logContainer.classList.toggle('hidden');
 			}
-			return; // Prevent other actions
+			return;
 		}
 		if (e.target.id === 'sandbox-apply') {
 			applySandboxChanges();

@@ -1,19 +1,17 @@
 // Initialize 100 buildings with their respective states, HP, and population
 const initialBuildings =[];
 for (let i = 1; i <= 100; i++) {
-	// NEW: Added properties for ownership, naming, and safezone status.
-	// Removed shield properties as they are now an upgrade.
 	const newBuilding = {
 		id: i,
-		state: 'ruined', // All start as ruined
+		state: 'ruined',
 		hp: 0,
 		maxHp: 10,
 		population: 0,
-		owner: null, // 'player' if bought
+		owner: null,
 		name: null,
 		isSafezone: false,
 		upgrades: [],
-		heroesInside: [] // Array of hero IDs
+		heroesInside: []
 	};
 	
 	if (i <= 3) {
@@ -28,10 +26,17 @@ for (let i = 1; i <= 100; i++) {
 	initialBuildings.push(newBuilding);
 }
 
-// Initialize 40 cars
+// MODIFIED: Initialize 40 cars with new structure for ownership and upgrades.
 const initialCars =[];
 for (let i = 1; i <= 40; i++) {
-	initialCars.push({ id: i, battery: 0, driverId: null });
+	initialCars.push({
+		id: i,
+		owner: null, // NEW: Cars are now owned by 'player' or null
+		name: null, // NEW: Player can name their cars
+		occupants: [], // MODIFIED: Replaces driverId, can hold multiple heroes
+		upgrades: [], // NEW: Stores IDs of purchased upgrades
+		maxOccupants: 4 // NEW: Defines car capacity
+	});
 }
 
 export const gameState = {
@@ -61,15 +66,16 @@ export const gameState = {
 			equipment: { mainHand: 'WAND001', offHand: null, body: 'ARM001' },
 			carId: null,
 			targetMonsterId: null,
-			location: 'field', // NEW: Hero's current location ('field' or building ID)
+			location: 'field',
 			tokens: 100,
-			// MODIFIED: Skills no longer have XP.
 			skills:[
-				{ id: 'AEG003' },
+				// MODIFIED: Removed 'AEG003' (Mana Battery)
 				{ id: 'AEG004' }
 			],
 			autoCastSkillId: null,
 			skillTargets: { 'AEG004': 1 },
+			skillCooldowns: {},
+			skillFlash: null,
 			log: [],
 			inventory: {
 				'ARM001': 1,
@@ -97,11 +103,13 @@ export const gameState = {
 			equipment: { mainHand: 'WAND001', offHand: null, body: 'ARM001' },
 			carId: null,
 			targetMonsterId: null,
-			location: 'field', // NEW
+			location: 'field',
 			tokens: 100,
 			skills: [{ id: 'STR001' }],
 			autoCastSkillId: 'STR001',
 			skillTargets: {},
+			skillCooldowns: {},
+			skillFlash: null,
 			log: [],
 			inventory: {
 				'ARM001': 1,
@@ -124,12 +132,13 @@ export const gameState = {
 			equipment: { mainHand: 'SWD001', offHand: 'SHD001', body: 'ARM001' },
 			carId: null,
 			targetMonsterId: null,
-			location: 'field', // NEW
+			location: 'field',
 			tokens: 100,
-			// MODIFIED: Vanguard starts with the new 'Challenge' and 'Heroic Strike' skills.
 			skills: [{ id: 'VAN001' }, { id: 'VAN003' }],
 			autoCastSkillId: 'VAN003',
 			skillTargets: {},
+			skillCooldowns: {},
+			skillFlash: null,
 			log: [],
 			inventory: {
 				'ARM001': 1,
@@ -148,5 +157,6 @@ export const gameData = {
 	skills: [],
 	monsters:[],
 	system_shop: [],
-	building_upgrades: [] // NEW: To hold building upgrade data
+	building_upgrades: [],
+	car_upgrades: [] // NEW: To store car upgrade definitions
 };

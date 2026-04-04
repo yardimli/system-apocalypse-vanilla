@@ -7,6 +7,7 @@
     "actionType": "repair",
     "mpCost": 160,
     "levelRequirement": 15,
+    "cooldown": 5,
     "description": "Repairs up to 3 broken buildings."
   },
   {
@@ -17,38 +18,8 @@
     "actionType": "shield",
     "mpCost": 240,
     "levelRequirement": 18,
+    "cooldown": 5,
     "description": "Adds a shield to up to 3 functional buildings."
-  },
-  {
-    "id": "AEG003",
-    "name": "Mana Battery",
-    "class": "Aegis",
-    "type": "Manual",
-    "actionType": "battery",
-    "mpCost": 40,
-    "levelRequirement": 1,
-    "autoCastUnlockLevel": 7,
-    "description": "Recharges 1 empty car battery (lasts 10 days)."
-  },
-  {
-    "id": "AEG003_II",
-    "name": "Mana Battery II",
-    "class": "Aegis",
-    "type": "Manual",
-    "actionType": "battery",
-    "mpCost": 70,
-    "levelRequirement": 8,
-    "description": "Recharges up to 2 empty car batteries."
-  },
-  {
-    "id": "AEG003_III",
-    "name": "Mana Battery III",
-    "class": "Aegis",
-    "type": "Manual",
-    "actionType": "battery",
-    "mpCost": 100,
-    "levelRequirement": 16,
-    "description": "Recharges up to 3 empty car batteries."
   },
   {
     "id": "AEG004",
@@ -60,6 +31,7 @@
     "agroValue": 50,
     "levelRequirement": 1,
     "autoCastUnlockLevel": 5,
+    "cooldown": 2,
     "description": "Restores 100 HP to a hero, generating threat."
   },
   {
@@ -71,6 +43,7 @@
     "mpCost": 35,
     "agroValue": 125,
     "levelRequirement": 6,
+    "cooldown": 2,
     "description": "Restores 250 HP to a hero, generating threat."
   },
   {
@@ -82,6 +55,7 @@
     "mpCost": 50,
     "agroValue": 250,
     "levelRequirement": 12,
+    "cooldown": 2,
     "description": "Restores 500 HP to a hero, generating threat."
   },
   {
@@ -95,6 +69,7 @@
     "agroMultiplier": 1.0,
     "levelRequirement": 1,
     "autoCastUnlockLevel": 1,
+    "cooldown": 1,
     "description": "A basic bolt of mana energy."
   },
   {
@@ -108,6 +83,7 @@
     "agroMultiplier": 1.0,
     "levelRequirement": 3,
     "autoCastUnlockLevel": 3,
+    "cooldown": 2,
     "description": "A shard of magical ice that pierces armor."
   },
   {
@@ -121,6 +97,7 @@
     "agroMultiplier": 1.0,
     "levelRequirement": 6,
     "autoCastUnlockLevel": 5,
+    "cooldown": 3,
     "description": "An explosive ball of fire."
   },
   {
@@ -133,6 +110,7 @@
     "value": 250,
     "levelRequirement": 1,
     "autoCastUnlockLevel": 1,
+    "cooldown": 2,
     "description": "A challenging shout that generates a small amount of threat."
   },
   {
@@ -146,6 +124,7 @@
     "agroMultiplier": 2.0,
     "levelRequirement": 1,
     "autoCastUnlockLevel": 1,
+    "cooldown": 1,
     "description": "A powerful strike that generates Rage and high threat."
   },
   {
@@ -158,6 +137,7 @@
     "value": 1000,
     "levelRequirement": 2,
     "autoCastUnlockLevel": 2,
+    "cooldown": 3,
     "description": "Consume a large amount of Rage to force a monster to focus on you. Can be used without Rage for a minor effect."
   },
   {
@@ -171,6 +151,7 @@
     "agroMultiplier": 1.5,
     "levelRequirement": 4,
     "autoCastUnlockLevel": 4,
+    "cooldown": 2,
     "description": "Slam your shield into the enemy, consuming Rage to deal damage and generate threat. Can be used without Rage for a minor effect."
   }
 ]

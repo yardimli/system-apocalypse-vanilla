@@ -4,11 +4,6 @@ import { addToLog, updateTextIfChanged, updateHtmlIfChanged, updateProgressIfCha
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
 
-/**
- * Automatically finds and equips the best gear a hero has in their inventory for each slot.
- * Best is determined by the item's level.
- * @param {object} hero - The hero object from gameState.
- */
 export function autoEquipBestGear (hero) {
 	const slots = {
 		mainHand: [],
@@ -16,12 +11,9 @@ export function autoEquipBestGear (hero) {
 		body: []
 	};
 	
-	// 1. Categorize all owned equipment by slot
 	Object.keys(hero.inventory).forEach(itemId => {
 		const item = gameData.items.find(i => i.id === itemId);
-		// Check if the item is equippable in a valid slot
 		if (item && item.equipSlot && slots[item.equipSlot] && hero.inventory[itemId] > 0) {
-			// MODIFIED: Check if the hero's class can use the item (handles string or array for item.class)
 			const canUse = !item.class || (Array.isArray(item.class) ? item.class.includes(hero.class) : item.class === hero.class);
 			if (canUse) {
 				slots[item.equipSlot].push(item);
@@ -29,18 +21,15 @@ export function autoEquipBestGear (hero) {
 		}
 	});
 	
-	// 2. For each slot, find the best item and equip it if it's not already the best
 	for (const slot in slots) {
 		let bestItem = null;
 		if (slots[slot].length > 0) {
-			// Sort by level descending to find the best item
 			bestItem = slots[slot].sort((a, b) => b.level - a.level)[0];
 		}
 		
 		const bestItemId = bestItem ? bestItem.id : null;
 		const currentItemId = hero.equipment[slot];
 		
-		// Only update and log if the equipped item changes
 		if (currentItemId !== bestItemId) {
 			const oldItem = gameData.items.find(i => i.id === currentItemId);
 			hero.equipment[slot] = bestItemId;
@@ -56,19 +45,11 @@ export function autoEquipBestGear (hero) {
 	}
 }
 
-/**
- * Finds an item by its ID from the game data.
- * @param {string} id - The ID of the item to find.
- * @returns {object|null} The found item or null.
- */
 function findEntityById (id) {
 	if (!id) return null;
 	return gameData.items.find(i => i.id === id);
 }
 
-/**
- * Renders all hero cards into the main content area.
- */
 export function renderHeroes () {
 	const grid = getEl('heroes-grid');
 	if (!grid) return;
@@ -85,7 +66,6 @@ export function renderHeroes () {
 			card = getEl(`hero-card-${hero.id}`);
 		}
 		
-		// Modified to use updateTextIfChanged
 		const nameText = `${hero.name} | Lv. ${hero.level}`;
 		updateTextIfChanged(card.querySelector('[data-name]'), nameText);
 		
@@ -106,7 +86,6 @@ export function renderHeroes () {
 			.map(([slot, itemId]) => ({ slot, item: findEntityById(itemId) }))
 			.filter(e => e.item);
 		
-		// Modified to use updateHtmlIfChanged based on equipment state
 		let equipHtml = '';
 		if (equippedItems.length > 0) {
 			equipHtml = equippedItems.map(({ slot, item }) => {
@@ -126,7 +105,6 @@ export function renderHeroes () {
 		const equipStateKey = JSON.stringify(hero.equipment);
 		updateHtmlIfChanged(equipmentContainer, equipHtml, equipStateKey);
 		
-		// Modified to use updateTextIfChanged and updateProgressIfChanged
 		const xpText = `XP: ${hero.xp.current}/${hero.xp.max}`;
 		updateTextIfChanged(card.querySelector('[data-xp-label]'), xpText);
 		updateProgressIfChanged(card.querySelector('[data-xp-bar]'), hero.xp.current, hero.xp.max);
@@ -136,12 +114,11 @@ export function renderHeroes () {
 		updateTextIfChanged(card.querySelector('[data-hp-label]'), hpText);
 		updateProgressIfChanged(card.querySelector('[data-hp-bar]'), hero.hp.current, hero.hp.max);
 		
-		// MODIFIED: Hide MP bar for Vanguard
-		const mpContainer = card.querySelector('[data-mp-container]'); // MODIFIED: Selector updated
+		const mpContainer = card.querySelector('[data-mp-container]');
 		if (hero.class === 'Vanguard') {
 			mpContainer.style.display = 'none';
 		} else {
-			mpContainer.style.display = 'flex'; // MODIFIED: Use flex to match new layout
+			mpContainer.style.display = 'flex';
 			const mpText = `MP: ${Math.floor(hero.mp.current)}/${hero.mp.max} (+${formatRegen(hero.mpRegen)}/s)`;
 			updateTextIfChanged(card.querySelector('[data-mp-label]'), mpText);
 			updateProgressIfChanged(card.querySelector('[data-mp-bar]'), hero.mp.current, hero.mp.max);
@@ -149,7 +126,7 @@ export function renderHeroes () {
 		
 		const rageContainer = card.querySelector('[data-rage-container]');
 		if (hero.class === 'Vanguard') {
-			rageContainer.style.display = 'flex'; // MODIFIED: Use flex to match new layout
+			rageContainer.style.display = 'flex';
 			const rageText = `Rage: ${Math.floor(hero.rage.current)}/${hero.rage.max}`;
 			updateTextIfChanged(card.querySelector('[data-rage-label]'), rageText);
 			updateProgressIfChanged(card.querySelector('[data-rage-bar]'), hero.rage.current, hero.rage.max);
@@ -161,35 +138,31 @@ export function renderHeroes () {
 		let dynamicHtml = '';
 		let dynamicStateKey = '';
 		
-		// REFACTORED: Generic status logic for all heroes
 		if (hero.hp.current <= 0) {
 			dynamicHtml = `<p class="text-error font-bold text-center">INCAPACITATED</p><p class="text-xs text-center">Awaiting Aegis Healing...</p>`;
 			dynamicStateKey = 'incapacitated';
-			// NEW: Check if hero is inside a building safezone
 		} else if (hero.location !== 'field') {
 			const building = gameState.city.buildings.find(b => b.id === hero.location);
 			const buildingName = building ? building.name : `Building #${hero.location}`;
 			dynamicHtml = `<p class="text-info text-center text-sm">Resting in ${buildingName}.</p>`;
 			dynamicStateKey = `resting-${hero.location}`;
 		} else if (!hero.carId) {
-			dynamicHtml = `<p class="text-warning text-center text-sm">Waiting for Mana Battery Car...</p>`;
+			// MODIFIED: Changed message to reflect new car mechanic.
+			dynamicHtml = `<p class="text-warning text-center text-sm">Waiting for an available car...</p>`;
 			dynamicStateKey = 'no-car';
 		} else if (hero.targetMonsterId) {
 			const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
 			if (monster) {
-				// MODIFIED: Changed agro list to render as badges on a single line
 				const agroEntries = Object.entries(monster.agro)
 					.map(([heroId, value]) => ({ heroId: parseInt(heroId, 10), value }))
 					.sort((a, b) => b.value - a.value);
 				
 				let agroHtml = '<div class="text-xs text-gray-500 italic">No threat</div>';
 				if (agroEntries.length > 0) {
-					// NEW: Generate badges for each hero in the threat list
 					agroHtml = agroEntries.map((entry, index) => {
 						const threatHero = gameState.heroes.find(h => h.id === entry.heroId);
 						if (!threatHero) return '';
 						const isTarget = index === 0;
-						// Using a badge with a circular badge inside for the agro value
 						return `
 							<div class="badge ${isTarget ? 'badge-error' : 'badge-neutral'} gap-1">
 								${threatHero.name}
@@ -199,36 +172,43 @@ export function renderHeroes () {
 					}).join(' ');
 				}
 				
+				// NEW: Display the car the hero is in.
+				const car = gameState.city.cars.find(c => c.id === hero.carId);
+				const carName = car ? (car.name || `Car #${car.id}`) : 'Unknown Car';
+				
 				dynamicHtml = `
                     <p class="text-sm font-bold text-error mb-1">Fighting: Lv.${monster.level} ${monster.name} (#${monster.id})</p>
+                    <p class="text-xs text-center text-info mb-1">From: ${carName}</p>
                     <progress class="progress progress-error w-full" value="${monster.currentHp}" max="${monster.maxHp}"></progress>
                     <p class="text-xs text-right mt-1">${Math.floor(monster.currentHp)}/${monster.maxHp} HP</p>
                     <div class="mt-2 border-t border-base-100 pt-1">
                         <h4 class="font-semibold text-xs mb-1 text-center">Threat List</h4>
-                        <!-- MODIFIED: Wrapper for badges -->
                         <div class="flex flex-wrap gap-1 justify-center">${agroHtml}</div>
                     </div>
                 `;
-				// MODIFIED: Update state key to include agro state for re-rendering
 				dynamicStateKey = `fighting-${monster.id}-${monster.currentHp}-${JSON.stringify(monster.agro)}`;
 			} else {
-				// This case handles when the monster is defeated but the hero's targetId hasn't cleared yet.
-				hero.targetMonsterId = null; // Clear it here for faster UI update
-				dynamicHtml = `<p class="text-success text-center text-sm">Patrolling in Car #${hero.carId}. No targets.</p>`;
+				hero.targetMonsterId = null;
+				// MODIFIED: Patrolling message updated.
+				const car = gameState.city.cars.find(c => c.id === hero.carId);
+				const carName = car ? (car.name || `Car #${car.id}`) : 'Unknown Car';
+				dynamicHtml = `<p class="text-success text-center text-sm">Patrolling in ${carName}. No targets.</p>`;
 				dynamicStateKey = `patrolling-${hero.carId}`;
 			}
 		} else {
+			// MODIFIED: Patrolling/idle message updated.
+			const car = gameState.city.cars.find(c => c.id === hero.carId);
+			const carName = car ? (car.name || `Car #${car.id}`) : 'Unknown Car';
 			if (hero.class === 'Aegis') {
-				dynamicHtml = `<p class="text-info text-center text-sm">Awaiting tasks in Car #${hero.carId}.</p>`;
+				dynamicHtml = `<p class="text-info text-center text-sm">Awaiting tasks in ${carName}.</p>`;
 				dynamicStateKey = `aegis-idle-${hero.carId}`;
 			} else {
-				dynamicHtml = `<p class="text-success text-center text-sm">Patrolling in Car #${hero.carId}. No targets.</p>`;
+				dynamicHtml = `<p class="text-success text-center text-sm">Patrolling in ${carName}. No targets.</p>`;
 				dynamicStateKey = `patrolling-${hero.carId}`;
 			}
 		}
 		updateHtmlIfChanged(dynamicArea, dynamicHtml, dynamicStateKey);
 		
-		// MODIFIED: Skills list rendering updated for new card layout with footer button.
 		const skillsListContainer = card.querySelector('[data-skills-list]');
 		if (skillsListContainer) {
 			let skillsHtml = '';
@@ -242,6 +222,11 @@ export function renderHeroes () {
 					const isAutoCasting = hero.autoCastSkillId === skillData.id;
 					const meetsLevelReq = !skillData.levelRequirement || hero.level >= skillData.levelRequirement;
 					
+					const cooldownEndTime = hero.skillCooldowns[skillData.id] || 0;
+					const isOnCooldown = gameState.time < cooldownEndTime;
+					const remainingCd = Math.ceil(cooldownEndTime - gameState.time);
+					const shouldFlash = hero.skillFlash && hero.skillFlash.id === skillData.id && gameState.time < hero.skillFlash.clearAtTime;
+					
 					let baseSkill = skillData;
 					while (baseSkill.replaces) {
 						const parent = gameData.skills.find(s => s.id === baseSkill.replaces);
@@ -254,33 +239,16 @@ export function renderHeroes () {
 					
 					let autoButtonHtml = '';
 					if (canAutoCast) {
-						autoButtonHtml = `
-							<button class="btn btn-xs ${isAutoCasting ? 'btn-primary' : 'btn-ghost'}"
-								data-autocast-skill-id="${skillData.id}" data-hero-id="${hero.id}">
-								Auto
-							</button>
-						`;
+						autoButtonHtml = `<button class="btn btn-xs ${isAutoCasting ? 'btn-primary' : 'btn-ghost'}" data-autocast-skill-id="${skillData.id}" data-hero-id="${hero.id}">Auto</button>`;
 					} else if (unlockLevel) {
-						autoButtonHtml = `
-							<div class="tooltip" data-tip="Unlocks at Hero Level ${unlockLevel}">
-								<button class="btn btn-xs btn-ghost" disabled>Auto</button>
-							</div>
-						`;
+						autoButtonHtml = `<div class="tooltip" data-tip="Unlocks at Hero Level ${unlockLevel}"><button class="btn btn-xs btn-ghost" disabled>Auto</button></div>`;
 					}
 					
 					let targetSelectorHtml = '';
 					if (skillData.actionType === 'heal') {
 						const currentTargetId = hero.skillTargets[skillData.id] || hero.id;
 						const buttons = gameState.heroes.map(targetHero => {
-							return `
-								<button
-									class="btn btn-xs ${currentTargetId === targetHero.id ? 'btn-secondary' : 'btn-ghost'}"
-									data-set-target-hero-id="${targetHero.id}"
-									data-caster-hero-id="${hero.id}"
-									data-skill-id="${skillData.id}"
-									title="Set target to ${targetHero.name}"
-								>${targetHero.name.substring(0, 1)}</button>
-							`;
+							return `<button class="btn btn-xs ${currentTargetId === targetHero.id ? 'btn-secondary' : 'btn-ghost'}" data-set-target-hero-id="${targetHero.id}" data-caster-hero-id="${hero.id}" data-skill-id="${skillData.id}" title="Set target to ${targetHero.name}">${targetHero.name.substring(0, 1)}</button>`;
 						}).join('');
 						targetSelectorHtml = `<div class="btn-group">${buttons}</div>`;
 					}
@@ -288,15 +256,14 @@ export function renderHeroes () {
 					const mpCost = skillData.mpCost || 0;
 					const rageCost = skillData.rageCost || 0;
 					const hasResources = hero.class === 'Vanguard' || (hero.mp.current >= mpCost);
-					const isCastDisabled = !meetsLevelReq || !hasResources;
+					const isCastDisabled = !meetsLevelReq || !hasResources || isOnCooldown;
 					const costText = rageCost > 0 ? `${rageCost} Rage` : (mpCost > 0 ? `${mpCost} MP` : '');
 					
-					// NEW: Skill card layout with a full-width footer for the cast button.
 					return `
-						<div class="card bg-base-100 shadow-md flex flex-col">
+						<div class="card bg-base-100 shadow-md flex flex-col ${shouldFlash ? 'flash-effect' : ''}">
 							<div class="p-2 flex-grow">
 								<div class="flex justify-between items-center">
-									<div class="font-bold text-xs">${skillData.name}</div>
+									<div class="font-bold text-xs">${skillData.name} ${isOnCooldown ? `<span class="text-error">(${remainingCd}s)</span>` : ''}</div>
 									${skillData.levelRequirement > 1 ? `<div class="badge badge-neutral badge-sm">Lvl ${skillData.levelRequirement}</div>` : ''}
 								</div>
 								<p class="text-[10px] italic text-gray-400 my-1 min-h-[20px]">${skillData.description}</p>
@@ -315,46 +282,41 @@ export function renderHeroes () {
 				}).join('');
 			}
 			
-			const skillsStateKey = JSON.stringify(hero.skills) + hero.autoCastSkillId + hero.level + (hero.mp ? hero.mp.current : '') + (hero.rage ? hero.rage.current : '') + JSON.stringify(hero.skillTargets);
+			const skillsStateKey = JSON.stringify(hero.skills) + hero.autoCastSkillId + hero.level + (hero.mp ? hero.mp.current : '') + (hero.rage ? hero.rage.current : '') + JSON.stringify(hero.skillTargets) + JSON.stringify(hero.skillCooldowns) + JSON.stringify(hero.skillFlash) + gameState.time;
 			updateHtmlIfChanged(skillsListContainer, skillsHtml, skillsStateKey);
 		}
 		
-		// Hero log rendering
 		const heroLogContainer = card.querySelector('[data-hero-log-list]');
 		if (heroLogContainer) {
 			const logHtml = hero.log.map(entry => `<p>${entry}</p>`).join('');
-			const logStateKey = hero.log.length > 0 ? hero.log[0] : ''; // Use first entry as state key
+			const logStateKey = hero.log.length > 0 ? hero.log[0] : '';
 			updateHtmlIfChanged(heroLogContainer, logHtml, logStateKey);
 		}
 	});
 }
 
-/**
- * Renders the System Shop modal for a specific hero.
- * @param {number} heroId - The ID of the hero to open the shop for.
- */
 export function renderShopModal (heroId) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
 	if (!hero) return;
 	
 	const modal = getEl('system-shop-modal');
 	const header = getEl('shop-modal-header');
-	// MODIFIED: Get content panels for each tab
 	const itemsContent = getEl('shop-modal-items-content');
 	const skillsContent = getEl('shop-modal-skills-content');
 	const inventoryContent = getEl('shop-modal-inventory-content');
+	const upgradesContent = getEl('shop-modal-upgrades-content'); // NEW: Get upgrades tab content element.
 	
-	if (!modal || !header || !itemsContent || !skillsContent || !inventoryContent) return;
+	if (!modal || !header || !itemsContent || !skillsContent || !inventoryContent || !upgradesContent) return;
 	
-	// Populate header
+	// MODIFIED: Shop is now party-based, showing total tokens.
+	const totalPartyTokens = gameState.heroes.reduce((sum, h) => sum + h.tokens, 0);
 	header.innerHTML = `
         <div class="flex justify-between items-center">
-            <h3 class="font-bold text-lg">System Shop for ${hero.name}</h3>
-            <span class="badge badge-warning">Tokens: ${hero.tokens}</span>
+            <h3 class="font-bold text-lg">System Shop (Party)</h3>
+            <span class="badge badge-warning">Party Tokens: ${totalPartyTokens}</span>
         </div>
     `;
 	
-	// --- Render Items Tab ---
 	const shopItems = gameData.system_shop.filter(si => si.itemId);
 	itemsContent.innerHTML = shopItems.map(shopItem => {
 		const entity = findEntityById(shopItem.itemId);
@@ -369,6 +331,7 @@ export function renderShopModal (heroId) {
 			details = `Effect: ${type === 'heal_hp' ? `+${value} HP` : `+${value} MP`}`;
 		}
 		
+		// MODIFIED: Check hero's tokens for buying items.
 		const canAfford = hero.tokens >= shopItem.price;
 		
 		return `
@@ -383,19 +346,19 @@ export function renderShopModal (heroId) {
 						<div class="text-[10px] text-gray-400 italic">${details}</div>
 						<p class="text-xs mt-1">${entity.description || ''}</p>
 					</div>
-					<button class="btn btn-sm btn-accent w-full mt-1" data-buy-item-id="${entity.id}" data-hero-id="${hero.id}" ${!canAfford ? 'disabled' : ''}>Buy</button>
+					<button class="btn btn-sm btn-accent w-full mt-1" data-buy-item-id="${entity.id}" data-hero-id="${hero.id}" ${!canAfford ? 'disabled' : ''}>Buy for ${hero.name}</button>
 				</div>
 			</div>
 		`;
 	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No items for sale.</p>';
 	
-	// --- Render Skills Tab ---
 	const shopSkills = gameData.system_shop.filter(si => si.skillId);
 	skillsContent.innerHTML = shopSkills.map(shopItem => {
 		const entity = gameData.skills.find(s => s.id === shopItem.skillId);
 		if (!entity) return '';
 		
 		const details = `Req: Lvl ${entity.levelRequirement} | Cost: ${entity.mpCost || entity.rageCost || 0} ${entity.rageCost ? 'Rage' : 'MP'}`;
+		// MODIFIED: Check hero's tokens for buying skills.
 		const canAfford = hero.tokens >= shopItem.price;
 		const hasSkill = hero.skills.some(s => s.id === shopItem.skillId);
 		
@@ -411,13 +374,30 @@ export function renderShopModal (heroId) {
 						<div class="text-[10px] text-gray-400 italic">${details}</div>
 						<p class="text-xs mt-1">${entity.description || ''}</p>
 					</div>
-					<button class="btn btn-sm btn-accent w-full mt-1" data-buy-skill-id="${entity.id}" data-hero-id="${hero.id}" ${!canAfford || hasSkill ? 'disabled' : ''}>${hasSkill ? 'Learned' : 'Buy'}</button>
+					<button class="btn btn-sm btn-accent w-full mt-1" data-buy-skill-id="${entity.id}" data-hero-id="${hero.id}" ${!canAfford || hasSkill ? 'disabled' : ''}>${hasSkill ? 'Learned' : `Buy for ${hero.name}`}</button>
 				</div>
 			</div>
 		`;
 	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No skills for sale.</p>';
 	
-	// --- Render Inventory Tab ---
+	// NEW: Render the upgrades tab.
+	const allUpgrades = [...gameData.building_upgrades, ...gameData.car_upgrades];
+	upgradesContent.innerHTML = allUpgrades.map(upgrade => {
+		const canAfford = totalPartyTokens >= upgrade.cost;
+		const type = upgrade.id.startsWith('CAR_') ? 'Car' : 'Building';
+		return `
+			<div class="bg-base-300/50 rounded p-2 flex flex-col gap-1">
+				<div class="flex justify-between items-center">
+					<span class="font-bold text-sm">${upgrade.name}</span>
+					<span class="badge badge-warning">${upgrade.cost} T</span>
+				</div>
+				<div class="text-[10px] text-gray-400 italic">${type} Upgrade</div>
+				<p class="text-xs mt-1 flex-grow">${upgrade.description || ''}</p>
+				<button class="btn btn-sm btn-accent w-full mt-1" data-buy-upgrade-id="${upgrade.id}" ${!canAfford ? 'disabled' : ''}>Buy & Apply</button>
+			</div>
+		`;
+	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No upgrades for sale.</p>';
+	
 	const inventoryItems = Object.entries(hero.inventory);
 	if (inventoryItems.length > 0) {
 		inventoryContent.innerHTML = inventoryItems.map(([itemId, totalQty]) => {
