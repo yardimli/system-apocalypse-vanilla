@@ -10,7 +10,7 @@ export function autoEquipBestGear (hero) {
 		offHand: [],
 		body: []
 	};
-
+	
 	Object.keys(hero.inventory).forEach(itemId => {
 		const item = gameData.items.find(i => i.id === itemId);
 		if (item && item.equipSlot && slots[item.equipSlot] && hero.inventory[itemId] > 0) {
@@ -20,20 +20,20 @@ export function autoEquipBestGear (hero) {
 			}
 		}
 	});
-
+	
 	for (const slot in slots) {
 		let bestItem = null;
 		if (slots[slot].length > 0) {
 			bestItem = slots[slot].sort((a, b) => b.level - a.level)[0];
 		}
-
+		
 		const bestItemId = bestItem ? bestItem.id : null;
 		const currentItemId = hero.equipment[slot];
-
+		
 		if (currentItemId !== bestItemId) {
 			const oldItem = gameData.items.find(i => i.id === currentItemId);
 			hero.equipment[slot] = bestItemId;
-
+			
 			if (bestItem && oldItem) {
 				addToLog(`${hero.name} upgraded ${slot}: ${oldItem.name} -> ${bestItem.name}.`, hero.id);
 			} else if (bestItem) {
@@ -54,10 +54,10 @@ export function renderHeroes () {
 	const grid = getEl('heroes-grid');
 	if (!grid) return;
 	const template = getEl('hero-card-template');
-
+	
 	gameState.heroes.forEach(hero => {
 		let card = getEl(`hero-card-${hero.id}`);
-
+		
 		if (!card) {
 			const clone = template.content.cloneNode(true);
 			card = clone.querySelector('.card');
@@ -65,13 +65,13 @@ export function renderHeroes () {
 			grid.appendChild(clone);
 			card = getEl(`hero-card-${hero.id}`);
 		}
-
+		
 		const nameText = `${hero.name} | Lv. ${hero.level}`;
 		updateTextIfChanged(card.querySelector('[data-name]'), nameText);
-
+		
 		const tokensText = `Tokens: ${hero.tokens}`;
 		updateTextIfChanged(card.querySelector('[data-tokens]'), tokensText);
-
+		
 		const classEl = card.querySelector('[data-class]');
 		if (classEl) {
 			updateTextIfChanged(classEl, hero.class);
@@ -80,12 +80,12 @@ export function renderHeroes () {
 				classEl.className = newClassName;
 			}
 		}
-
+		
 		const equipmentContainer = card.querySelector('[data-equipment-container]');
 		const equippedItems = Object.entries(hero.equipment)
 			.map(([slot, itemId]) => ({ slot, item: findEntityById(itemId) }))
 			.filter(e => e.item);
-
+		
 		let equipHtml = '';
 		if (equippedItems.length > 0) {
 			equipHtml = equippedItems.map(({ slot, item }) => {
@@ -104,16 +104,16 @@ export function renderHeroes () {
 		}
 		const equipStateKey = JSON.stringify(hero.equipment);
 		updateHtmlIfChanged(equipmentContainer, equipHtml, equipStateKey);
-
+		
 		const xpText = `XP: ${hero.xp.current}/${hero.xp.max}`;
 		updateTextIfChanged(card.querySelector('[data-xp-label]'), xpText);
 		updateProgressIfChanged(card.querySelector('[data-xp-bar]'), hero.xp.current, hero.xp.max);
-
+		
 		const formatRegen = (val) => Number(val.toFixed(2));
 		const hpText = `HP: ${Math.floor(hero.hp.current)}/${hero.hp.max} (+${formatRegen(hero.hpRegen)}/s)`;
 		updateTextIfChanged(card.querySelector('[data-hp-label]'), hpText);
 		updateProgressIfChanged(card.querySelector('[data-hp-bar]'), hero.hp.current, hero.hp.max);
-
+		
 		const mpContainer = card.querySelector('[data-mp-container]');
 		if (hero.class === 'Vanguard') {
 			mpContainer.style.display = 'none';
@@ -123,7 +123,7 @@ export function renderHeroes () {
 			updateTextIfChanged(card.querySelector('[data-mp-label]'), mpText);
 			updateProgressIfChanged(card.querySelector('[data-mp-bar]'), hero.mp.current, hero.mp.max);
 		}
-
+		
 		const rageContainer = card.querySelector('[data-rage-container]');
 		if (hero.class === 'Vanguard') {
 			rageContainer.style.display = 'flex';
@@ -133,11 +133,11 @@ export function renderHeroes () {
 		} else {
 			rageContainer.style.display = 'none';
 		}
-
+		
 		const dynamicArea = card.querySelector('[data-dynamic-area]');
 		let dynamicHtml = '';
 		let dynamicStateKey = '';
-
+		
 		if (hero.hp.current <= 0) {
 			dynamicHtml = `<p class="text-error font-bold text-center">INCAPACITATED</p><p class="text-xs text-center">Awaiting Aegis Healing...</p>`;
 			dynamicStateKey = 'incapacitated';
@@ -156,7 +156,7 @@ export function renderHeroes () {
 				const agroEntries = Object.entries(monster.agro)
 					.map(([heroId, value]) => ({ heroId: parseInt(heroId, 10), value }))
 					.sort((a, b) => b.value - a.value);
-
+				
 				let agroHtml = '<div class="text-xs text-gray-500 italic">No threat</div>';
 				if (agroEntries.length > 0) {
 					agroHtml = agroEntries.map((entry, index) => {
@@ -171,11 +171,11 @@ export function renderHeroes () {
 						`;
 					}).join(' ');
 				}
-
+				
 				// NEW: Display the car the hero is in.
 				const car = gameState.city.cars.find(c => c.id === hero.carId);
 				const carName = car ? (car.name || `Car #${car.id}`) : 'Unknown Car';
-
+				
 				dynamicHtml = `
                     <p class="text-sm font-bold text-error mb-1">Fighting: Lv.${monster.level} ${monster.name} (#${monster.id})</p>
                     <p class="text-xs text-center text-info mb-1">From: ${carName}</p>
@@ -208,57 +208,48 @@ export function renderHeroes () {
 			}
 		}
 		updateHtmlIfChanged(dynamicArea, dynamicHtml, dynamicStateKey);
-
+		
 		const skillsListContainer = card.querySelector('[data-skills-list]');
 		if (skillsListContainer) {
 			let skillsHtml = '';
-
+			
 			const learnedSkills = hero.skills
 				.map(hs => gameData.skills.find(s => s.id === hs.id))
 				.filter(Boolean);
-
+			
 			if (learnedSkills.length > 0) {
 				skillsHtml = learnedSkills.map(skillData => {
 					const isAutoCasting = hero.autoCastSkillId === skillData.id;
 					const meetsLevelReq = !skillData.levelRequirement || hero.level >= skillData.levelRequirement;
-
+					
 					const cooldownEndTime = hero.skillCooldowns[skillData.id] || 0;
 					const isOnCooldown = gameState.time < cooldownEndTime;
 					const remainingCd = Math.ceil(cooldownEndTime - gameState.time);
 					const shouldFlash = hero.skillFlash && hero.skillFlash.id === skillData.id && gameState.time < hero.skillFlash.clearAtTime;
-
+					
 					let baseSkill = skillData;
 					while (baseSkill.replaces) {
 						const parent = gameData.skills.find(s => s.id === baseSkill.replaces);
 						if (!parent) break;
 						baseSkill = parent;
 					}
-
+					
 					const unlockLevel = baseSkill.autoCastUnlockLevel;
 					const canAutoCast = unlockLevel && hero.level >= unlockLevel;
-
+					
 					let autoButtonHtml = '';
 					if (canAutoCast) {
 						autoButtonHtml = `<button class="btn btn-xs ${isAutoCasting ? 'btn-primary' : 'btn-ghost'}" data-autocast-skill-id="${skillData.id}" data-hero-id="${hero.id}">Auto</button>`;
 					} else if (unlockLevel) {
 						autoButtonHtml = `<div class="tooltip" data-tip="Unlocks at Hero Level ${unlockLevel}"><button class="btn btn-xs btn-ghost" disabled>Auto</button></div>`;
 					}
-
-					let targetSelectorHtml = '';
-					if (skillData.actionType === 'heal') {
-						const currentTargetId = hero.skillTargets[skillData.id] || hero.id;
-						const buttons = gameState.heroes.map(targetHero => {
-							return `<button class="btn btn-xs ${currentTargetId === targetHero.id ? 'btn-secondary' : 'btn-ghost'}" data-set-target-hero-id="${targetHero.id}" data-caster-hero-id="${hero.id}" data-skill-id="${skillData.id}" title="Set target to ${targetHero.name}">${targetHero.name.substring(0, 1)}</button>`;
-						}).join('');
-						targetSelectorHtml = `<div class="btn-group">${buttons}</div>`;
-					}
-
+					
 					const mpCost = skillData.mpCost || 0;
 					const rageCost = skillData.rageCost || 0;
 					const hasResources = hero.class === 'Vanguard' || (hero.mp.current >= mpCost);
 					const isCastDisabled = !meetsLevelReq || !hasResources || isOnCooldown;
 					const costText = rageCost > 0 ? `${rageCost} Rage` : (mpCost > 0 ? `${mpCost} MP` : '');
-
+					
 					return `
 						<div class="card bg-base-100 shadow-md flex flex-col ${shouldFlash ? 'flash-effect' : ''}">
 							<div class="p-2 flex-grow">
@@ -268,30 +259,49 @@ export function renderHeroes () {
 								</div>
 								<p class="text-[10px] italic text-gray-400 my-1 min-h-[20px]">${skillData.description}</p>
 								<div class="flex flex-wrap gap-1 items-center justify-end mt-1">
-									${targetSelectorHtml}
 									${autoButtonHtml}
 								</div>
 							</div>
-							<div class="card-actions p-1">
-								<button class="btn btn-sm btn-ghost w-full" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${isCastDisabled ? 'disabled' : ''}>
-									Cast ${costText ? `(${costText})` : ''}
-								</button>
-							</div>
+							${(() => {
+						if (skillData.actionType === 'heal') {
+							const currentTargetId = hero.skillTargets[skillData.id] || hero.id;
+							const buttons = gameState.heroes.map(targetHero => {
+								const isActive = currentTargetId === targetHero.id;
+								return `<button
+													class="btn btn-sm ${isActive ? 'btn-secondary' : 'btn-ghost'}"
+													data-skill-id="${skillData.id}"
+													data-hero-id="${hero.id}"
+													data-target-hero-id="${targetHero.id}"
+													${isCastDisabled ? 'disabled' : ''}>
+													Cast on ${targetHero.name} ${costText ? `(${costText})` : ''}
+												</button>`;
+							}).join('');
+							return `<div class="card-actions p-1 flex flex-col gap-1">${buttons}</div>`;
+						} else {
+							return `
+										<div class="card-actions p-1">
+											<button class="btn btn-sm btn-ghost w-full" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${isCastDisabled ? 'disabled' : ''}>
+												Cast ${costText ? `(${costText})` : ''}
+											</button>
+										</div>
+									`;
+						}
+					})()}
 						</div>
 					`;
 				}).join('');
 			}
-
+			
 			const skillsStateKey = JSON.stringify(hero.skills) + hero.autoCastSkillId + hero.level + (hero.mp ? hero.mp.current : '') + (hero.rage ? hero.rage.current : '') + JSON.stringify(hero.skillTargets) + JSON.stringify(hero.skillCooldowns) + JSON.stringify(hero.skillFlash) + gameState.time;
 			updateHtmlIfChanged(skillsListContainer, skillsHtml, skillsStateKey);
 		}
-
+		
 		const heroLogContainer = card.querySelector('[data-hero-log-list]');
 		if (heroLogContainer) {
 			// NEW: Check the state of the battle log toggle for this specific hero card.
 			const battleLogToggle = card.querySelector('[data-toggle-battle-log]');
 			const showBattleLogs = battleLogToggle ? battleLogToggle.checked : false;
-
+			
 			// NEW: Filter logs based on the toggle state.
 			const filteredLogs = hero.log.filter(entry => {
 				if (showBattleLogs) {
@@ -302,7 +312,7 @@ export function renderHeroes () {
 				const isBattleDamageLog = /attacked.*, dealing|deals \d+ damage/.test(entry);
 				return !isBattleDamageLog;
 			});
-
+			
 			// MODIFIED: Use the filteredLogs array to generate the HTML.
 			const logHtml = filteredLogs.map(entry => `<p>${entry}</p>`).join('');
 			// MODIFIED: Add the toggle's state to the state key to ensure updates when it changes.
@@ -315,7 +325,7 @@ export function renderHeroes () {
 export function renderShopModal (heroId) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
 	if (!hero) return;
-
+	
 	const modal = getEl('system-shop-modal');
 	const header = getEl('shop-modal-header');
 	const itemsContent = getEl('shop-modal-items-content');
@@ -324,9 +334,9 @@ export function renderShopModal (heroId) {
 	// NEW: Get new, separate upgrade tab content elements.
 	const buildingUpgradesContent = getEl('shop-modal-building-upgrades-content');
 	const carUpgradesContent = getEl('shop-modal-car-upgrades-content');
-
+	
 	if (!modal || !header || !itemsContent || !skillsContent || !inventoryContent || !buildingUpgradesContent || !carUpgradesContent) return;
-
+	
 	// MODIFIED: Shop is now hero-based, showing the individual hero's tokens.
 	header.innerHTML = `
         <div class="flex justify-between items-center">
@@ -334,12 +344,12 @@ export function renderShopModal (heroId) {
             <span class="badge badge-warning">Your Tokens: ${hero.tokens}</span>
         </div>
     `;
-
+	
 	const shopItems = gameData.system_shop.filter(si => si.itemId);
 	itemsContent.innerHTML = shopItems.map(shopItem => {
 		const entity = findEntityById(shopItem.itemId);
 		if (!entity) return '';
-
+		
 		let details = '';
 		if (entity.damageMitigation) details = `Mitigation: ${entity.damageMitigation}`;
 		else if (entity.damage) details = `Damage: ${entity.damage}`;
@@ -348,18 +358,18 @@ export function renderShopModal (heroId) {
 			const { type, value } = entity.effect;
 			details = `Effect: ${type === 'heal_hp' ? `+${value} HP` : `+${value} MP`}`;
 		}
-
+		
 		// MODIFIED: Check hero's tokens for buying items.
 		const canAfford = hero.tokens >= shopItem.price;
-
+		
 		return `
 			<div class="bg-base-300/50 rounded p-2 flex gap-2">
 				<div class="flex-shrink-0"><img src="${entity.image}" alt="${entity.name}" class="w-[50px] h-[50px] object-contain bg-base-100 rounded" /></div>
-				<div class="flex-grow flex flex-col justify-between gap-1">
+				<div class="flex-grow flex flex-col justify-between gap-1 min-w-0">
 					<div>
-						<div class="flex justify-between items-center">
-							<span class="font-bold text-sm">${entity.name}</span>
-							<span class="badge badge-warning">${shopItem.price} T</span>
+						<div class="flex justify-between items-center gap-2">
+							<span class="font-bold text-sm truncate" title="${entity.name}">${entity.name}</span>
+							<span class="badge badge-warning flex-shrink-0">${shopItem.price} T</span>
 						</div>
 						<div class="text-[10px] text-gray-400 italic">${details}</div>
 						<p class="text-xs mt-1">${entity.description || ''}</p>
@@ -369,25 +379,25 @@ export function renderShopModal (heroId) {
 			</div>
 		`;
 	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No items for sale.</p>';
-
+	
 	const shopSkills = gameData.system_shop.filter(si => si.skillId);
 	skillsContent.innerHTML = shopSkills.map(shopItem => {
 		const entity = gameData.skills.find(s => s.id === shopItem.skillId);
 		if (!entity) return '';
-
+		
 		const details = `Req: Lvl ${entity.levelRequirement} | Cost: ${entity.mpCost || entity.rageCost || 0} ${entity.rageCost ? 'Rage' : 'MP'}`;
 		// MODIFIED: Check hero's tokens for buying skills.
 		const canAfford = hero.tokens >= shopItem.price;
 		const hasSkill = hero.skills.some(s => s.id === shopItem.skillId);
-
+		
 		return `
 			<div class="bg-base-300/50 rounded p-2 flex gap-2">
 				<div class="w-[50px] h-[50px] flex-shrink-0 flex items-center justify-center bg-base-100 rounded"><span class="text-2xl">📜</span></div>
-				<div class="flex-grow flex flex-col justify-between gap-1">
+				<div class="flex-grow flex flex-col justify-between gap-1 min-w-0">
 					<div>
-						<div class="flex justify-between items-center">
-							<span class="font-bold text-sm">${entity.name}</span>
-							<span class="badge badge-warning">${shopItem.price} T</span>
+						<div class="flex justify-between items-center gap-2">
+							<span class="font-bold text-sm truncate" title="${entity.name}">${entity.name}</span>
+							<span class="badge badge-warning flex-shrink-0">${shopItem.price} T</span>
 						</div>
 						<div class="text-[10px] text-gray-400 italic">${details}</div>
 						<p class="text-xs mt-1">${entity.description || ''}</p>
@@ -397,48 +407,48 @@ export function renderShopModal (heroId) {
 			</div>
 		`;
 	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No skills for sale.</p>';
-
+	
 	// NEW: Render the Building Upgrades tab.
 	buildingUpgradesContent.innerHTML = gameData.building_upgrades.map(upgrade => {
 		const canAfford = hero.tokens >= upgrade.cost;
 		return `
 			<div class="bg-base-300/50 rounded p-2 flex flex-col gap-1">
-				<div class="flex justify-between items-center">
-					<span class="font-bold text-sm">${upgrade.name}</span>
-					<span class="badge badge-warning">${upgrade.cost} T</span>
+				<div class="flex justify-between items-center gap-2">
+					<span class="font-bold text-sm truncate" title="${upgrade.name}">${upgrade.name}</span>
+					<span class="badge badge-warning flex-shrink-0">${upgrade.cost} T</span>
 				</div>
 				<p class="text-xs mt-1 flex-grow">${upgrade.description || ''}</p>
 				<button class="btn btn-sm btn-accent w-full mt-1" data-buy-upgrade-id="${upgrade.id}" data-hero-id="${hero.id}" ${!canAfford ? 'disabled' : ''}>Buy & Apply</button>
 			</div>
 		`;
 	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No building upgrades for sale.</p>';
-
+	
 	// NEW: Render the Car Upgrades tab.
 	carUpgradesContent.innerHTML = gameData.car_upgrades.map(upgrade => {
 		const canAfford = hero.tokens >= upgrade.cost;
 		return `
 			<div class="bg-base-300/50 rounded p-2 flex flex-col gap-1">
-				<div class="flex justify-between items-center">
-					<span class="font-bold text-sm">${upgrade.name}</span>
-					<span class="badge badge-warning">${upgrade.cost} T</span>
+				<div class="flex justify-between items-center gap-2">
+					<span class="font-bold text-sm truncate" title="${upgrade.name}">${upgrade.name}</span>
+					<span class="badge badge-warning flex-shrink-0">${upgrade.cost} T</span>
 				</div>
 				<p class="text-xs mt-1 flex-grow">${upgrade.description || ''}</p>
 				<button class="btn btn-sm btn-accent w-full mt-1" data-buy-upgrade-id="${upgrade.id}" data-hero-id="${hero.id}" ${!canAfford ? 'disabled' : ''}>Buy & Apply</button>
 			</div>
 		`;
 	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No car upgrades for sale.</p>';
-
+	
 	const inventoryItems = Object.entries(hero.inventory);
 	if (inventoryItems.length > 0) {
 		inventoryContent.innerHTML = inventoryItems.map(([itemId, totalQty]) => {
 			if (totalQty <= 0) return '';
 			const entity = findEntityById(itemId);
 			if (!entity) return '';
-
+			
 			const equippedCount = Object.values(hero.equipment).filter(eqId => eqId === itemId).length;
 			const canSell = totalQty > equippedCount;
 			const isAnyEquipped = equippedCount > 0;
-
+			
 			return `
 				<div class="bg-base-300/50 rounded p-2 flex gap-2">
 					<div class="relative w-[50px] h-[50px] flex-shrink-0">
@@ -446,11 +456,11 @@ export function renderShopModal (heroId) {
 						<span class="absolute bottom-0 right-0 bg-black bg-opacity-60 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-tl-md">${totalQty}</span>
 						${isAnyEquipped ? '<span class="absolute top-1 left-1 badge badge-primary badge-xs" title="Equipped">E</span>' : ''}
 					</div>
-					<div class="flex-grow flex flex-col justify-between gap-1">
+					<div class="flex-grow flex flex-col justify-between gap-1 min-w-0">
 						<div>
-							<div class="flex justify-between items-center">
-								<span class="font-bold text-sm">${entity.name}</span>
-								<span class="badge badge-warning">${entity.sellPrice} T</span>
+							<div class="flex justify-between items-center gap-2">
+								<span class="font-bold text-sm truncate" title="${entity.name}">${entity.name}</span>
+								<span class="badge badge-warning flex-shrink-0">${entity.sellPrice} T</span>
 							</div>
 							<div class="text-[10px] text-gray-400 italic">${entity.type} - Lvl ${entity.level}</div>
 						</div>
@@ -465,6 +475,6 @@ export function renderShopModal (heroId) {
 	} else {
 		inventoryContent.innerHTML = '<p class="text-xs italic text-center text-gray-500 col-span-full">Inventory is empty.</p>';
 	}
-
+	
 	modal.showModal();
 }
