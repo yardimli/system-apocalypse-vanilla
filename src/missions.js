@@ -13,15 +13,22 @@ export function renderMissionControl () {
 	const missionControlArea = getEl('mission-control-area');
 	if (!missionControlArea) return;
 	
-	const partyState = gameState.party;
-	let html = '';
-	
+	// MODIFIED: State data is now calculated first to build a state key.
 	const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
 	const maxPopulation = playerBases.length * 10;
 	const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
 	const isFull = currentPopulation >= maxPopulation;
-	
 	const isFighting = gameState.activeMonsters.length > 0;
+	
+	// NEW: Generate a state key to prevent unnecessary DOM updates, which can cause missed clicks.
+	const stateKey = JSON.stringify(gameState.party) + isFighting + isFull;
+	if (missionControlArea.getAttribute('data-prev-state') === stateKey) {
+		return;
+	}
+	
+	const partyState = gameState.party;
+	let html = '';
+	
 	const buttonText = isFull ? 'Look for Monsters' : 'Look for Survivors';
 	const buttonDisabled = partyState.missionState !== 'idle';
 	const distance = Math.floor(3000 * (partyState.missionProgress / 100));
@@ -56,6 +63,8 @@ export function renderMissionControl () {
     `;
 	
 	missionControlArea.innerHTML = html;
+	// NEW: Save the current state to prevent re-rendering if nothing has changed.
+	missionControlArea.setAttribute('data-prev-state', stateKey);
 }
 
 /**
@@ -165,7 +174,66 @@ export function processMissionTick () {
 	// If ambushed, stop mission processing for this tick
 	if (wasAmbushed) return;
 	
-	// 2. Process Mission Timer and State
+	// 2. Handle Survivor Searching (while driving)
+	const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
+	const maxPopulation = playerBases.length * 10;
+	const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
+	const isBaseFull = currentPopulation >= maxPopulation;
+	
+	// Only search for survivors if the base is not full.
+	if (!isBaseFull && Math.random() < 0.05) { // 5% chance per tick to find survivors
+		const heroesOnMission = gameState.heroes.filter(h => h.carId && h.hp.current > 0);
+		const totalCapacity = heroesOnMission.reduce((sum, h) => {
+			const car = gameState.city.cars.find(c => c.id === h.carId);
+			return sum + (car ? car.survivorCapacity : 0);
+		}, 0);
+		const currentCarried = heroesOnMission.reduce((sum, h) => sum + h.survivorsCarried, 0);
+		const availableSpace = totalCapacity - currentCarried;
+		
+		if (availableSpace > 0) {
+			const survivorsFound = Math.floor(Math.random() * 5) + 1; // Find 1-5 survivors
+			const survivorsToTake = Math.min(survivorsFound, availableSpace);
+			addToLog(`The party found ${survivorsFound} survivors while travelling and picked up ${survivorsToTake}!`);
+			
+			// Store initial survivor counts to log the distribution delta.
+			const initialCounts = new Map();
+			heroesOnMission.forEach(hero => {
+				initialCounts.set(hero.id, hero.survivorsCarried);
+			});
+			
+			let survivorsToDistribute = survivorsToTake;
+			// Distribute survivors among cars with available space.
+			while (survivorsToDistribute > 0) {
+				let distributedThisLoop = false;
+				for (const hero of heroesOnMission) {
+					const car = gameState.city.cars.find(c => c.id === hero.carId);
+					if (survivorsToDistribute > 0 && car && hero.survivorsCarried < car.survivorCapacity) {
+						hero.survivorsCarried++;
+						survivorsToDistribute--;
+						distributedThisLoop = true;
+					}
+				}
+				if (!distributedThisLoop) {
+					break; // Safeguard against infinite loops if no space is available.
+				}
+			}
+			
+			// Log the detailed distribution of survivors to each hero's log.
+			heroesOnMission.forEach(hero => {
+				const initialCount = initialCounts.get(hero.id);
+				const finalCount = hero.survivorsCarried;
+				const pickedUp = finalCount - initialCount;
+				if (pickedUp > 0) {
+					const car = gameState.city.cars.find(c => c.id === hero.carId);
+					const carName = car ? car.name : 'their car';
+					// Add the log entry to the specific hero's log.
+					addToLog(`${hero.name} picked up ${pickedUp} survivor(s), bringing the total in ${carName} to ${finalCount}.`, hero.id);
+				}
+			});
+		}
+	}
+	
+	// 3. Process Mission Timer and State
 	gameState.party.missionTimer--;
 	
 	if (gameState.party.missionState === 'driving_out') {
@@ -176,83 +244,38 @@ export function processMissionTick () {
 	
 	if (gameState.party.missionTimer <= 0) {
 		if (gameState.party.missionState === 'driving_out') {
-			// MODIFIED: Check if the base is full. If so, the party was just patrolling and should return immediately.
-			const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
-			const maxPopulation = playerBases.length * 10;
-			const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
-			const isBaseFull = currentPopulation >= maxPopulation;
-			
-			if (isBaseFull) {
-				addToLog('The base is full. The party completed a patrol and is returning.');
-				gameState.party.missionState = 'driving_back';
-				gameState.party.missionTimer = 10;
-				return; // Exit here to prevent the survivor search logic below.
-			}
-			
-			// Reached max distance, now searching for survivors
-			const heroesOnMission = gameState.heroes.filter(h => h.carId && h.hp.current > 0);
-			const totalCapacity = heroesOnMission.reduce((sum, h) => {
-				const car = gameState.city.cars.find(c => c.id === h.carId);
-				return sum + (car ? car.survivorCapacity : 0);
-			}, 0);
-			const currentCarried = heroesOnMission.reduce((sum, h) => sum + h.survivorsCarried, 0);
-			const availableSpace = totalCapacity - currentCarried;
-			
-			if (availableSpace <= 0) {
-				// Cars are full, start heading back
-				addToLog('All vehicles are full. Returning to base.');
-				gameState.party.missionState = 'driving_back';
-				gameState.party.missionTimer = 10; // 10-second trip back
-			} else {
-				// Search for survivors (10% chance per tick at max distance)
-				if (Math.random() < 0.1) {
-					const survivorsFound = Math.floor(Math.random() * 10) + 1; // 1-10 survivors
-					const survivorsToTake = Math.min(survivorsFound, availableSpace);
-					addToLog(`The party found ${survivorsFound} survivors and picked up ${survivorsToTake}!`);
-					
-					let survivorsToDistribute = survivorsToTake;
-					// MODIFIED: Added a safeguard to the distribution loop to prevent infinite loops.
-					while (survivorsToDistribute > 0) {
-						let distributedThisLoop = false; // Prevent infinite loops if all cars become full
-						for (const hero of heroesOnMission) {
-							const car = gameState.city.cars.find(c => c.id === hero.carId);
-							if (survivorsToDistribute > 0 && car && hero.survivorsCarried < car.survivorCapacity) {
-								hero.survivorsCarried++;
-								survivorsToDistribute--;
-								distributedThisLoop = true;
-							}
-						}
-						if (!distributedThisLoop) {
-							break; // Exit if no survivors could be placed in any car
-						}
-					}
-				}
-				// Whether survivors were found or not, check capacity again. If now full, return. Otherwise, search again next tick.
-				const newCarried = heroesOnMission.reduce((sum, h) => sum + h.survivorsCarried, 0);
-				if (newCarried >= totalCapacity) {
-					addToLog('All vehicles are now full. Returning to base.');
-					gameState.party.missionState = 'driving_back';
-					gameState.party.missionTimer = 10;
-				} else {
-					gameState.party.missionTimer = 1; // Search again next tick
-				}
-			}
+			// The party no longer waits at the destination. They immediately start the return trip.
+			addToLog('The party has reached the furthest point and is returning to base.');
+			gameState.party.missionState = 'driving_back';
+			gameState.party.missionTimer = 10; // 10-second trip back
 		} else if (gameState.party.missionState === 'driving_back') {
 			// Arrived back at base
 			const totalSurvivors = gameState.heroes.reduce((sum, h) => sum + h.survivorsCarried, 0);
 			if (totalSurvivors > 0) {
 				addToLog(`The party successfully returned with ${totalSurvivors} survivors!`);
 				let survivorsToHouse = totalSurvivors;
-				const playerBases = gameState.city.buildings.filter(b => b.owner === 'player' && b.population < 10);
-				if (playerBases.length > 0) {
+				// MODIFIED: Logic to distribute survivors among available player buildings.
+				const playerBasesWithSpace = gameState.city.buildings.filter(b => b.owner === 'player' && b.population < 10);
+				
+				if (playerBasesWithSpace.length > 0) {
 					while (survivorsToHouse > 0) {
-						for (const base of playerBases) {
+						let housedThisLoop = false;
+						for (const base of playerBasesWithSpace) {
 							if (survivorsToHouse > 0 && base.population < 10) {
 								base.population++;
 								survivorsToHouse--;
+								housedThisLoop = true;
 							}
 						}
+						if (!housedThisLoop) {
+							break; // Break if a full loop occurs with no one housed (all bases are full).
+						}
 					}
+				}
+				
+				// NEW: Add a log message if any survivors could not be housed.
+				if (survivorsToHouse > 0) {
+					addToLog(`Could not house ${survivorsToHouse} survivors because all safezones are full! They have departed.`);
 				}
 			} else {
 				addToLog('The party has successfully returned to base.');

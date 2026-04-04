@@ -26,14 +26,14 @@ export function calculateNextBuildingPrice() {
 export function handleEnterBuilding(heroId, buildingId) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
 	const building = gameState.city.buildings.find(b => b.id === buildingId);
-
+	
 	if (!hero || !building || building.owner !== 'player') return;
-
+	
 	// MODIFIED: Remove from car if they are in one. The logic is simplified.
 	if (hero.carId) {
 		hero.carId = null;
 	}
-
+	
 	// Escape from combat
 	if (hero.targetMonsterId) {
 		const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
@@ -45,7 +45,7 @@ export function handleEnterBuilding(heroId, buildingId) {
 		}
 		hero.targetMonsterId = null;
 	}
-
+	
 	hero.location = building.id;
 	if (!building.heroesInside.includes(heroId)) {
 		building.heroesInside.push(heroId);
@@ -60,15 +60,15 @@ export function handleEnterBuilding(heroId, buildingId) {
 export function handleExitBuilding(heroId) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
 	if (!hero || hero.location === 'field') return;
-
+	
 	const building = gameState.city.buildings.find(b => b.id === hero.location);
 	if (building) {
 		building.heroesInside = building.heroesInside.filter(id => id !== heroId);
 		addToLog(`${hero.name} exited ${building.name}.`, hero.id);
 	}
-
+	
 	hero.location = 'field';
-
+	
 	// NEW: Automatically re-enter the hero's owned car upon exiting a building.
 	const ownedCar = gameState.city.cars.find(c => c.ownerId === hero.id);
 	if (ownedCar) {
@@ -84,26 +84,26 @@ export function handleExitBuilding(heroId) {
 export function handleBuyBuilding(buildingId) {
 	const building = gameState.city.buildings.find(b => b.id === buildingId);
 	if (!building || building.owner === 'player') return;
-
+	
 	const price = calculateNextBuildingPrice();
 	const totalTokens = gameState.heroes.reduce((sum, h) => sum + h.tokens, 0);
-
+	
 	if (totalTokens < price) {
 		addToLog(`The party doesn't have enough tokens to buy Building #${buildingId}. (Need ${price})`);
 		return;
 	}
-
+	
 	const buildingName = prompt(`You are purchasing Building #${buildingId} for ${price} tokens.\nPlease enter a name for your new safezone:`, `Safezone ${gameState.city.buildings.filter(b => b.owner === 'player').length + 1}`);
 	if (!buildingName) {
 		addToLog('Building purchase cancelled.');
 		return;
 	}
-
+	
 	// Deduct tokens as evenly as possible
 	let remainingCost = price;
 	const payers = gameState.heroes.slice().sort((a, b) => b.tokens - a.tokens);
 	const contributions = {};
-
+	
 	// First pass: each hero pays up to their fair share
 	let tempCost = remainingCost;
 	for (const hero of payers) {
@@ -127,7 +127,7 @@ export function handleBuyBuilding(buildingId) {
 			}
 		}
 	}
-
+	
 	// Apply deductions and log
 	let contributionLog = [];
 	for (const heroId in contributions) {
@@ -135,7 +135,7 @@ export function handleBuyBuilding(buildingId) {
 		hero.tokens -= contributions[heroId];
 		contributionLog.push(`${hero.name}: ${contributions[heroId]}`);
 	}
-
+	
 	// MODIFIED: Update building state with new HP and Shield values
 	building.owner = 'player';
 	building.name = buildingName;
@@ -145,7 +145,7 @@ export function handleBuyBuilding(buildingId) {
 	building.maxShieldHp = 1000;
 	building.shieldHp = 1000;
 	building.isSafezone = true;
-
+	
 	addToLog(`Party purchased ${building.name} for ${price} tokens! (${contributionLog.join(', ')})`);
 }
 
@@ -159,26 +159,27 @@ export function renderBuildings(contentArea) {
 		contentArea.innerHTML = `<div id="buildings-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>`;
 		grid = getEl('buildings-grid');
 	}
-
+	
 	// Generate a state key to check if an update is needed
 	const stateKey = JSON.stringify(gameState.city.buildings) + JSON.stringify(gameState.heroes.map(h => [h.id, h.location, h.tokens]));
 	if (grid.getAttribute('data-prev-state') === stateKey) return;
-
+	
 	const totalTokens = gameState.heroes.reduce((sum, h) => sum + h.tokens, 0);
 	const nextPrice = calculateNextBuildingPrice();
-
+	
 	grid.innerHTML = gameState.city.buildings.map(b => {
 		if (b.owner === 'player') {
 			// Player-owned building card
 			const heroesInside = b.heroesInside.map(id => gameState.heroes.find(h => h.id === id)?.name).join(', ') || 'None';
 			const heroesOutside = gameState.heroes.filter(h => h.location === 'field');
-
+			
 			return `
                 <div class="card bg-base-200 shadow-sm p-3 text-xs border border-primary">
                     <div class="font-bold text-sm mb-1 text-primary">${b.name} (#${b.id})</div>
                     <div data-state class="font-semibold text-success">State: ${b.state}</div>
                     <div data-hp>HP: ${b.hp}/${b.maxHp}</div>
                     <div data-shield class="text-info">Shield: ${b.shieldHp || 0}/${b.maxShieldHp || 0}</div>
+                    <div data-pop class="text-success mt-1">Pop: ${b.population}/10</div>
                     <div class="mt-2">
                         <p class="font-semibold">Heroes Inside:</p>
                         <p class="text-gray-400 truncate">${heroesInside}</p>
@@ -206,6 +207,6 @@ export function renderBuildings(contentArea) {
             `;
 		}
 	}).join('');
-
+	
 	grid.setAttribute('data-prev-state', stateKey);
 }
