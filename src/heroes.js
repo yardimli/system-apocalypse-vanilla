@@ -138,26 +138,29 @@ export function renderHeroes () {
 		let dynamicHtml = '';
 		let dynamicStateKey = '';
 		
-		// NEW: Generate HTML for survivors being carried, if any.
+		// MODIFIED: Always generate survivor HTML when on a mission to show capacity.
 		let survivorHtml = '';
-		if (hero.survivorsCarried > 0) {
-			survivorHtml = `<p class="text-xs text-center text-success mb-1">Carrying: ${hero.survivorsCarried} Survivors</p>`;
+		if (hero.carId && hero.hp.current > 0) {
+			const car = gameState.city.cars.find(c => c.id === hero.carId);
+			if (car) {
+				const capacity = car.survivorCapacity || 4;
+				const textClass = hero.survivorsCarried > 0 ? 'text-success' : 'text-gray-500';
+				survivorHtml = `<p class="text-xs text-center ${textClass} mb-1">Carrying: ${hero.survivorsCarried} / ${capacity} Survivors</p>`;
+			}
 		}
 		
 		if (hero.hp.current <= 0) {
 			dynamicHtml = `<p class="text-error font-bold text-center">INCAPACITATED</p><p class="text-xs text-center">Awaiting Aegis Healing...</p>`;
-			// NEW: Add a message if the hero is incapacitated at base.
 			if (hero.location !== 'field') {
 				dynamicHtml += `<p class="text-xs text-center text-warning">Cannot be healed at base.</p>`;
 			}
-			dynamicStateKey = `incapacitated-${hero.location}`; // MODIFIED: Add location to state key
+			dynamicStateKey = `incapacitated-${hero.location}`;
 		} else if (hero.location !== 'field') {
 			const building = gameState.city.buildings.find(b => b.id === hero.location);
 			const buildingName = building ? building.name : `Building #${hero.location}`;
 			dynamicHtml = `<p class="text-info text-center text-sm">Resting in ${buildingName}.</p>`;
 			dynamicStateKey = `resting-${hero.location}`;
 		} else if (!hero.carId) {
-			// MODIFIED: Changed message to reflect new car mechanic.
 			dynamicHtml = `<p class="text-warning text-center text-sm">Waiting for an available car...</p>`;
 			dynamicStateKey = 'no-car';
 		} else if (hero.targetMonsterId) {
@@ -182,7 +185,6 @@ export function renderHeroes () {
 					}).join(' ');
 				}
 				
-				// NEW: Display the car the hero is in.
 				const car = gameState.city.cars.find(c => c.id === hero.carId);
 				const carName = car ? (car.name || `Car #${car.id}`) : 'Unknown Car';
 				
@@ -197,32 +199,31 @@ export function renderHeroes () {
                         <div class="flex flex-wrap gap-1 justify-center">${agroHtml}</div>
                     </div>
                 `;
-				// MODIFIED: Added survivor count to state key
-				dynamicStateKey = `fighting-${monster.id}-${monster.currentHp}-${JSON.stringify(monster.agro)}-${hero.survivorsCarried}`;
+				// MODIFIED: Add car survivor capacity to state key to force updates
+				const carCapacity = car ? car.survivorCapacity : 0;
+				dynamicStateKey = `fighting-${monster.id}-${monster.currentHp}-${JSON.stringify(monster.agro)}-${hero.survivorsCarried}-${carCapacity}`;
 			} else {
 				hero.targetMonsterId = null;
-				// MODIFIED: If the monster is gone, fall through to the logic below which checks mission state.
-				// This prevents showing "Patrolling" after a fight.
 				const car = gameState.city.cars.find(c => c.id === hero.carId);
 				const carName = car ? (car.name || `Car #${car.id}`) : 'Unknown Car';
 				dynamicHtml = `<p class="text-info text-center text-sm">Resting at base in ${carName}.</p>`;
 				dynamicStateKey = `resting-base-${hero.carId}`;
 			}
 		} else {
-			// MODIFIED: Hero status now depends on the party's mission state.
 			const car = gameState.city.cars.find(c => c.id === hero.carId);
 			const carName = car ? (car.name || `Car #${car.id}`) : 'Unknown Car';
+			const carCapacity = car ? car.survivorCapacity : 0; // Get capacity for state key
 			
 			if (gameState.party.missionState === 'idle') {
 				dynamicHtml = `<p class="text-info text-center text-sm">Resting at base in ${carName}.</p>`;
 				dynamicStateKey = `resting-base-${hero.carId}`;
 			} else if (gameState.party.missionState === 'driving_out') {
-				dynamicHtml = `<p class="text-success text-center text-sm">Searching for survivors in ${carName}.</p>`;
-				dynamicStateKey = `driving-out-${hero.carId}`;
+				dynamicHtml = `<p class="text-success text-center text-sm">Searching for survivors in ${carName}.</p>${survivorHtml}`; // MODIFIED: Added survivorHtml
+				dynamicStateKey = `driving-out-${hero.carId}-${hero.survivorsCarried}-${carCapacity}`; // MODIFIED: Added state data
 			} else if (gameState.party.missionState === 'driving_back') {
 				dynamicHtml = `<p class="text-success text-center text-sm">Returning to base in ${carName}.</p>${survivorHtml}`;
-				dynamicStateKey = `driving-back-${hero.carId}-${hero.survivorsCarried}`;
-			} else if (gameState.party.missionState === 'in_combat') { // NEW: Handle in_combat state
+				dynamicStateKey = `driving-back-${hero.carId}-${hero.survivorsCarried}-${carCapacity}`; // MODIFIED: Added state data
+			} else if (gameState.party.missionState === 'in_combat') {
 				dynamicHtml = `<p class="text-error text-center text-sm">Ambushed! Waiting for combat to resolve...</p>`;
 				dynamicStateKey = `in-combat-${hero.carId}`;
 			}
@@ -318,24 +319,18 @@ export function renderHeroes () {
 		
 		const heroLogContainer = card.querySelector('[data-hero-log-list]');
 		if (heroLogContainer) {
-			// NEW: Check the state of the battle log toggle for this specific hero card.
 			const battleLogToggle = card.querySelector('[data-toggle-battle-log]');
 			const showBattleLogs = battleLogToggle ? battleLogToggle.checked : false;
 			
-			// NEW: Filter logs based on the toggle state.
 			const filteredLogs = hero.log.filter(entry => {
 				if (showBattleLogs) {
-					return true; // If checked, show all logs.
+					return true;
 				}
-				// Otherwise, filter out battle damage logs.
-				// Regex checks for "attacked ... dealing" or "deals ... damage".
 				const isBattleDamageLog = /attacked.*, dealing|deals \d+ damage/.test(entry);
 				return !isBattleDamageLog;
 			});
 			
-			// MODIFIED: Use the filteredLogs array to generate the HTML.
 			const logHtml = filteredLogs.map(entry => `<p>${entry}</p>`).join('');
-			// MODIFIED: Add the toggle's state to the state key to ensure updates when it changes.
 			const logStateKey = (hero.log.length > 0 ? hero.log[0] : '') + showBattleLogs;
 			updateHtmlIfChanged(heroLogContainer, logHtml, logStateKey);
 		}

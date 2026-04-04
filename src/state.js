@@ -26,7 +26,6 @@ for (let i = 1; i <= 100; i++) {
 	initialBuildings.push(newBuilding);
 }
 
-// MODIFIED: Cars are no longer generated here; they will be loaded from cars.json.
 const initialCars = [];
 
 export const gameState = {
@@ -37,8 +36,9 @@ export const gameState = {
 	party: {
 		missionState: 'idle', // 'idle', 'driving_out', 'driving_back', 'in_combat'
 		missionTimer: 0,
+		missionProgress: 0, // NEW: Tracks mission travel progress (0-100)
 		survivorsAwaitingRescue: 0,
-		pausedMission: null // NEW: To store mission state when combat starts
+		pausedMission: null
 	},
 	city: {
 		buildings: initialBuildings,
@@ -62,12 +62,11 @@ export const gameState = {
 			mpRegenPerLevel: 1.0,
 			equipment: { mainHand: 'WAND001', offHand: null, body: 'ARM001' },
 			carId: null,
-			survivorsCarried: 0, // NEW: Track survivors carried by this hero
+			survivorsCarried: 0,
 			targetMonsterId: null,
 			location: 'field',
 			tokens: 100,
 			skills:[
-				// MODIFIED: Removed 'AEG003' (Mana Battery)
 				{ id: 'AEG004' }
 			],
 			autoCastSkillId: null,
@@ -100,7 +99,7 @@ export const gameState = {
 			mpRegenPerLevel: 0.5,
 			equipment: { mainHand: 'WAND001', offHand: null, body: 'ARM001' },
 			carId: null,
-			survivorsCarried: 0, // NEW: Track survivors carried by this hero
+			survivorsCarried: 0,
 			targetMonsterId: null,
 			location: 'field',
 			tokens: 100,
@@ -130,7 +129,7 @@ export const gameState = {
 			hpRegenPerLevel: 0.5,
 			equipment: { mainHand: 'SWD001', offHand: 'SHD001', body: 'ARM001' },
 			carId: null,
-			survivorsCarried: 0, // NEW: Track survivors carried by this hero
+			survivorsCarried: 0,
 			targetMonsterId: null,
 			location: 'field',
 			tokens: 100,
@@ -159,5 +158,5 @@ export const gameData = {
 	system_shop: [],
 	building_upgrades: [],
 	car_upgrades: [],
-	cars: [] // NEW: To store car definitions from cars.json
+	cars: []
 };

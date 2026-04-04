@@ -4,14 +4,13 @@ import { handleCombatAction } from './combat.js';
 import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { handleUseConsumable } from './inventory.js';
-// MODIFIED: Import handleBuyCar and handleBuyUpgrade from shop
 import { handleBuyItem, handleSellItem, handleBuySkill, handleBuyUpgrade, handleBuyCar } from './shop.js';
 import { renderHeroes, autoEquipBestGear, renderShopModal } from './heroes.js';
 import { renderMonsters } from './monsters.js';
 import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding } from './buildings.js';
 import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview } from './ui.js';
-// MODIFIED: Import new car handlers, remove manual enter/exit
 import { renderCars, initiateCarPurchase } from './cars.js';
+import { renderMissionControl, handleStartMission, handleFlee, processMissionTick } from './missions.js';
 
 const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'City', 'Items', 'Log', 'Sandbox'];
 let activeTab = 'Heroes';
@@ -21,69 +20,19 @@ const getEl = (id) => document.getElementById(id);
 const tabsContainer = getEl('tabs-container');
 const contentArea = getEl('content-area');
 
-// NEW: Renders the mission control panel on the Heroes tab.
-function renderMissionControl () {
-	const missionControlArea = getEl('mission-control-area');
-	if (!missionControlArea) return;
-	
-	const partyState = gameState.party;
-	let html = '';
-	
-	const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
-	// Assuming 10 is the max population per building
-	const maxPopulation = playerBases.length * 10;
-	const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
-	const isFull = currentPopulation >= maxPopulation;
-	
-	// MODIFIED: Check for active combat and update status and button state accordingly.
-	const isFighting = gameState.activeMonsters.length > 0;
-	const buttonText = isFull ? 'Look for Monsters' : 'Look for Survivors';
-	const buttonDisabled = partyState.missionState !== 'idle';
-	
-	let statusText = 'The party is idle at the base.';
-	if (isFighting) {
-		statusText = 'Ambushed! Fighting for survival!';
-	} else if (partyState.missionState === 'driving_out') {
-		statusText = `Driving out... Time remaining: ${partyState.missionTimer}s.`;
-	} else if (partyState.missionState === 'driving_back') {
-		const totalSurvivors = gameState.heroes.reduce((sum, h) => sum + h.survivorsCarried, 0);
-		statusText = `Driving back with ${totalSurvivors} survivors... Time remaining: ${partyState.missionTimer}s.`;
-	} else if (partyState.missionState === 'in_combat') { // NEW: Status for when mission is paused for combat.
-		statusText = 'Ambushed! Mission paused.';
-	}
-	
-	// NEW: Added a "Flee" button that appears during combat.
-	html = `
-        <div class="flex-grow">
-            <h3 class="font-bold text-lg">Party Mission</h3>
-            <p class="text-sm text-gray-400">${statusText}</p>
-        </div>
-        <div class="flex gap-2">
-            ${isFighting ? '<button id="flee-btn" class="btn btn-warning">Flee</button>' : ''}
-            <button id="mission-btn" class="btn btn-primary" ${buttonDisabled ? 'disabled' : ''}>
-                ${buttonText}
-            </button>
-        </div>
-    `;
-	
-	missionControlArea.innerHTML = html;
-}
-
 function renderContent () {
 	switch (activeTab) {
 		case 'Heroes':
 			if (!getEl('heroes-tab-content')) {
 				contentArea.innerHTML = `
                     <div id="heroes-tab-content" class="flex flex-col gap-4">
-						<!-- NEW: Mission control area -->
 						<div id="mission-control-area" class="card bg-base-200 shadow-md p-4 flex flex-col md:flex-row justify-between items-center gap-4">
-							<!-- Content will be dynamically rendered -->
+							{/* Content will be dynamically rendered */}
 						</div>
                         <div id="heroes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
                     </div>
                 `;
 			}
-			// NEW: Call a new function to render the mission control area
 			renderMissionControl();
 			renderHeroes();
 			break;
@@ -166,136 +115,7 @@ function manageCombatAssignments () {
 function gameLoop () {
 	gameState.time++;
 	
-	// MODIFIED: Monster spawning is moved into the new mission logic.
-	
-	// 1. Process Party Mission
-	// MODIFIED: New mission state machine.
-	if (['driving_out', 'driving_back'].includes(gameState.party.missionState)) {
-		// Only spawn monsters if heroes are driving
-		const heroesInCars = gameState.heroes.filter(h => h.carId && h.hp.current > 0).length;
-		let wasAmbushed = false;
-		if (heroesInCars > 0) {
-			const currentDay = Math.floor(gameState.time / 10) + 1;
-			const availableMonsters = gameData.monsters.filter(m => m.spawnDay <= currentDay);
-			
-			for (const monsterData of availableMonsters) {
-				if (Math.random() < monsterData.spawnRatio) {
-					const newMonster = {
-						id: gameState.nextMonsterId++,
-						spawnTime: gameState.time,
-						name: monsterData.name,
-						level: monsterData.level,
-						maxHp: monsterData.hp,
-						currentHp: monsterData.hp,
-						damage: monsterData.damage,
-						xp: monsterData.xp,
-						tokens: monsterData.tokens,
-						assignedTo: [],
-						targetBuilding: null,
-						agro: {}
-					};
-					gameState.activeMonsters.push(newMonster);
-					addToLog(`AMBUSH! A Lv.${monsterData.level} ${monsterData.name} (#${newMonster.id}) appeared!`);
-					
-					// NEW: Pause the mission for combat.
-					gameState.party.pausedMission = {
-						state: gameState.party.missionState,
-						timer: gameState.party.missionTimer
-					};
-					gameState.party.missionState = 'in_combat';
-					gameState.party.missionTimer = 0;
-					wasAmbushed = true;
-					
-					// If they were returning with survivors, the survivors are lost
-					if (gameState.party.survivorsAwaitingRescue > 0) {
-						gameState.heroes.forEach(hero => {
-							if (hero.survivorsCarried > 0) {
-								addToLog(`The ${hero.survivorsCarried} survivors in ${hero.name}'s car were lost in the ambush!`, hero.id);
-								hero.survivorsCarried = 0;
-							}
-						});
-						gameState.party.survivorsAwaitingRescue = 0;
-					}
-					break; // Only one ambush per tick
-				}
-			}
-		}
-		
-		// If not ambushed, continue mission timer
-		if (!wasAmbushed) {
-			gameState.party.missionTimer--;
-			
-			if (gameState.party.missionTimer <= 0) {
-				if (gameState.party.missionState === 'driving_out') {
-					// NEW: Survivor search logic. 10% chance per second.
-					if (Math.random() < 0.1) {
-						const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
-						const maxPopulation = playerBases.length * 10;
-						const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
-						const isFull = currentPopulation >= maxPopulation;
-						
-						if (isFull) {
-							addToLog('The party completed a patrol but found no survivors as the base is full.');
-							gameState.party.missionState = 'driving_back';
-							gameState.party.missionTimer = 5; // Return trip is 5 seconds
-						} else {
-							const survivorsFound = Math.floor(Math.random() * 3) + 1; // 1-3 survivors
-							gameState.party.survivorsAwaitingRescue = survivorsFound;
-							addToLog(`The party found ${survivorsFound} survivors! Now returning to base.`);
-							
-							const heroesOnMission = gameState.heroes.filter(h => h.carId && h.hp.current > 0);
-							let survivorsToDistribute = survivorsFound;
-							if (heroesOnMission.length > 0) {
-								while (survivorsToDistribute > 0) {
-									for (const hero of heroesOnMission) {
-										if (survivorsToDistribute > 0) {
-											hero.survivorsCarried++;
-											survivorsToDistribute--;
-										}
-									}
-								}
-							}
-							gameState.party.missionState = 'driving_back';
-							gameState.party.missionTimer = 5; // Return trip is 5 seconds
-						}
-					} else {
-						// If no survivors found, just reset the timer for another search cycle.
-						gameState.party.missionTimer = 1;
-					}
-				} else if (gameState.party.missionState === 'driving_back') {
-					const totalSurvivors = gameState.heroes.reduce((sum, h) => sum + h.survivorsCarried, 0);
-					if (totalSurvivors > 0) {
-						addToLog(`The party successfully returned with ${totalSurvivors} survivors!`);
-						let survivorsToHouse = totalSurvivors;
-						const playerBases = gameState.city.buildings.filter(b => b.owner === 'player' && b.population < 10);
-						if (playerBases.length > 0) {
-							while (survivorsToHouse > 0) {
-								for (const base of playerBases) {
-									if (survivorsToHouse > 0 && base.population < 10) {
-										base.population++;
-										survivorsToHouse--;
-									}
-								}
-							}
-						}
-					} else {
-						addToLog('The party has successfully returned to base.');
-					}
-					
-					// Move all heroes into a base building.
-					const firstBase = gameState.city.buildings.find(b => b.owner === 'player');
-					if (firstBase) {
-						gameState.heroes.forEach(h => handleEnterBuilding(h.id, firstBase.id));
-					}
-					
-					gameState.heroes.forEach(h => { h.survivorsCarried = 0; });
-					gameState.party.survivorsAwaitingRescue = 0;
-					gameState.party.missionState = 'idle';
-					gameState.party.missionTimer = 0;
-				}
-			}
-		}
-	}
+	processMissionTick();
 	
 	// 2. Process Heroes
 	manageCombatAssignments();
@@ -317,8 +137,6 @@ function gameLoop () {
 			}
 			return;
 		}
-		
-		// MODIFIED: Removed automatic car entry logic. This is now handled when exiting buildings.
 		
 		if (hero.hp.current > 0) {
 			hero.hp.current = Math.min(hero.hp.max, hero.hp.current + hero.hpRegen);
@@ -405,13 +223,11 @@ function gameLoop () {
 				const isOnCooldown = (hero.skillCooldowns[skillId] || 0) > gameState.time;
 				
 				if (meetsLevelReq && canAutoCast && hasResources && !isOnCooldown) {
-					// MODIFIED: Reworked auto-cast logic for clarity and to implement new Aegis healing behavior.
 					if (skill.class === 'Aegis') {
 						let shouldCast = false;
 						const options = {};
 						
 						if (skill.actionType === 'heal') {
-							// Auto-cast heal on the designated target if their HP is below 85%.
 							const targetId = hero.skillTargets[skillId];
 							const targetHero = gameState.heroes.find(h => h.id === targetId);
 							if (targetHero && targetHero.hp.current < (targetHero.hp.max * 0.85)) {
@@ -419,7 +235,6 @@ function gameLoop () {
 								options.targetHeroId = targetId;
 							}
 						}
-						// Future Aegis auto-cast skills can be added here.
 						
 						if (shouldCast) {
 							handleAegisAction(hero.id, skill.id, options);
@@ -461,7 +276,6 @@ function gameLoop () {
 				const monsterDamage = parseRange(monster.damage);
 				let damageTaken = Math.max(1, monsterDamage - totalMitigation);
 				
-				// Apply mitigation bonus from car upgrades if the hero is in a car.
 				const car = targetHero.carId ? gameState.city.cars.find(c => c.id === targetHero.carId) : null;
 				if (car) {
 					const mitigationBonus = car.upgrades
@@ -475,7 +289,7 @@ function gameLoop () {
 						addToLog(`${targetHero.name}'s car mitigated ${mitigatedAmount} damage!`, targetHero.id);
 					}
 				}
-				damageTaken = Math.max(1, damageTaken); // Ensure at least 1 damage is dealt after all mitigation.
+				damageTaken = Math.max(1, damageTaken);
 				
 				targetHero.hp.current -= damageTaken;
 				addToLog(`${monster.name} (#${monster.id}) attacked ${targetHero.name}, dealing ${damageTaken} damage!`, targetHero.id);
@@ -483,11 +297,9 @@ function gameLoop () {
 				if (targetHero.hp.current <= 0) {
 					targetHero.hp.current = 0;
 					handleExitBuilding(targetHero.id);
-					// MODIFIED: A hero being incapacitated now only clears their carId, not the car's occupants list.
 					if (targetHero.carId) {
 						targetHero.carId = null;
 					}
-					// NEW: Check for survivor loss
 					if (targetHero.survivorsCarried > 0) {
 						addToLog(`The ${targetHero.survivorsCarried} survivors with ${targetHero.name} were killed when they were incapacitated!`, targetHero.id);
 						targetHero.survivorsCarried = 0;
@@ -594,21 +406,20 @@ function gameLoop () {
 		
 		gameState.activeMonsters = gameState.activeMonsters.filter(m => m.currentHp > 0);
 		
-		// NEW: If all monsters are defeated, resume the paused mission.
 		if (gameState.activeMonsters.length === 0 && gameState.party.pausedMission) {
 			addToLog('Combat finished. Resuming mission...');
 			gameState.party.missionState = gameState.party.pausedMission.state;
 			gameState.party.missionTimer = gameState.party.pausedMission.timer;
+			gameState.party.missionProgress = gameState.party.pausedMission.progress;
 			gameState.party.pausedMission = null;
 		}
 	}
 	
 	// 6. Daily Updates
-	// MODIFIED: Removed passive population and car battery logic.
 	
 	renderHeader();
 	if (activeTab === 'Heroes') {
-		renderMissionControl(); // NEW: Update mission UI
+		renderMissionControl();
 		renderHeroes();
 	}
 	if (activeTab === 'Buildings') renderBuildings(contentArea);
@@ -623,7 +434,6 @@ function gameLoop () {
 // --- INITIALIZATION ---
 async function init () {
 	try {
-		// MODIFIED: Fetch new cars.json and car_upgrades.json
 		const [items, skills, monsters, systemShop, buildingUpgrades, carUpgrades, cars] = await Promise.all([
 			fetch('./data/items.json').then(res => res.json()),
 			fetch('./data/skills.json').then(res => res.json()),
@@ -631,7 +441,7 @@ async function init () {
 			fetch('./data/system_shop.json').then(res => res.json()),
 			fetch('./data/building_upgrades.json').then(res => res.json()),
 			fetch('./data/car_upgrades.json').then(res => res.json()),
-			fetch('./data/cars.json').then(res => res.json()) // NEW
+			fetch('./data/cars.json').then(res => res.json())
 		]);
 		gameData.items = items;
 		gameData.skills = skills;
@@ -639,18 +449,17 @@ async function init () {
 		gameData.system_shop = systemShop;
 		gameData.building_upgrades = buildingUpgrades;
 		gameData.car_upgrades = carUpgrades;
-		gameData.cars = cars; // NEW
+		gameData.cars = cars;
 		
-		// MODIFIED: Populate gameState with cars using the new single-owner structure.
 		gameState.city.cars = gameData.cars.map(carData => ({
 			id: carData.id,
-			ownerId: null, // NEW: Use ownerId to track the hero who owns the car.
+			ownerId: null,
 			name: carData.name,
-			upgrades: [...carData.upgrades], // Copy initial upgrades
-			maxOccupants: 1 // NEW: All cars have a max capacity of 1.
+			upgrades: [...carData.upgrades],
+			maxOccupants: 1,
+			survivorCapacity: 4
 		}));
 		
-		// NEW: Assign starting cars to heroes
 		const basicCars = gameData.cars.filter(c => c.upgrades.length === 0);
 		const shuffledBasicCars = basicCars.sort(() => 0.5 - Math.random());
 		
@@ -666,7 +475,6 @@ async function init () {
 		});
 		addToLog('[SYSTEM]: Initial vehicles have been assigned to the starting heroes.');
 		
-		// NEW: Create initial player safezones
 		const potentialSafezoneBuildings = gameState.city.buildings.filter(b => b.owner !== 'player');
 		const shuffledBuildings = potentialSafezoneBuildings.sort(() => 0.5 - Math.random());
 		const baseNames = ['Alpha Base', 'Beta Base', 'Delta Base'];
@@ -682,7 +490,7 @@ async function init () {
 				building.maxShieldHp = 1000;
 				building.shieldHp = 1000;
 				building.isSafezone = true;
-				building.population = 0; // Start with zero population
+				building.population = 0;
 			}
 		}
 		addToLog('[SYSTEM]: Initial safezones Alpha, Beta, and Delta have been established.');
@@ -697,17 +505,20 @@ async function init () {
 	renderContent();
 	
 	tabsContainer.addEventListener('click', (e) => {
-		if (e.target.matches('[data-tab]')) {
-			activeTab = e.target.dataset.tab;
+		const tabLink = e.target.closest('[data-tab]');
+		if (tabLink) {
+			activeTab = tabLink.dataset.tab;
 			renderTabs(activeTab, TABS);
 			renderContent();
 		}
 	});
 	
+	// MODIFIED: Complete refactor of the event listener for robustness.
 	document.body.addEventListener('click', (e) => {
-		if (e.target.matches('[data-sell-item-id]')) {
-			const heroId = parseInt(e.target.dataset.heroId, 10);
-			const itemId = e.target.dataset.sellItemId;
+		const sellBtn = e.target.closest('[data-sell-item-id]');
+		if (sellBtn) {
+			const heroId = parseInt(sellBtn.dataset.heroId, 10);
+			const itemId = sellBtn.dataset.sellItemId;
 			handleSellItem(heroId, itemId);
 			const modal = getEl('system-shop-modal');
 			if (modal.open) {
@@ -718,8 +529,7 @@ async function init () {
 		}
 		
 		const inventoryItem = e.target.closest('[data-inventory-item]');
-		const inShopModal = e.target.closest('#system-shop-modal');
-		if (inventoryItem && !inShopModal) {
+		if (inventoryItem && !e.target.closest('#system-shop-modal')) {
 			const heroId = parseInt(inventoryItem.dataset.heroId, 10);
 			const itemId = inventoryItem.dataset.itemId;
 			const itemData = gameData.items.find(i => i.id === itemId);
@@ -731,8 +541,9 @@ async function init () {
 			return;
 		}
 		
-		if (e.target.matches('[data-open-shop-btn]')) {
-			const card = e.target.closest('.card');
+		const openShopBtn = e.target.closest('[data-open-shop-btn]');
+		if (openShopBtn) {
+			const card = openShopBtn.closest('.card');
 			if (card && card.id.startsWith('hero-card-')) {
 				const heroId = parseInt(card.id.replace('hero-card-', ''), 10);
 				renderShopModal(heroId);
@@ -746,179 +557,136 @@ async function init () {
 			const skillId = autoCastBtn.dataset.autocastSkillId;
 			const hero = gameState.heroes.find(h => h.id === heroId);
 			if (hero) {
-				if (hero.autoCastSkillId === skillId) {
-					hero.autoCastSkillId = null;
-					addToLog(`${hero.name} disabled auto-cast.`, hero.id);
-				} else {
-					hero.autoCastSkillId = skillId;
-					const skillName = gameData.skills.find(s => s.id === skillId).name;
-					addToLog(`${hero.name} set auto-cast skill to: ${skillName}.`, hero.id);
-				}
+				hero.autoCastSkillId = hero.autoCastSkillId === skillId ? null : skillId;
+				const skillName = gameData.skills.find(s => s.id === skillId).name;
+				const action = hero.autoCastSkillId ? `set auto-cast to: ${skillName}` : 'disabled auto-cast';
+				addToLog(`${hero.name} ${action}.`, hero.id);
 				renderContent();
 			}
 			return;
 		}
 		
-		// MODIFIED: Removed the separate target selection event listener as it's now obsolete.
-		// const setTargetBtn = e.target.closest('[data-set-target-hero-id]');
-		
-		if (e.target.matches('[data-skill-id]')) {
-			const heroId = parseInt(e.target.dataset.heroId, 10);
-			const skillId = e.target.dataset.skillId;
+		const castSkillBtn = e.target.closest('[data-skill-id]');
+		if (castSkillBtn) {
+			const heroId = parseInt(castSkillBtn.dataset.heroId, 10);
+			const skillId = castSkillBtn.dataset.skillId;
 			const hero = gameState.heroes.find(h => h.id === heroId);
 			const skillData = gameData.skills.find(s => s.id === skillId);
-			
-			// NEW: Get target hero ID from the button itself for targeted skills.
-			const targetHeroId = e.target.dataset.targetHeroId ? parseInt(e.target.dataset.targetHeroId, 10) : null;
+			const targetHeroId = castSkillBtn.dataset.targetHeroId ? parseInt(castSkillBtn.dataset.targetHeroId, 10) : null;
 			
 			if (skillData.class === 'Aegis') {
 				const options = {};
 				if (skillData.actionType === 'heal') {
-					// NEW: If a target was clicked via a specific button, set it as the new default and pass it to the action.
 					if (targetHeroId) {
 						hero.skillTargets[skillId] = targetHeroId;
-						options.targetHeroId = targetHeroId;
-					} else {
-						// Fallback to the currently stored target if the button didn't specify one.
-						options.targetHeroId = hero.skillTargets[skillId];
 					}
+					options.targetHeroId = hero.skillTargets[skillId];
 				}
 				handleAegisAction(heroId, skillId, options);
 			} else {
 				handleCombatAction(heroId, skillId);
 			}
 			renderContent();
+			return;
 		}
 		
-		if (e.target.matches('[data-buy-item-id]')) {
-			const heroId = parseInt(e.target.dataset.heroId, 10);
-			const itemId = e.target.dataset.buyItemId;
+		const buyItemBtn = e.target.closest('[data-buy-item-id]');
+		if (buyItemBtn) {
+			const heroId = parseInt(buyItemBtn.dataset.heroId, 10);
+			const itemId = buyItemBtn.dataset.buyItemId;
 			handleBuyItem(heroId, itemId);
 			renderShopModal(heroId);
 			renderContent();
+			return;
 		}
-		if (e.target.matches('[data-buy-skill-id]')) {
-			const heroId = parseInt(e.target.dataset.heroId, 10);
-			const skillId = e.target.dataset.buySkillId;
+		
+		const buySkillBtn = e.target.closest('[data-buy-skill-id]');
+		if (buySkillBtn) {
+			const heroId = parseInt(buySkillBtn.dataset.heroId, 10);
+			const skillId = buySkillBtn.dataset.buySkillId;
 			handleBuySkill(heroId, skillId);
 			renderShopModal(heroId);
 			renderContent();
+			return;
 		}
-		// MODIFIED: Event listener for buying upgrades now passes heroId.
-		if (e.target.matches('[data-buy-upgrade-id]')) {
-			const upgradeId = e.target.dataset.buyUpgradeId;
-			const heroId = parseInt(e.target.dataset.heroId, 10);
+		
+		const buyUpgradeBtn = e.target.closest('[data-buy-upgrade-id]');
+		if (buyUpgradeBtn) {
+			const upgradeId = buyUpgradeBtn.dataset.buyUpgradeId;
+			const heroId = parseInt(buyUpgradeBtn.dataset.heroId, 10);
 			handleBuyUpgrade(heroId, upgradeId);
 			renderShopModal(heroId);
 			renderContent();
-		}
-		if (e.target.matches('[data-buy-building-id]')) {
-			const buildingId = parseInt(e.target.dataset.buyBuildingId, 10);
-			handleBuyBuilding(buildingId);
-			renderContent();
-		}
-		if (e.target.matches('[data-enter-building-hero]')) {
-			const heroId = parseInt(e.target.dataset.enterBuildingHero, 10);
-			const buildingId = parseInt(e.target.dataset.enterBuildingBldg, 10);
-			handleEnterBuilding(heroId, buildingId);
-			renderContent();
-		}
-		if (e.target.matches('[data-exit-building-hero]')) {
-			const heroId = parseInt(e.target.dataset.exitBuildingHero, 10);
-			handleExitBuilding(heroId);
-			renderContent();
+			return;
 		}
 		
-		// NEW: Event listener for confirming car purchase from modal
+		const buyBuildingBtn = e.target.closest('[data-buy-building-id]');
+		if (buyBuildingBtn) {
+			const buildingId = parseInt(buyBuildingBtn.dataset.buyBuildingId, 10);
+			handleBuyBuilding(buildingId);
+			renderContent();
+			return;
+		}
+		
+		const enterBuildingBtn = e.target.closest('[data-enter-building-hero]');
+		if (enterBuildingBtn) {
+			const heroId = parseInt(enterBuildingBtn.dataset.enterBuildingHero, 10);
+			const buildingId = parseInt(enterBuildingBtn.dataset.enterBuildingBldg, 10);
+			handleEnterBuilding(heroId, buildingId);
+			renderContent();
+			return;
+		}
+		
+		const exitBuildingBtn = e.target.closest('[data-exit-building-hero]');
+		if (exitBuildingBtn) {
+			const heroId = parseInt(exitBuildingBtn.dataset.exitBuildingHero, 10);
+			handleExitBuilding(heroId);
+			renderContent();
+			return;
+		}
+		
 		const confirmBuyCarBtn = e.target.closest('[data-confirm-buy-car]');
 		if (confirmBuyCarBtn) {
 			const heroId = parseInt(confirmBuyCarBtn.dataset.heroId, 10);
 			const carId = confirmBuyCarBtn.dataset.carId;
-			
 			handleBuyCar(heroId, carId);
-			
 			const modal = getEl('car-purchase-modal');
-			if (modal) {
-				modal.close();
-			}
-			
+			if (modal) modal.close();
 			renderContent();
 			return;
 		}
 		
-		// MODIFIED: Event listener for initiating car purchase.
-		if (e.target.matches('[data-buy-car-id]')) {
-			const carId = e.target.dataset.buyCarId;
-			initiateCarPurchase(carId);
+		const buyCarBtn = e.target.closest('[data-buy-car-id]');
+		if (buyCarBtn) {
+			initiateCarPurchase(buyCarBtn.dataset.buyCarId);
+			return;
 		}
 		
-		// MODIFIED: Event listener for starting a mission now ensures all heroes leave buildings.
 		const missionBtn = e.target.closest('#mission-btn');
 		if (missionBtn) {
-			if (gameState.party.missionState === 'idle') {
-				// Make all heroes exit any buildings they are in.
-				gameState.heroes.forEach(hero => {
-					if (hero.location !== 'field') {
-						handleExitBuilding(hero.id);
-					}
-				});
-				
-				const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
-				const maxPopulation = playerBases.length * 10;
-				const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
-				const isFull = currentPopulation >= maxPopulation;
-				
-				const missionType = isFull ? 'monster hunt' : 'survivor rescue';
-				addToLog(`The party is embarking on a ${missionType}!`);
-				
-				gameState.party.missionState = 'driving_out';
-				gameState.party.missionTimer = 1; // Start with a 1-second timer for the first search cycle.
-			}
+			handleStartMission();
 			return;
 		}
 		
-		// NEW: Event listener for the Flee button.
 		const fleeBtn = e.target.closest('#flee-btn');
 		if (fleeBtn) {
-			addToLog('The party is fleeing from combat!');
-			gameState.activeMonsters = [];
-			gameState.heroes.forEach(h => { h.targetMonsterId = null; });
-			
-			if (gameState.party.pausedMission) {
-				addToLog('Resuming mission after fleeing...');
-				gameState.party.missionState = gameState.party.pausedMission.state;
-				gameState.party.missionTimer = gameState.party.pausedMission.timer;
-				gameState.party.pausedMission = null;
-			} else {
-				// Should not happen if flee is only available in combat, but as a fallback:
-				gameState.party.missionState = 'idle';
-			}
+			handleFlee();
 			return;
 		}
 		
-		if (e.target.matches('[data-open-upgrade-modal]')) {
-			const buildingId = parseInt(e.target.dataset.openUpgradeModal, 10);
-			alert(`Placeholder: Open upgrade modal for Building #${buildingId}`);
-		}
-		
-		// NEW: Event listener for the battle log toggle.
-		if (e.target.matches('[data-toggle-battle-log]')) {
-			// The checkbox state has already changed due to the click event.
-			// We just need to re-render the heroes to update the log view instantly.
-			if (activeTab === 'Heroes') {
-				renderContent();
-			}
-			return; // This is a specific UI action, so we can stop further processing.
+		const battleLogToggle = e.target.closest('[data-toggle-battle-log]');
+		if (battleLogToggle) {
+			if (activeTab === 'Heroes') renderContent();
+			return;
 		}
 		
 		const logToggler = e.target.closest('[data-toggle-log]');
 		if (logToggler) {
-			const logContainer = logToggler.parentElement.nextElementSibling; // MODIFIED: Find sibling of parent
-			if (logContainer && logContainer.matches('[data-hero-log-list]')) {
-				logContainer.classList.toggle('hidden');
-			}
+			const logContainer = logToggler.parentElement.nextElementSibling;
+			if (logContainer) logContainer.classList.toggle('hidden');
 			return;
 		}
+		
 		if (e.target.id === 'sandbox-apply') {
 			applySandboxChanges();
 			renderContent();

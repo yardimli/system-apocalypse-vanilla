@@ -13,19 +13,17 @@ export function handleAegisAction(heroId, skillId, options = {}) {
 	const levelBoost = 1 + (hero.level * 0.1);
 	
 	switch (skill.actionType) {
-		// MODIFIED: Removed 'battery' case as the skill and mechanic have been removed.
 		case 'heal':
 			const targetHero = gameState.heroes.find(h => h.id === options.targetHeroId);
 			const injured = targetHero || gameState.heroes.filter(h => h.hp.current < h.hp.max).sort((a, b) => a.hp.current - b.hp.current)[0];
 			
-			// NEW: Add a check to prevent healing incapacitated heroes who are inside a building.
 			if (injured && injured.hp.current <= 0 && injured.location !== 'field') {
 				addToLog(`${hero.name} cannot heal ${injured.name} while they are incapacitated at base.`, hero.id);
 				return;
 			}
 			
 			if (injured && injured.hp.current < injured.hp.max) {
-				const wasIncapacitated = injured.hp.current <= 0; // NEW: Check if the hero was incapacitated before healing.
+				const wasIncapacitated = injured.hp.current <= 0;
 				
 				const wand = gameData.items.find(i => i.id === hero.equipment.mainHand);
 				const spellPower = wand && wand.spellPower ? wand.spellPower : 1;
@@ -37,12 +35,21 @@ export function handleAegisAction(heroId, skillId, options = {}) {
 				addToLog(`${hero.name} healed ${injured.name} for ${healAmount} HP.`, hero.id);
 				success = true;
 				
-				// NEW: If a hero was revived in the field, return them to their car.
+				// MODIFIED: Logic to handle hero revival in the field
 				if (wasIncapacitated && injured.hp.current > 0 && injured.location === 'field') {
 					addToLog(`${injured.name} has recovered and is returning to their vehicle.`, injured.id);
 					const ownedCar = gameState.city.cars.find(c => c.ownerId === injured.id);
 					if (ownedCar) {
 						injured.carId = ownedCar.id;
+						
+						// NEW: Immediately assign a combat target to the revived hero to prevent a lost turn.
+						if (gameState.activeMonsters.length > 0 && (injured.class === 'Striker' || injured.class === 'Vanguard')) {
+							// A simple assignment logic: target the first available monster.
+							// manageCombatAssignments() will refine this on the next tick if needed.
+							const targetMonster = gameState.activeMonsters[0];
+							injured.targetMonsterId = targetMonster.id;
+							addToLog(`${injured.name} has re-entered the fight, targeting ${targetMonster.name} (#${targetMonster.id})!`, injured.id);
+						}
 					}
 				}
 				
