@@ -13,7 +13,7 @@ for (let i = 1; i <= 100; i++) {
 		upgrades: [],
 		heroesInside: []
 	};
-	
+
 	if (i <= 3) {
 		newBuilding.state = 'functional';
 		newBuilding.hp = 10;
@@ -26,18 +26,8 @@ for (let i = 1; i <= 100; i++) {
 	initialBuildings.push(newBuilding);
 }
 
-// MODIFIED: Initialize 40 cars with new structure for ownership and upgrades.
-const initialCars =[];
-for (let i = 1; i <= 40; i++) {
-	initialCars.push({
-		id: i,
-		owner: null, // NEW: Cars are now owned by 'player' or null
-		name: null, // NEW: Player can name their cars
-		occupants: [], // MODIFIED: Replaces driverId, can hold multiple heroes
-		upgrades: [], // NEW: Stores IDs of purchased upgrades
-		maxOccupants: 4 // NEW: Defines car capacity
-	});
-}
+// MODIFIED: Cars are no longer generated here; they will be loaded from cars.json.
+const initialCars = [];
 
 export const gameState = {
 	time: 0,
@@ -158,5 +148,6 @@ export const gameData = {
 	monsters:[],
 	system_shop: [],
 	building_upgrades: [],
-	car_upgrades: [] // NEW: To store car upgrade definitions
+	car_upgrades: [],
+	cars: [] // NEW: To store car definitions from cars.json
 };

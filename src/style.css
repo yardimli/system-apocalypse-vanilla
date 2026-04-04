@@ -33,5 +33,5 @@ progress::-moz-progress-bar {
 }
 
 .flash-effect {
-	animation: flash 0.5s ease-out;
+	animation: flash 0.2s ease-out;
 }

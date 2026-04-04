@@ -21,23 +21,23 @@ export function handleBuyItem(heroId, itemId) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
 	const shopEntry = gameData.system_shop.find(item => item.itemId === itemId);
 	const itemData = findEntityById(itemId);
-	
+
 	if (!hero || !shopEntry || !itemData) {
 		addToLog('Shop Error: Hero or item not found.');
 		return;
 	}
-	
+
 	if (hero.tokens < shopEntry.price) {
 		addToLog(`${hero.name} does not have enough tokens to buy ${itemData.name}.`, hero.id);
 		return;
 	}
-	
+
 	// Process transaction
 	hero.tokens -= shopEntry.price;
 	hero.inventory[itemId] = (hero.inventory[itemId] || 0) + 1;
-	
+
 	addToLog(`${hero.name} bought ${itemData.name} for ${shopEntry.price} tokens.`, hero.id);
-	
+
 	// If the bought item was equippable, run auto-equip logic
 	if (itemData.equipSlot) {
 		autoEquipBestGear(hero);
@@ -53,26 +53,26 @@ export function handleBuySkill(heroId, skillId) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
 	const shopEntry = gameData.system_shop.find(item => item.skillId === skillId);
 	const skillData = gameData.skills.find(s => s.id === skillId);
-	
+
 	if (!hero || !shopEntry || !skillData) {
 		addToLog('Shop Error: Hero or skill not found.');
 		return;
 	}
-	
+
 	if (hero.tokens < shopEntry.price) {
 		addToLog(`${hero.name} does not have enough tokens to learn ${skillData.name}.`, hero.id);
 		return;
 	}
-	
+
 	if (hero.skills.some(s => s.id === skillId)) {
 		addToLog(`${hero.name} already knows ${skillData.name}.`, hero.id);
 		return;
 	}
-	
+
 	// Process transaction
 	hero.tokens -= shopEntry.price;
 	hero.skills.push({ id: skillId });
-	
+
 	addToLog(`${hero.name} learned ${skillData.name} for ${shopEntry.price} tokens.`, hero.id);
 }
 
@@ -85,95 +85,92 @@ export function handleBuySkill(heroId, skillId) {
 export function handleSellItem(heroId, itemId) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
 	const itemData = findEntityById(itemId);
-	
+
 	if (!hero || !itemData || !hero.inventory[itemId] || hero.inventory[itemId] <= 0) {
 		addToLog('Shop Error: Hero or item not found in inventory.');
 		return;
 	}
-	
+
 	// Allow selling if the hero has unequipped duplicates.
 	const totalQty = hero.inventory[itemId] || 0;
 	const equippedCount = Object.values(hero.equipment).filter(eqId => eqId === itemId).length;
-	
+
 	// Cannot sell if the number of items is less than or equal to the number equipped.
 	if (totalQty <= equippedCount) {
 		addToLog(`Cannot sell. All ${itemData.name}(s) are currently equipped.`, hero.id);
 		return;
 	}
-	
+
 	const sellPrice = itemData.sellPrice || 0;
-	
+
 	// Process transaction
 	hero.inventory[itemId]--;
 	if (hero.inventory[itemId] === 0) {
 		delete hero.inventory[itemId];
 	}
 	hero.tokens += sellPrice;
-	
+
 	addToLog(`${hero.name} sold ${itemData.name} for ${sellPrice} tokens.`, hero.id);
 }
 
 /**
- * NEW: Handles the party buying an upgrade for a car or building.
+ * MODIFIED: Handles a hero buying an upgrade for a car or building.
+ * @param {number} heroId - The ID of the hero buying the upgrade.
  * @param {string} upgradeId - The ID of the upgrade to buy.
  */
-export function handleBuyUpgrade(upgradeId) {
+export function handleBuyUpgrade(heroId, upgradeId) {
+	const hero = gameState.heroes.find(h => h.id === heroId);
 	const upgrade = gameData.building_upgrades.find(u => u.id === upgradeId) || gameData.car_upgrades.find(u => u.id === upgradeId);
-	if (!upgrade) {
-		addToLog(`Shop Error: Upgrade with ID ${upgradeId} not found.`);
+
+	if (!hero || !upgrade) {
+		addToLog(`Shop Error: Hero or upgrade with ID ${upgradeId} not found.`);
 		return;
 	}
-	
-	const totalTokens = gameState.heroes.reduce((sum, h) => sum + h.tokens, 0);
-	if (totalTokens < upgrade.cost) {
-		addToLog(`The party doesn't have enough tokens to buy ${upgrade.name}. (Need ${upgrade.cost})`);
+
+	if (hero.tokens < upgrade.cost) {
+		addToLog(`${hero.name} doesn't have enough tokens to buy ${upgrade.name}. (Need ${upgrade.cost})`, hero.id);
 		return;
 	}
-	
+
 	const isCarUpgrade = upgrade.id.startsWith('CAR_');
 	const targetType = isCarUpgrade ? 'car' : 'building';
+	// MODIFIED: For car upgrades, only show cars owned by the hero. For building upgrades, show all player buildings.
 	const ownedAssets = isCarUpgrade
-		? gameState.city.cars.filter(c => c.owner === 'player')
+		? gameState.city.cars.filter(c => c.ownerId === heroId)
 		: gameState.city.buildings.filter(b => b.owner === 'player');
-	
+
 	if (ownedAssets.length === 0) {
-		addToLog(`There are no player-owned ${targetType}s to upgrade.`);
+		addToLog(`${hero.name} has no available ${targetType}s to upgrade.`, hero.id);
 		return;
 	}
-	
+
 	const validIds = ownedAssets.map(a => a.id).join(', ');
-	const targetIdStr = prompt(`Enter the ID of the ${targetType} to apply "${upgrade.name}" to.\nValid IDs: ${validIds}`);
+	// MODIFIED: Prompt text is more specific now.
+	const targetIdStr = prompt(`Enter the ID of the ${targetType} to apply "${upgrade.name}" to.\nYour valid ${targetType} IDs: ${validIds}`);
 	if (!targetIdStr) {
-		addToLog('Upgrade purchase cancelled.');
+		addToLog('Upgrade purchase cancelled.', hero.id);
 		return;
 	}
-	
+
 	const targetId = parseInt(targetIdStr, 10);
 	const targetAsset = ownedAssets.find(a => a.id === targetId);
-	
+
 	if (!targetAsset) {
-		addToLog(`Invalid ID. No player-owned ${targetType} with ID #${targetId} found.`);
+		addToLog(`Invalid ID. No valid ${targetType} with ID #${targetId} found for ${hero.name}.`, hero.id);
 		return;
 	}
-	
+
 	if (targetAsset.upgrades.includes(upgradeId)) {
-		addToLog(`${targetAsset.name || `${targetType} #${targetId}`} already has the ${upgrade.name} upgrade.`);
+		addToLog(`${targetAsset.name || `${targetType} #${targetId}`} already has the ${upgrade.name} upgrade.`, hero.id);
 		return;
 	}
-	
-	// Deduct cost from party, starting with the richest heroes.
-	let remainingCost = upgrade.cost;
-	const payers = gameState.heroes.slice().sort((a, b) => b.tokens - a.tokens);
-	for (const hero of payers) {
-		const payment = Math.min(hero.tokens, remainingCost);
-		hero.tokens -= payment;
-		remainingCost -= payment;
-		if (remainingCost <= 0) break;
-	}
-	
+
+	// MODIFIED: Deduct cost from the individual hero.
+	hero.tokens -= upgrade.cost;
+
 	// Apply upgrade
 	targetAsset.upgrades.push(upgradeId);
-	
+
 	// Handle one-time effects of upgrades (e.g., adding a shield)
 	const { effect } = upgrade;
 	if (effect) {
@@ -185,6 +182,47 @@ export function handleBuyUpgrade(upgradeId) {
 			targetAsset.hp += effect.value;
 		}
 	}
-	
-	addToLog(`Party purchased ${upgrade.name} for ${targetAsset.name || `${targetType} #${targetId}`} for ${upgrade.cost} tokens!`);
+
+	addToLog(`${hero.name} purchased ${upgrade.name} for ${targetAsset.name || `${targetType} #${targetId}`} for ${upgrade.cost} tokens!`, hero.id);
+}
+
+/**
+ * MODIFIED: Handles a hero buying a car, making them the sole owner and occupant.
+ * @param {number} heroId - The ID of the hero buying the car.
+ * @param {string} carId - The ID of the car to buy.
+ */
+export function handleBuyCar(heroId, carId) {
+	const hero = gameState.heroes.find(h => h.id === heroId);
+	const carData = gameData.cars.find(c => c.id === carId);
+	const carState = gameState.city.cars.find(c => c.id === carId);
+
+	if (!hero || !carData || !carState) {
+		addToLog('Shop Error: Hero or car not found for purchase.');
+		return;
+	}
+
+	// NEW: Check if the hero already owns a car.
+	const alreadyOwnsCar = gameState.city.cars.some(c => c.ownerId === heroId);
+	if (alreadyOwnsCar) {
+		addToLog(`${hero.name} already owns a car and cannot buy another.`, hero.id);
+		return;
+	}
+
+	if (carState.ownerId) {
+		addToLog(`${carData.name} is already owned.`);
+		return;
+	}
+
+	if (hero.tokens < carData.price) {
+		addToLog(`${hero.name} cannot afford the ${carData.name}. (Needs ${carData.price} Tokens)`, hero.id);
+		return;
+	}
+
+	// Process transaction
+	hero.tokens -= carData.price;
+	// NEW: Assign the hero as the owner and set their current carId.
+	carState.ownerId = hero.id;
+	hero.carId = carState.id;
+
+	addToLog(`${hero.name} purchased the ${carData.name} for ${carData.price} tokens and is now the driver!`, hero.id);
 }

@@ -9,58 +9,66 @@
 </head>
 <body class="bg-base-100">
 <div id="app" class="container mx-auto p-4 font-sans">
-	
+
 	<!-- HEADER -->
 	<header id="game-header" class="navbar bg-base-300 rounded-box shadow-lg mb-4"></header>
-	
+
 	<!-- TABS -->
 	<div id="tabs-container" role="tablist" class="tabs tabs-boxed"></div>
-	
+
 	<!-- CONTENT AREA -->
 	<main id="content-area" class="p-4 bg-base-300 rounded-box mt-4 min-h-screen">
 	</main>
 
 </div>
 
-<!-- MODIFIED: System Shop Modal with Tabs -->
+<!-- MODIFIED: System Shop Modal with fixed height -->
 <dialog id="system-shop-modal" class="modal">
-	<div class="modal-box w-11/12 max-w-3xl">
+	<!-- MODIFIED: Added h-[80vh] for fixed height and flex properties for layout -->
+	<div class="modal-box w-11/12 max-w-3xl h-[80vh] flex flex-col">
 		<div id="shop-modal-header">
 			<!-- Hero name and tokens will be injected here by JS -->
 		</div>
-		
-		<!-- MODIFIED: Tabbed interface for the shop -->
-		<div role="tablist" class="tabs tabs-lifted mt-4">
+
+		<!-- MODIFIED: Tab container now grows to fill available space -->
+		<div role="tablist" class="tabs tabs-lifted mt-4 flex-grow overflow-hidden flex flex-col">
 			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Items" checked />
-			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 max-h-[60vh] overflow-y-auto">
+			<!-- MODIFIED: Tab panels now grow and scroll, ensuring consistent height -->
+			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 flex-grow overflow-y-auto">
 				<div id="shop-modal-items-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Items for sale will be injected here -->
 				</div>
 			</div>
-			
+
 			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Skills" />
-			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 max-h-[60vh] overflow-y-auto">
+			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 flex-grow overflow-y-auto">
 				<div id="shop-modal-skills-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Skills for sale will be injected here -->
 				</div>
 			</div>
-			
-			<!-- NEW: Upgrades Tab -->
-			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Upgrades" />
-			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 max-h-[60vh] overflow-y-auto">
-				<div id="shop-modal-upgrades-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
-					<!-- Upgrades for sale will be injected here -->
+
+			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Building Upgrades" />
+			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 flex-grow overflow-y-auto">
+				<div id="shop-modal-building-upgrades-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+					<!-- Building upgrades for sale will be injected here -->
 				</div>
 			</div>
-			
+
+			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Car Upgrades" />
+			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 flex-grow overflow-y-auto">
+				<div id="shop-modal-car-upgrades-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+					<!-- Car upgrades for sale will be injected here -->
+				</div>
+			</div>
+
 			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Inventory" />
-			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 max-h-[60vh] overflow-y-auto">
+			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 flex-grow overflow-y-auto">
 				<div id="shop-modal-inventory-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Hero inventory will be injected here -->
 				</div>
 			</div>
 		</div>
-		
+
 		<div class="modal-action mt-4">
 			<form method="dialog">
 				<button class="btn">Close</button>
@@ -85,6 +93,24 @@
 		<div class="modal-action">
 			<form method="dialog">
 				<button class="btn">Close</button>
+			</form>
+		</div>
+	</div>
+</dialog>
+
+<!-- NEW: Car Purchase Modal -->
+<dialog id="car-purchase-modal" class="modal">
+	<div class="modal-box w-11/12 max-w-md">
+		<div id="car-purchase-modal-header" class="flex justify-between items-center">
+			<!-- Car name and price will be injected here -->
+		</div>
+		<p class="py-4">Select a hero to purchase this vehicle. The cost will be deducted from their personal token balance.</p>
+		<div id="car-purchase-heroes-list" class="flex flex-col gap-2">
+			<!-- Hero buttons will be injected here by JS -->
+		</div>
+		<div class="modal-action mt-4">
+			<form method="dialog">
+				<button class="btn">Cancel</button>
 			</form>
 		</div>
 	</div>
@@ -125,7 +151,7 @@
 			<div class="text-xs text-gray-400 mb-2 flex flex-wrap gap-1" data-equipment-container>
 				<!-- Equipment will be rendered here by JS -->
 			</div>
-			
+
 			<!-- MODIFIED: Stat bars are now inline with labels, smaller, and right-aligned -->
 			<div class="flex justify-between items-center my-1">
 				<span class="label-text text-xs" data-xp-label></span>
@@ -143,18 +169,18 @@
 				<span class="label-text text-xs" data-rage-label></span>
 				<progress class="progress progress-error w-[40%]" data-rage-bar></progress>
 			</div>
-			
+
 			<!-- Dynamic Action/Combat Area -->
 			<div class="w-full mt-2 min-h-[150px] bg-base-300 rounded p-2 flex flex-col justify-center" data-dynamic-area>
 			</div>
-			
+
 			<!-- System Shop Area is now a button -->
 			<div class="mt-2 border-t border-base-300 pt-2">
 				<button class="btn btn-sm btn-accent w-full" data-open-shop-btn>
 					Open Shop
 				</button>
 			</div>
-			
+
 			<!-- Skill Progression Area -->
 			<div class="mt-2 border-t border-base-300 pt-2" data-skills-container>
 				<div class="divider my-1">Skills</div>
@@ -163,7 +189,7 @@
 					<!-- Skill cards will be rendered here by JS -->
 				</div>
 			</div>
-			
+
 			<!-- MODIFIED: Hero Log Area is now collapsible -->
 			<div class="mt-2 border-t border-base-300 pt-2" data-log-container>
 				<!-- NEW: Added cursor-pointer and data-toggle-log for clickability -->

@@ -1,0 +1,142 @@
+[
+  {
+    "id": "CAR01",
+    "name": "Scrappy Sedan",
+    "description": "A basic four-door vehicle. It runs, most of the time.",
+    "price": 40,
+    "upgrades": []
+  },
+  {
+    "id": "CAR02",
+    "name": "Rugged Pickup",
+    "description": "An old pickup truck with a decent-sized bed for hauling.",
+    "price": 50,
+    "upgrades": []
+  },
+  {
+    "id": "CAR03",
+    "name": "Compact Hatchback",
+    "description": "Small, nimble, and fuel-efficient. Not much in a fight.",
+    "price": 55,
+    "upgrades": []
+  },
+  {
+    "id": "CAR04",
+    "name": "Family Van",
+    "description": "It used to haul kids to soccer practice. Now it hauls heroes.",
+    "price": 25,
+    "upgrades": []
+  },
+  {
+    "id": "CAR05",
+    "name": "Classic Muscle Car",
+    "description": "Loud and fast, but guzzles resources. A real attention-grabber.",
+    "price": 80,
+    "upgrades": []
+  },
+  {
+    "id": "CAR06",
+    "name": "Sturdy SUV",
+    "description": "A reliable all-terrain vehicle with plenty of interior space.",
+    "price": 70,
+    "upgrades": []
+  },
+  {
+    "id": "CAR07",
+    "name": "Beat-up Coupe",
+    "description": "A two-door car that's seen better days. It's cheap, at least.",
+    "price": 60,
+    "upgrades": []
+  },
+  {
+    "id": "CAR08",
+    "name": "Retired Taxi",
+    "description": "This car has seen a million miles and is ready for a million more.",
+    "price": 30,
+    "upgrades": []
+  },
+  {
+    "id": "CAR09",
+    "name": "Old Mail Truck",
+    "description": "Slow and clumsy, but built like a brick. Right-hand drive is a feature.",
+    "price": 80,
+    "upgrades": []
+  },
+  {
+    "id": "CAR010",
+    "name": "Luxury Sedan",
+    "description": "A comfortable ride, though its delicate electronics are prone to failure.",
+    "price": 50,
+    "upgrades": []
+  },
+  {
+    "id": "CAR011",
+    "name": "Scout Vehicle",
+    "description": "A pickup with a reinforced bumper for pushing through debris.",
+    "price": 120,
+    "upgrades": ["CAR_DMG_1"]
+  },
+  {
+    "id": "CAR012",
+    "name": "Armored Van",
+    "description": "A reinforced van, perfect for supply runs in dangerous territory.",
+    "price": 150,
+    "upgrades": ["CAR_MIT_1"]
+  },
+  {
+    "id": "CAR013",
+    "name": "Assault Buggy",
+    "description": "A lightweight SUV fitted with spiked wheels for extra traction and damage.",
+    "price": 300,
+    "upgrades": ["CAR_DMG_2"]
+  },
+  {
+    "id": "CAR014",
+    "name": "Mobile Shield",
+    "description": "This sedan has been retrofitted with bulletproof glass.",
+    "price": 280,
+    "upgrades": ["CAR_MIT_2"]
+  },
+  {
+    "id": "CAR015",
+    "name": "Patrol Car",
+    "description": "A former police cruiser with both armor plating and a reinforced bumper.",
+    "price": 350,
+    "upgrades": ["CAR_DMG_1", "CAR_MIT_1"]
+  },
+  {
+    "id": "CAR016",
+    "name": "Hunter's SUV",
+    "description": "An SUV equipped for monster hunting with spiked wheels and better glass.",
+    "price": 450,
+    "upgrades": ["CAR_DMG_2", "CAR_MIT_2"]
+  },
+  {
+    "id": "CAR017",
+    "name": "Gunner Truck",
+    "description": "A pickup truck with a mounted machine gun ready for action.",
+    "price": 550,
+    "upgrades": ["CAR_DMG_3"]
+  },
+  {
+    "id": "CAR018",
+    "name": "Guardian SUV",
+    "description": "An SUV with experimental reactive armor for superior protection.",
+    "price": 500,
+    "upgrades": ["CAR_MIT_3"]
+  },
+  {
+    "id": "CAR019",
+    "name": "Road Warrior",
+    "description": "A muscle car that's been heavily modified with armor and spikes.",
+    "price": 600,
+    "upgrades": ["CAR_DMG_2", "CAR_MIT_3"]
+  },
+  {
+    "id": "CAR020",
+    "name": "Command Vehicle",
+    "description": "A van equipped with both a machine gun and reactive armor.",
+    "price": 800,
+    "upgrades": ["CAR_DMG_3", "CAR_MIT_3"]
+  }
+]
