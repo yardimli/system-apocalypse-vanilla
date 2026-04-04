@@ -323,3 +323,6 @@ on the ui for skill cards have the skill card being cast lightly flash, also whe
 ------
 
 
+remove mana battery from the game, all cars like buildings needs to be purchased from the system. cars can be upgraded. add new car_upgrades.json
+update shop to sell both building and car upgrades.
+car upgrades should increase the occupants damage and damage mitigation, add 5 options for each each improves the damage starting at 10% and mitigation starting at 5% each item should have a different name these are not upgrades and each item will be part of the car visible in the cars table.
