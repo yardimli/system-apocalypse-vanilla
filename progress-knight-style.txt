@@ -326,3 +326,17 @@ on the ui for skill cards have the skill card being cast lightly flash, also whe
 remove mana battery from the game, all cars like buildings needs to be purchased from the system. cars can be upgraded. add new car_upgrades.json
 update shop to sell both building and car upgrades.
 car upgrades should increase the occupants damage and damage mitigation, add 5 options for each each improves the damage starting at 10% and mitigation starting at 5% each item should have a different name these are not upgrades and each item will be part of the car visible in the cars table.
+
+------------
+
+when the game starts have the 3 heros assigned random cars that have no preinstalled upgrades
+on the system shop change the design so tabs are on the top, second tab should be inventory.
+when the game starts there should be 3 random buildings that are safezones give them names like alpha beta delta
+update the game so monsters only spawn when the hero's are driving.
+update the game play so on the hero's tab there is a button called look for survivors, when the button is clicked the heros will drive for 2-4 seconds, if a monster spawns during their drive it should attack the party.
+if not they will rescure 1-3 survivors that get distributed in the cars then drive back to the city again 2-4 seconds.
+if they are attacked during the return and they are incapacitated the survivors in that hero's car will die
+when they reach back to the city add the survivors to the population of the safe houses
+update population logic to only increase with survivors
+after a successful delivery the look for surviors button should enable.
+if all houses are full the button should change to look for monsters.

@@ -21,16 +21,64 @@ const getEl = (id) => document.getElementById(id);
 const tabsContainer = getEl('tabs-container');
 const contentArea = getEl('content-area');
 
-function renderContent() {
+// NEW: Renders the mission control panel on the Heroes tab.
+function renderMissionControl () {
+	const missionControlArea = getEl('mission-control-area');
+	if (!missionControlArea) return;
+	
+	const partyState = gameState.party;
+	let html = '';
+	
+	const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
+	// Assuming 10 is the max population per building
+	const maxPopulation = playerBases.length * 10;
+	const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
+	const isFull = currentPopulation >= maxPopulation;
+	
+	// MODIFIED: Check for active combat and update status and button state accordingly.
+	const isFighting = gameState.activeMonsters.length > 0;
+	const buttonText = isFull ? 'Look for Monsters' : 'Look for Survivors';
+	const buttonDisabled = partyState.missionState !== 'idle' || isFighting;
+	
+	let statusText = 'The party is idle at the base.';
+	if (isFighting) {
+		statusText = 'Ambushed! Fighting for survival!';
+	} else if (partyState.missionState === 'driving_out') {
+		statusText = `Driving out... Time remaining: ${partyState.missionTimer}s.`;
+	} else if (partyState.missionState === 'driving_back') {
+		const totalSurvivors = gameState.heroes.reduce((sum, h) => sum + h.survivorsCarried, 0);
+		statusText = `Driving back with ${totalSurvivors} survivors... Time remaining: ${partyState.missionTimer}s.`;
+	}
+	
+	html = `
+        <div class="flex-grow">
+            <h3 class="font-bold text-lg">Party Mission</h3>
+            <p class="text-sm text-gray-400">${statusText}</p>
+        </div>
+        <button id="mission-btn" class="btn btn-primary" ${buttonDisabled ? 'disabled' : ''}>
+            ${buttonText}
+        </button>
+    `;
+	
+	missionControlArea.innerHTML = html;
+}
+
+function renderContent () {
 	switch (activeTab) {
 		case 'Heroes':
 			if (!getEl('heroes-tab-content')) {
 				contentArea.innerHTML = `
                     <div id="heroes-tab-content" class="flex flex-col gap-4">
+						<!-- NEW: Mission control area -->
+						<div id="mission-control-area" class="card bg-base-200 shadow-md p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+							<!-- Content will be dynamically rendered -->
+						</div>
                         <div id="heroes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
                     </div>
                 `;
 			}
+			// NEW: Call a new function to render the mission control area
+			renderMissionControl();
 			renderHeroes();
 			break;
 		case 'Buildings':
@@ -57,7 +105,7 @@ function renderContent() {
 	}
 }
 
-function manageCombatAssignments() {
+function manageCombatAssignments () {
 	const combatHeroes = gameState.heroes.filter(h =>
 		h.location === 'field' &&
 		(h.class === 'Striker' || h.class === 'Vanguard') &&
@@ -109,33 +157,121 @@ function manageCombatAssignments() {
 
 
 // --- GAME LOOP ---
-function gameLoop() {
+function gameLoop () {
 	gameState.time++;
 	
-	// 1. Spawn Monsters
-	const currentDay = Math.floor(gameState.time / 10) + 1;
-	const availableMonsters = gameData.monsters.filter(m => m.spawnDay <= currentDay);
+	// MODIFIED: Monster spawning is moved into the new mission logic.
 	
-	availableMonsters.forEach(monsterData => {
-		if (Math.random() < monsterData.spawnRatio) {
-			const newMonster = {
-				id: gameState.nextMonsterId++,
-				spawnTime: gameState.time,
-				name: monsterData.name,
-				level: monsterData.level,
-				maxHp: monsterData.hp,
-				currentHp: monsterData.hp,
-				damage: monsterData.damage,
-				xp: monsterData.xp,
-				tokens: monsterData.tokens,
-				assignedTo: [],
-				targetBuilding: null,
-				agro: {}
-			};
-			gameState.activeMonsters.push(newMonster);
-			addToLog(`A Lv.${monsterData.level} ${monsterData.name} (#${newMonster.id}) has appeared!`);
+	// 1. Process Party Mission
+	if (gameState.party.missionState !== 'idle') {
+		// Only spawn monsters if heroes are driving
+		const heroesInCars = gameState.heroes.filter(h => h.carId && h.hp.current > 0).length;
+		let wasAmbushed = false;
+		if (heroesInCars > 0) {
+			const currentDay = Math.floor(gameState.time / 10) + 1;
+			const availableMonsters = gameData.monsters.filter(m => m.spawnDay <= currentDay);
+			
+			for (const monsterData of availableMonsters) {
+				if (Math.random() < monsterData.spawnRatio) {
+					const newMonster = {
+						id: gameState.nextMonsterId++,
+						spawnTime: gameState.time,
+						name: monsterData.name,
+						level: monsterData.level,
+						maxHp: monsterData.hp,
+						currentHp: monsterData.hp,
+						damage: monsterData.damage,
+						xp: monsterData.xp,
+						tokens: monsterData.tokens,
+						assignedTo: [],
+						targetBuilding: null,
+						agro: {}
+					};
+					gameState.activeMonsters.push(newMonster);
+					addToLog(`AMBUSH! A Lv.${monsterData.level} ${monsterData.name} (#${newMonster.id}) appeared!`);
+					
+					// Abort the mission
+					gameState.party.missionState = 'idle';
+					gameState.party.missionTimer = 0;
+					wasAmbushed = true;
+					
+					// If they were returning with survivors, the survivors are lost
+					if (gameState.party.survivorsAwaitingRescue > 0) {
+						gameState.heroes.forEach(hero => {
+							if (hero.survivorsCarried > 0) {
+								addToLog(`The ${hero.survivorsCarried} survivors in ${hero.name}'s car were lost in the ambush!`, hero.id);
+								hero.survivorsCarried = 0;
+							}
+						});
+						gameState.party.survivorsAwaitingRescue = 0;
+					}
+					break; // Only one ambush per tick
+				}
+			}
 		}
-	});
+		
+		// If not ambushed, continue mission timer
+		if (!wasAmbushed) {
+			gameState.party.missionTimer--;
+			
+			if (gameState.party.missionTimer <= 0) {
+				if (gameState.party.missionState === 'driving_out') {
+					const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
+					const maxPopulation = playerBases.length * 10;
+					const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
+					const isFull = currentPopulation >= maxPopulation;
+					
+					if (isFull) {
+						addToLog('The party has completed their patrol. Returning to base.');
+					} else {
+						const survivorsFound = Math.floor(Math.random() * 3) + 1; // 1-3 survivors
+						gameState.party.survivorsAwaitingRescue = survivorsFound;
+						addToLog(`The party found ${survivorsFound} survivors! Now returning to base.`);
+						
+						const heroesOnMission = gameState.heroes.filter(h => h.carId && h.hp.current > 0);
+						let survivorsToDistribute = survivorsFound;
+						if (heroesOnMission.length > 0) {
+							while (survivorsToDistribute > 0) {
+								for (const hero of heroesOnMission) {
+									if (survivorsToDistribute > 0) {
+										hero.survivorsCarried++;
+										survivorsToDistribute--;
+									}
+								}
+							}
+						}
+					}
+					
+					gameState.party.missionState = 'driving_back';
+					gameState.party.missionTimer = Math.floor(Math.random() * 3) + 2; // 2-4 seconds
+				} else if (gameState.party.missionState === 'driving_back') {
+					const totalSurvivors = gameState.heroes.reduce((sum, h) => sum + h.survivorsCarried, 0);
+					if (totalSurvivors > 0) {
+						addToLog(`The party successfully returned with ${totalSurvivors} survivors!`);
+						let survivorsToHouse = totalSurvivors;
+						const playerBases = gameState.city.buildings.filter(b => b.owner === 'player' && b.population < 10);
+						if (playerBases.length > 0) {
+							while (survivorsToHouse > 0) {
+								for (const base of playerBases) {
+									if (survivorsToHouse > 0 && base.population < 10) {
+										base.population++;
+										survivorsToHouse--;
+									}
+								}
+							}
+						}
+					} else {
+						addToLog('The party has successfully returned to base.');
+					}
+					
+					gameState.heroes.forEach(h => { h.survivorsCarried = 0; });
+					gameState.party.survivorsAwaitingRescue = 0;
+					gameState.party.missionState = 'idle';
+					gameState.party.missionTimer = 0;
+				}
+			}
+		}
+	}
 	
 	// 2. Process Heroes
 	manageCombatAssignments();
@@ -327,6 +463,11 @@ function gameLoop() {
 					if (targetHero.carId) {
 						targetHero.carId = null;
 					}
+					// NEW: Check for survivor loss
+					if (targetHero.survivorsCarried > 0) {
+						addToLog(`The ${targetHero.survivorsCarried} survivors with ${targetHero.name} were killed when they were incapacitated!`, targetHero.id);
+						targetHero.survivorsCarried = 0;
+					}
 					targetHero.targetMonsterId = null;
 					addToLog(`${targetHero.name} was incapacitated by ${monster.name} (#${monster.id})!`, targetHero.id);
 				}
@@ -431,18 +572,13 @@ function gameLoop() {
 	}
 	
 	// 6. Daily Updates
-	if (gameState.time % 10 === 0) {
-		gameState.city.buildings.forEach(b => {
-			if (b.state !== 'ruined' && b.population < 10) {
-				b.population++;
-			}
-		});
-		
-		// MODIFIED: Removed car battery drain logic.
-	}
+	// MODIFIED: Removed passive population and car battery logic.
 	
 	renderHeader();
-	if (activeTab === 'Heroes') renderHeroes();
+	if (activeTab === 'Heroes') {
+		renderMissionControl(); // NEW: Update mission UI
+		renderHeroes();
+	}
 	if (activeTab === 'Buildings') renderBuildings(contentArea);
 	if (activeTab === 'Monsters') renderMonsters(contentArea);
 	if (activeTab === 'Cars') renderCars(contentArea);
@@ -453,7 +589,7 @@ function gameLoop() {
 }
 
 // --- INITIALIZATION ---
-async function init() {
+async function init () {
 	try {
 		// MODIFIED: Fetch new cars.json and car_upgrades.json
 		const [items, skills, monsters, systemShop, buildingUpgrades, carUpgrades, cars] = await Promise.all([
@@ -481,6 +617,43 @@ async function init() {
 			upgrades: [...carData.upgrades], // Copy initial upgrades
 			maxOccupants: 1 // NEW: All cars have a max capacity of 1.
 		}));
+		
+		// NEW: Assign starting cars to heroes
+		const basicCars = gameData.cars.filter(c => c.upgrades.length === 0);
+		const shuffledBasicCars = basicCars.sort(() => 0.5 - Math.random());
+		
+		gameState.heroes.forEach((hero, index) => {
+			if (shuffledBasicCars[index]) {
+				const carId = shuffledBasicCars[index].id;
+				const carInState = gameState.city.cars.find(c => c.id === carId);
+				if (carInState && !carInState.ownerId) {
+					carInState.ownerId = hero.id;
+					hero.carId = carId;
+				}
+			}
+		});
+		addToLog('[SYSTEM]: Initial vehicles have been assigned to the starting heroes.');
+		
+		// NEW: Create initial player safezones
+		const potentialSafezoneBuildings = gameState.city.buildings.filter(b => b.owner !== 'player');
+		const shuffledBuildings = potentialSafezoneBuildings.sort(() => 0.5 - Math.random());
+		const baseNames = ['Alpha Base', 'Beta Base', 'Delta Base'];
+		
+		for (let i = 0; i < 3; i++) {
+			if (shuffledBuildings[i]) {
+				const building = shuffledBuildings[i];
+				building.owner = 'player';
+				building.name = baseNames[i];
+				building.state = 'functional';
+				building.maxHp = 1000;
+				building.hp = 1000;
+				building.maxShieldHp = 1000;
+				building.shieldHp = 1000;
+				building.isSafezone = true;
+				building.population = 0; // Start with zero population
+			}
+		}
+		addToLog('[SYSTEM]: Initial safezones Alpha, Beta, and Delta have been established.');
 	} catch (error) {
 		console.error('Failed to load game data:', error);
 		contentArea.innerHTML = `<p class="text-error">Error: Could not load game data. Please check the console.</p>`;
@@ -645,6 +818,24 @@ async function init() {
 		if (e.target.matches('[data-buy-car-id]')) {
 			const carId = e.target.dataset.buyCarId;
 			initiateCarPurchase(carId);
+		}
+		
+		// NEW: Event listener for starting a mission
+		const missionBtn = e.target.closest('#mission-btn');
+		if (missionBtn) {
+			if (gameState.party.missionState === 'idle') {
+				const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
+				const maxPopulation = playerBases.length * 10;
+				const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
+				const isFull = currentPopulation >= maxPopulation;
+				
+				const missionType = isFull ? 'monster hunt' : 'survivor rescue';
+				addToLog(`The party is embarking on a ${missionType}!`);
+				
+				gameState.party.missionState = 'driving_out';
+				gameState.party.missionTimer = Math.floor(Math.random() * 3) + 2; // 2-4 seconds
+			}
+			return;
 		}
 		
 		if (e.target.matches('[data-open-upgrade-modal]')) {

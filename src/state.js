@@ -13,7 +13,7 @@ for (let i = 1; i <= 100; i++) {
 		upgrades: [],
 		heroesInside: []
 	};
-
+	
 	if (i <= 3) {
 		newBuilding.state = 'functional';
 		newBuilding.hp = 10;
@@ -33,6 +33,12 @@ export const gameState = {
 	time: 0,
 	threatLevel: 10,
 	nextMonsterId: 1,
+	// NEW: Add party state for the new gameplay loop
+	party: {
+		missionState: 'idle', // 'idle', 'driving_out', 'driving_back'
+		missionTimer: 0,
+		survivorsAwaitingRescue: 0
+	},
 	city: {
 		buildings: initialBuildings,
 		cars: initialCars
@@ -55,6 +61,7 @@ export const gameState = {
 			mpRegenPerLevel: 1.0,
 			equipment: { mainHand: 'WAND001', offHand: null, body: 'ARM001' },
 			carId: null,
+			survivorsCarried: 0, // NEW: Track survivors carried by this hero
 			targetMonsterId: null,
 			location: 'field',
 			tokens: 100,
@@ -92,6 +99,7 @@ export const gameState = {
 			mpRegenPerLevel: 0.5,
 			equipment: { mainHand: 'WAND001', offHand: null, body: 'ARM001' },
 			carId: null,
+			survivorsCarried: 0, // NEW: Track survivors carried by this hero
 			targetMonsterId: null,
 			location: 'field',
 			tokens: 100,
@@ -121,6 +129,7 @@ export const gameState = {
 			hpRegenPerLevel: 0.5,
 			equipment: { mainHand: 'SWD001', offHand: 'SHD001', body: 'ARM001' },
 			carId: null,
+			survivorsCarried: 0, // NEW: Track survivors carried by this hero
 			targetMonsterId: null,
 			location: 'field',
 			tokens: 100,

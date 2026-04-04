@@ -138,6 +138,12 @@ export function renderHeroes () {
 		let dynamicHtml = '';
 		let dynamicStateKey = '';
 		
+		// NEW: Generate HTML for survivors being carried, if any.
+		let survivorHtml = '';
+		if (hero.survivorsCarried > 0) {
+			survivorHtml = `<p class="text-xs text-center text-success mb-1">Carrying: ${hero.survivorsCarried} Survivors</p>`;
+		}
+		
 		if (hero.hp.current <= 0) {
 			dynamicHtml = `<p class="text-error font-bold text-center">INCAPACITATED</p><p class="text-xs text-center">Awaiting Aegis Healing...</p>`;
 			dynamicStateKey = 'incapacitated';
@@ -179,6 +185,7 @@ export function renderHeroes () {
 				dynamicHtml = `
                     <p class="text-sm font-bold text-error mb-1">Fighting: Lv.${monster.level} ${monster.name} (#${monster.id})</p>
                     <p class="text-xs text-center text-info mb-1">From: ${carName}</p>
+					${survivorHtml}
                     <progress class="progress progress-error w-full" value="${monster.currentHp}" max="${monster.maxHp}"></progress>
                     <p class="text-xs text-right mt-1">${Math.floor(monster.currentHp)}/${monster.maxHp} HP</p>
                     <div class="mt-2 border-t border-base-100 pt-1">
@@ -186,25 +193,31 @@ export function renderHeroes () {
                         <div class="flex flex-wrap gap-1 justify-center">${agroHtml}</div>
                     </div>
                 `;
-				dynamicStateKey = `fighting-${monster.id}-${monster.currentHp}-${JSON.stringify(monster.agro)}`;
+				// MODIFIED: Added survivor count to state key
+				dynamicStateKey = `fighting-${monster.id}-${monster.currentHp}-${JSON.stringify(monster.agro)}-${hero.survivorsCarried}`;
 			} else {
 				hero.targetMonsterId = null;
-				// MODIFIED: Patrolling message updated.
+				// MODIFIED: If the monster is gone, fall through to the logic below which checks mission state.
+				// This prevents showing "Patrolling" after a fight.
 				const car = gameState.city.cars.find(c => c.id === hero.carId);
 				const carName = car ? (car.name || `Car #${car.id}`) : 'Unknown Car';
-				dynamicHtml = `<p class="text-success text-center text-sm">Patrolling in ${carName}. No targets.</p>`;
-				dynamicStateKey = `patrolling-${hero.carId}`;
+				dynamicHtml = `<p class="text-info text-center text-sm">Resting at base in ${carName}.</p>`;
+				dynamicStateKey = `resting-base-${hero.carId}`;
 			}
 		} else {
-			// MODIFIED: Patrolling/idle message updated.
+			// MODIFIED: Hero status now depends on the party's mission state.
 			const car = gameState.city.cars.find(c => c.id === hero.carId);
 			const carName = car ? (car.name || `Car #${car.id}`) : 'Unknown Car';
-			if (hero.class === 'Aegis') {
-				dynamicHtml = `<p class="text-info text-center text-sm">Awaiting tasks in ${carName}.</p>`;
-				dynamicStateKey = `aegis-idle-${hero.carId}`;
-			} else {
-				dynamicHtml = `<p class="text-success text-center text-sm">Patrolling in ${carName}. No targets.</p>`;
-				dynamicStateKey = `patrolling-${hero.carId}`;
+			
+			if (gameState.party.missionState === 'idle') {
+				dynamicHtml = `<p class="text-info text-center text-sm">Resting at base in ${carName}.</p>`;
+				dynamicStateKey = `resting-base-${hero.carId}`;
+			} else if (gameState.party.missionState === 'driving_out') {
+				dynamicHtml = `<p class="text-success text-center text-sm">Searching for survivors in ${carName}.</p>`;
+				dynamicStateKey = `driving-out-${hero.carId}`;
+			} else if (gameState.party.missionState === 'driving_back') {
+				dynamicHtml = `<p class="text-success text-center text-sm">Returning to base in ${carName}.</p>${survivorHtml}`;
+				dynamicStateKey = `driving-back-${hero.carId}-${hero.survivorsCarried}`;
 			}
 		}
 		updateHtmlIfChanged(dynamicArea, dynamicHtml, dynamicStateKey);
