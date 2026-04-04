@@ -639,9 +639,20 @@ async function init() {
 			const buildingId = parseInt(e.target.dataset.openUpgradeModal, 10);
 			alert(`Placeholder: Open upgrade modal for Building #${buildingId}`);
 		}
+
+		// NEW: Event listener for the battle log toggle.
+		if (e.target.matches('[data-toggle-battle-log]')) {
+			// The checkbox state has already changed due to the click event.
+			// We just need to re-render the heroes to update the log view instantly.
+			if (activeTab === 'Heroes') {
+				renderContent();
+			}
+			return; // This is a specific UI action, so we can stop further processing.
+		}
+
 		const logToggler = e.target.closest('[data-toggle-log]');
 		if (logToggler) {
-			const logContainer = logToggler.nextElementSibling;
+			const logContainer = logToggler.parentElement.nextElementSibling; // MODIFIED: Find sibling of parent
 			if (logContainer && logContainer.matches('[data-hero-log-list]')) {
 				logContainer.classList.toggle('hidden');
 			}

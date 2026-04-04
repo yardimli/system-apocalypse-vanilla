@@ -288,8 +288,25 @@ export function renderHeroes () {
 
 		const heroLogContainer = card.querySelector('[data-hero-log-list]');
 		if (heroLogContainer) {
-			const logHtml = hero.log.map(entry => `<p>${entry}</p>`).join('');
-			const logStateKey = hero.log.length > 0 ? hero.log[0] : '';
+			// NEW: Check the state of the battle log toggle for this specific hero card.
+			const battleLogToggle = card.querySelector('[data-toggle-battle-log]');
+			const showBattleLogs = battleLogToggle ? battleLogToggle.checked : false;
+
+			// NEW: Filter logs based on the toggle state.
+			const filteredLogs = hero.log.filter(entry => {
+				if (showBattleLogs) {
+					return true; // If checked, show all logs.
+				}
+				// Otherwise, filter out battle damage logs.
+				// Regex checks for "attacked ... dealing" or "deals ... damage".
+				const isBattleDamageLog = /attacked.*, dealing|deals \d+ damage/.test(entry);
+				return !isBattleDamageLog;
+			});
+
+			// MODIFIED: Use the filteredLogs array to generate the HTML.
+			const logHtml = filteredLogs.map(entry => `<p>${entry}</p>`).join('');
+			// MODIFIED: Add the toggle's state to the state key to ensure updates when it changes.
+			const logStateKey = (hero.log.length > 0 ? hero.log[0] : '') + showBattleLogs;
 			updateHtmlIfChanged(heroLogContainer, logHtml, logStateKey);
 		}
 	});
