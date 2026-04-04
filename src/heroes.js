@@ -146,7 +146,11 @@ export function renderHeroes () {
 		
 		if (hero.hp.current <= 0) {
 			dynamicHtml = `<p class="text-error font-bold text-center">INCAPACITATED</p><p class="text-xs text-center">Awaiting Aegis Healing...</p>`;
-			dynamicStateKey = 'incapacitated';
+			// NEW: Add a message if the hero is incapacitated at base.
+			if (hero.location !== 'field') {
+				dynamicHtml += `<p class="text-xs text-center text-warning">Cannot be healed at base.</p>`;
+			}
+			dynamicStateKey = `incapacitated-${hero.location}`; // MODIFIED: Add location to state key
 		} else if (hero.location !== 'field') {
 			const building = gameState.city.buildings.find(b => b.id === hero.location);
 			const buildingName = building ? building.name : `Building #${hero.location}`;
@@ -218,6 +222,9 @@ export function renderHeroes () {
 			} else if (gameState.party.missionState === 'driving_back') {
 				dynamicHtml = `<p class="text-success text-center text-sm">Returning to base in ${carName}.</p>${survivorHtml}`;
 				dynamicStateKey = `driving-back-${hero.carId}-${hero.survivorsCarried}`;
+			} else if (gameState.party.missionState === 'in_combat') { // NEW: Handle in_combat state
+				dynamicHtml = `<p class="text-error text-center text-sm">Ambushed! Waiting for combat to resolve...</p>`;
+				dynamicStateKey = `in-combat-${hero.carId}`;
 			}
 		}
 		updateHtmlIfChanged(dynamicArea, dynamicHtml, dynamicStateKey);

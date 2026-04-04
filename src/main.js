@@ -38,7 +38,7 @@ function renderMissionControl () {
 	// MODIFIED: Check for active combat and update status and button state accordingly.
 	const isFighting = gameState.activeMonsters.length > 0;
 	const buttonText = isFull ? 'Look for Monsters' : 'Look for Survivors';
-	const buttonDisabled = partyState.missionState !== 'idle' || isFighting;
+	const buttonDisabled = partyState.missionState !== 'idle';
 	
 	let statusText = 'The party is idle at the base.';
 	if (isFighting) {
@@ -48,16 +48,22 @@ function renderMissionControl () {
 	} else if (partyState.missionState === 'driving_back') {
 		const totalSurvivors = gameState.heroes.reduce((sum, h) => sum + h.survivorsCarried, 0);
 		statusText = `Driving back with ${totalSurvivors} survivors... Time remaining: ${partyState.missionTimer}s.`;
+	} else if (partyState.missionState === 'in_combat') { // NEW: Status for when mission is paused for combat.
+		statusText = 'Ambushed! Mission paused.';
 	}
 	
+	// NEW: Added a "Flee" button that appears during combat.
 	html = `
         <div class="flex-grow">
             <h3 class="font-bold text-lg">Party Mission</h3>
             <p class="text-sm text-gray-400">${statusText}</p>
         </div>
-        <button id="mission-btn" class="btn btn-primary" ${buttonDisabled ? 'disabled' : ''}>
-            ${buttonText}
-        </button>
+        <div class="flex gap-2">
+            ${isFighting ? '<button id="flee-btn" class="btn btn-warning">Flee</button>' : ''}
+            <button id="mission-btn" class="btn btn-primary" ${buttonDisabled ? 'disabled' : ''}>
+                ${buttonText}
+            </button>
+        </div>
     `;
 	
 	missionControlArea.innerHTML = html;
@@ -163,7 +169,8 @@ function gameLoop () {
 	// MODIFIED: Monster spawning is moved into the new mission logic.
 	
 	// 1. Process Party Mission
-	if (gameState.party.missionState !== 'idle') {
+	// MODIFIED: New mission state machine.
+	if (['driving_out', 'driving_back'].includes(gameState.party.missionState)) {
 		// Only spawn monsters if heroes are driving
 		const heroesInCars = gameState.heroes.filter(h => h.carId && h.hp.current > 0).length;
 		let wasAmbushed = false;
@@ -190,8 +197,12 @@ function gameLoop () {
 					gameState.activeMonsters.push(newMonster);
 					addToLog(`AMBUSH! A Lv.${monsterData.level} ${monsterData.name} (#${newMonster.id}) appeared!`);
 					
-					// Abort the mission
-					gameState.party.missionState = 'idle';
+					// NEW: Pause the mission for combat.
+					gameState.party.pausedMission = {
+						state: gameState.party.missionState,
+						timer: gameState.party.missionTimer
+					};
+					gameState.party.missionState = 'in_combat';
 					gameState.party.missionTimer = 0;
 					wasAmbushed = true;
 					
@@ -216,34 +227,41 @@ function gameLoop () {
 			
 			if (gameState.party.missionTimer <= 0) {
 				if (gameState.party.missionState === 'driving_out') {
-					const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
-					const maxPopulation = playerBases.length * 10;
-					const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
-					const isFull = currentPopulation >= maxPopulation;
-					
-					if (isFull) {
-						addToLog('The party has completed their patrol. Returning to base.');
-					} else {
-						const survivorsFound = Math.floor(Math.random() * 3) + 1; // 1-3 survivors
-						gameState.party.survivorsAwaitingRescue = survivorsFound;
-						addToLog(`The party found ${survivorsFound} survivors! Now returning to base.`);
+					// NEW: Survivor search logic. 10% chance per second.
+					if (Math.random() < 0.1) {
+						const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
+						const maxPopulation = playerBases.length * 10;
+						const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
+						const isFull = currentPopulation >= maxPopulation;
 						
-						const heroesOnMission = gameState.heroes.filter(h => h.carId && h.hp.current > 0);
-						let survivorsToDistribute = survivorsFound;
-						if (heroesOnMission.length > 0) {
-							while (survivorsToDistribute > 0) {
-								for (const hero of heroesOnMission) {
-									if (survivorsToDistribute > 0) {
-										hero.survivorsCarried++;
-										survivorsToDistribute--;
+						if (isFull) {
+							addToLog('The party completed a patrol but found no survivors as the base is full.');
+							gameState.party.missionState = 'driving_back';
+							gameState.party.missionTimer = 5; // Return trip is 5 seconds
+						} else {
+							const survivorsFound = Math.floor(Math.random() * 3) + 1; // 1-3 survivors
+							gameState.party.survivorsAwaitingRescue = survivorsFound;
+							addToLog(`The party found ${survivorsFound} survivors! Now returning to base.`);
+							
+							const heroesOnMission = gameState.heroes.filter(h => h.carId && h.hp.current > 0);
+							let survivorsToDistribute = survivorsFound;
+							if (heroesOnMission.length > 0) {
+								while (survivorsToDistribute > 0) {
+									for (const hero of heroesOnMission) {
+										if (survivorsToDistribute > 0) {
+											hero.survivorsCarried++;
+											survivorsToDistribute--;
+										}
 									}
 								}
 							}
+							gameState.party.missionState = 'driving_back';
+							gameState.party.missionTimer = 5; // Return trip is 5 seconds
 						}
+					} else {
+						// If no survivors found, just reset the timer for another search cycle.
+						gameState.party.missionTimer = 1;
 					}
-					
-					gameState.party.missionState = 'driving_back';
-					gameState.party.missionTimer = Math.floor(Math.random() * 3) + 2; // 2-4 seconds
 				} else if (gameState.party.missionState === 'driving_back') {
 					const totalSurvivors = gameState.heroes.reduce((sum, h) => sum + h.survivorsCarried, 0);
 					if (totalSurvivors > 0) {
@@ -262,6 +280,12 @@ function gameLoop () {
 						}
 					} else {
 						addToLog('The party has successfully returned to base.');
+					}
+					
+					// Move all heroes into a base building.
+					const firstBase = gameState.city.buildings.find(b => b.owner === 'player');
+					if (firstBase) {
+						gameState.heroes.forEach(h => handleEnterBuilding(h.id, firstBase.id));
 					}
 					
 					gameState.heroes.forEach(h => { h.survivorsCarried = 0; });
@@ -569,6 +593,14 @@ function gameLoop () {
 		});
 		
 		gameState.activeMonsters = gameState.activeMonsters.filter(m => m.currentHp > 0);
+		
+		// NEW: If all monsters are defeated, resume the paused mission.
+		if (gameState.activeMonsters.length === 0 && gameState.party.pausedMission) {
+			addToLog('Combat finished. Resuming mission...');
+			gameState.party.missionState = gameState.party.pausedMission.state;
+			gameState.party.missionTimer = gameState.party.pausedMission.timer;
+			gameState.party.pausedMission = null;
+		}
 	}
 	
 	// 6. Daily Updates
@@ -820,10 +852,17 @@ async function init () {
 			initiateCarPurchase(carId);
 		}
 		
-		// NEW: Event listener for starting a mission
+		// MODIFIED: Event listener for starting a mission now ensures all heroes leave buildings.
 		const missionBtn = e.target.closest('#mission-btn');
 		if (missionBtn) {
 			if (gameState.party.missionState === 'idle') {
+				// Make all heroes exit any buildings they are in.
+				gameState.heroes.forEach(hero => {
+					if (hero.location !== 'field') {
+						handleExitBuilding(hero.id);
+					}
+				});
+				
 				const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
 				const maxPopulation = playerBases.length * 10;
 				const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
@@ -833,7 +872,26 @@ async function init () {
 				addToLog(`The party is embarking on a ${missionType}!`);
 				
 				gameState.party.missionState = 'driving_out';
-				gameState.party.missionTimer = Math.floor(Math.random() * 3) + 2; // 2-4 seconds
+				gameState.party.missionTimer = 1; // Start with a 1-second timer for the first search cycle.
+			}
+			return;
+		}
+		
+		// NEW: Event listener for the Flee button.
+		const fleeBtn = e.target.closest('#flee-btn');
+		if (fleeBtn) {
+			addToLog('The party is fleeing from combat!');
+			gameState.activeMonsters = [];
+			gameState.heroes.forEach(h => { h.targetMonsterId = null; });
+			
+			if (gameState.party.pausedMission) {
+				addToLog('Resuming mission after fleeing...');
+				gameState.party.missionState = gameState.party.pausedMission.state;
+				gameState.party.missionTimer = gameState.party.pausedMission.timer;
+				gameState.party.pausedMission = null;
+			} else {
+				// Should not happen if flee is only available in combat, but as a fallback:
+				gameState.party.missionState = 'idle';
 			}
 			return;
 		}

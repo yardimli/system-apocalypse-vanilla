@@ -340,3 +340,23 @@ when they reach back to the city add the survivors to the population of the safe
 update population logic to only increase with survivors
 after a successful delivery the look for surviors button should enable.
 if all houses are full the button should change to look for monsters.
+
+-----------
+
+update the game logic so when the player presses look for survivors the hero's will drive out
+if the hero gets incapacitated they will return to their car when ave heals them.
+add a escape button to the top that the player can press to escape back to base in the middle of the fight
+when hero's are driving they should be looking for survivors there is a 10% chance of finding survivors every 1 second
+if they get attacked by a monster after they defeat the monster they should continue driving
+once they have found survivors the return trip back to base should take 5 seconds and they can be attacked on the way back, if they escape it should continue the 5 seconds countdown and they can get attacked again.
+all 3 heros will drive out when player press look for survivors.
+if an hero get incapacitated and the rest of the party returns to base, aegis cant heal the party member until they are out looking for survivors again.
+
+------
+
+create a new javascript for the party mission for looking for survivors move the code out of main.js the code should also track the look for survivors and flee buttons
+update the up so there is a progress bar that fills up to 100% and there is a label that says how far away from base the party is count in meters at 100% they should be 3km away from the base. the trip out will take 10 seconds and the trip back will also be 10 seconds, when they are fighting the time should pause.
+then they should return the progress bar should empty on return.
+they are constantly looking for survivors each car can carry 4 survivors and survivors are found in groups of 1-10  until they cant carry anymore
+in that status panel write how many survivors in each hero's car or no survivor found yet.
+

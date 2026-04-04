@@ -33,11 +33,12 @@ export const gameState = {
 	time: 0,
 	threatLevel: 10,
 	nextMonsterId: 1,
-	// NEW: Add party state for the new gameplay loop
+	// MODIFIED: Add party state for the new gameplay loop
 	party: {
-		missionState: 'idle', // 'idle', 'driving_out', 'driving_back'
+		missionState: 'idle', // 'idle', 'driving_out', 'driving_back', 'in_combat'
 		missionTimer: 0,
-		survivorsAwaitingRescue: 0
+		survivorsAwaitingRescue: 0,
+		pausedMission: null // NEW: To store mission state when combat starts
 	},
 	city: {
 		buildings: initialBuildings,

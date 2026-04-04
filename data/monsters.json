@@ -7,7 +7,7 @@
     "xp": 20,
     "level": 1,
     "spawnDay": 1,
-    "spawnRatio": 0.3,
+    "spawnRatio": 0.1,
     "tokens": 5
   },
   {
@@ -18,7 +18,7 @@
     "xp": 50,
     "level": 1,
     "spawnDay": 3,
-    "spawnRatio": 0.3,
+    "spawnRatio": 0.1,
     "tokens": 15
   },
   {
@@ -29,7 +29,7 @@
     "xp": 40,
     "level": 1,
     "spawnDay": 5,
-    "spawnRatio": 0.1,
+    "spawnRatio": 0.05,
     "tokens": 12
   },
   {
@@ -40,7 +40,7 @@
     "xp": 80,
     "level": 2,
     "spawnDay": 8,
-    "spawnRatio": 0.1,
+    "spawnRatio": 0.05,
     "tokens": 25
   },
   {
@@ -51,7 +51,7 @@
     "xp": 150,
     "level": 2,
     "spawnDay": 10,
-    "spawnRatio": 0.05,
+    "spawnRatio": 0.03,
     "tokens": 50
   },
   {
@@ -62,7 +62,7 @@
     "xp": 120,
     "level": 2,
     "spawnDay": 13,
-    "spawnRatio": 0.05,
+    "spawnRatio": 0.03,
     "tokens": 40
   },
   {

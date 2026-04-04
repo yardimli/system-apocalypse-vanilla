@@ -18,7 +18,15 @@ export function handleAegisAction(heroId, skillId, options = {}) {
 			const targetHero = gameState.heroes.find(h => h.id === options.targetHeroId);
 			const injured = targetHero || gameState.heroes.filter(h => h.hp.current < h.hp.max).sort((a, b) => a.hp.current - b.hp.current)[0];
 			
+			// NEW: Add a check to prevent healing incapacitated heroes who are inside a building.
+			if (injured && injured.hp.current <= 0 && injured.location !== 'field') {
+				addToLog(`${hero.name} cannot heal ${injured.name} while they are incapacitated at base.`, hero.id);
+				return;
+			}
+			
 			if (injured && injured.hp.current < injured.hp.max) {
+				const wasIncapacitated = injured.hp.current <= 0; // NEW: Check if the hero was incapacitated before healing.
+				
 				const wand = gameData.items.find(i => i.id === hero.equipment.mainHand);
 				const spellPower = wand && wand.spellPower ? wand.spellPower : 1;
 				
@@ -28,6 +36,15 @@ export function handleAegisAction(heroId, skillId, options = {}) {
 				injured.hp.current = Math.min(injured.hp.max, injured.hp.current + healAmount);
 				addToLog(`${hero.name} healed ${injured.name} for ${healAmount} HP.`, hero.id);
 				success = true;
+				
+				// NEW: If a hero was revived in the field, return them to their car.
+				if (wasIncapacitated && injured.hp.current > 0 && injured.location === 'field') {
+					addToLog(`${injured.name} has recovered and is returning to their vehicle.`, injured.id);
+					const ownedCar = gameState.city.cars.find(c => c.ownerId === injured.id);
+					if (ownedCar) {
+						injured.carId = ownedCar.id;
+					}
+				}
 				
 				if (injured.targetMonsterId) {
 					const monster = gameState.activeMonsters.find(m => m.id === injured.targetMonsterId);
