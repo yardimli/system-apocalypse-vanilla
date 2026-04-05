@@ -35,11 +35,11 @@ export function handleCombatAction(heroId, skillId) {
 				if (rageCost > 0) {
 					if (hasEnoughRage) {
 						hero.rage.current -= rageCost;
-						addToLog(`${hero.name} uses ${skill.name} with Rage!`, hero.id);
+						addToLog(`uses ${skill.name} with Rage!`, hero.id);
 					} else {
 						finalDamage = Math.ceil(finalDamage / 2);
 						finalAgroMultiplier /= 4;
-						addToLog(`${hero.name} uses ${skill.name} without enough Rage, with reduced effect.`, hero.id);
+						addToLog(`uses ${skill.name} without enough Rage, with reduced effect.`, hero.id);
 					}
 				}
 				
@@ -64,7 +64,7 @@ export function handleCombatAction(heroId, skillId) {
 				if (damageBonus > 0) {
 					const bonusDamage = Math.ceil(damageDealt * damageBonus);
 					damageDealt += bonusDamage;
-					addToLog(`${hero.name}'s car provided a ${Math.round(damageBonus * 100)}% damage bonus!`, hero.id);
+					addToLog(`car provided a ${Math.round(damageBonus * 100)}% damage bonus!`, hero.id);
 				}
 			}
 			
@@ -75,7 +75,7 @@ export function handleCombatAction(heroId, skillId) {
 				hero.rage.current = Math.min(hero.rage.max, hero.rage.current + skill.rageGen);
 			}
 			
-			addToLog(`${hero.name} deals ${damageDealt} damage to ${monster.name} (#${monster.id}).`, hero.id);
+			addToLog(`deals ${damageDealt} damage to ${monster.name} (#${monster.id}).`, hero.id);
 			success = true;
 			break;
 		}
@@ -85,10 +85,10 @@ export function handleCombatAction(heroId, skillId) {
 			if (hero.class === 'Vanguard') {
 				if (hasEnoughRage) {
 					hero.rage.current -= rageCost;
-					addToLog(`${hero.name} uses ${skill.name} with Rage for a massive threat boost!`, hero.id);
+					addToLog(`${skill.name} with Rage for a massive threat boost!`, hero.id);
 				} else {
 					agroAmount = Math.ceil(agroAmount / 10);
-					addToLog(`${hero.name} uses ${skill.name} without enough Rage, generating minimal threat.`, hero.id);
+					addToLog(`uses ${skill.name} without enough Rage, generating minimal threat.`, hero.id);
 				}
 			}
 			
@@ -125,7 +125,7 @@ export function handleAegisAction(heroId, skillId, options = {}) {
 			const injured = targetHero || gameState.heroes.filter(h => h.hp.current < h.hp.max).sort((a, b) => a.hp.current - b.hp.current)[0];
 			
 			if (injured && injured.hp.current <= 0 && injured.location !== 'field') {
-				addToLog(`${hero.name} cannot heal ${injured.name} while they are incapacitated at base.`, hero.id);
+				addToLog(`cannot heal ${injured.name} while they are incapacitated at base.`, hero.id);
 				return;
 			}
 			
@@ -139,7 +139,7 @@ export function handleAegisAction(heroId, skillId, options = {}) {
 				const healAmount = Math.ceil((baseHealAmount * spellPower) * levelBoost);
 				
 				injured.hp.current = Math.min(injured.hp.max, injured.hp.current + healAmount);
-				addToLog(`${hero.name} healed ${injured.name} for ${healAmount} HP.`, hero.id);
+				addToLog(`healed ${injured.name} for ${healAmount} HP.`, hero.id);
 				success = true;
 				
 				// Logic to handle hero revival in the field
@@ -171,7 +171,7 @@ export function handleAegisAction(heroId, skillId, options = {}) {
 						}
 						hero.targetMonsterId = monster.id;
 						
-						addToLog(`${hero.name} drew the attention of ${monster.name} (#${monster.id}) by healing!`, hero.id);
+						addToLog(`drew the attention of ${monster.name} (#${monster.id}) by healing!`, hero.id);
 					}
 				}
 			}
@@ -195,7 +195,7 @@ export function handleAegisAction(heroId, skillId, options = {}) {
 			hero.mpRegen += hero.mpRegenPerLevel;
 			hero.hp.current = hero.hp.max;
 			hero.mp.current = hero.mp.max;
-			addToLog(`${hero.name} reached Level ${hero.level}! Stats increased.`, hero.id);
+			addToLog(`reached Level ${hero.level}! Stats increased.`, hero.id);
 		}
 	}
 }

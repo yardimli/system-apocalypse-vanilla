@@ -72,7 +72,7 @@ export const gameState = {
 			skillTargets: { 'AEG004': 1 },
 			skillCooldowns: {},
 			skillFlash: null,
-			log: [],
+			// MODIFIED: Removed individual hero log.
 			inventory: {
 				'ARM001': 1,
 				'WAND001': 1,
@@ -107,7 +107,7 @@ export const gameState = {
 			skillTargets: {},
 			skillCooldowns: {},
 			skillFlash: null,
-			log: [],
+			// MODIFIED: Removed individual hero log.
 			inventory: {
 				'ARM001': 1,
 				'WAND001': 1,
@@ -137,7 +137,7 @@ export const gameState = {
 			skillTargets: {},
 			skillCooldowns: {},
 			skillFlash: null,
-			log: [],
+			// MODIFIED: Removed individual hero log.
 			inventory: {
 				'ARM001': 1,
 				'SWD001': 1,
@@ -147,7 +147,10 @@ export const gameState = {
 			}
 		}
 	],
-	log:['[SYSTEM]: The Awakening has begun. Defend the city.']
+	// MODIFIED: Changed log from an array of strings to an array of objects.
+	log: [
+		{ time: 0, message: 'The Awakening has begun. Defend the city.', heroId: null }
+	]
 };
 
 export const gameData = {

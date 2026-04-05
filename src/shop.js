@@ -28,7 +28,7 @@ export function handleBuyItem(heroId, itemId) {
 	}
 
 	if (hero.tokens < shopEntry.price) {
-		addToLog(`${hero.name} does not have enough tokens to buy ${itemData.name}.`, hero.id);
+		addToLog(`does not have enough tokens to buy ${itemData.name}.`, hero.id);
 		return;
 	}
 
@@ -36,7 +36,7 @@ export function handleBuyItem(heroId, itemId) {
 	hero.tokens -= shopEntry.price;
 	hero.inventory[itemId] = (hero.inventory[itemId] || 0) + 1;
 
-	addToLog(`${hero.name} bought ${itemData.name} for ${shopEntry.price} tokens.`, hero.id);
+	addToLog(`bought ${itemData.name} for ${shopEntry.price} tokens.`, hero.id);
 
 	// If the bought item was equippable, run auto-equip logic
 	if (itemData.equipSlot) {
@@ -60,12 +60,12 @@ export function handleBuySkill(heroId, skillId) {
 	}
 
 	if (hero.tokens < shopEntry.price) {
-		addToLog(`${hero.name} does not have enough tokens to learn ${skillData.name}.`, hero.id);
+		addToLog(`does not have enough tokens to learn ${skillData.name}.`, hero.id);
 		return;
 	}
 
 	if (hero.skills.some(s => s.id === skillId)) {
-		addToLog(`${hero.name} already knows ${skillData.name}.`, hero.id);
+		addToLog(`already knows ${skillData.name}.`, hero.id);
 		return;
 	}
 
@@ -73,7 +73,7 @@ export function handleBuySkill(heroId, skillId) {
 	hero.tokens -= shopEntry.price;
 	hero.skills.push({ id: skillId });
 
-	addToLog(`${hero.name} learned ${skillData.name} for ${shopEntry.price} tokens.`, hero.id);
+	addToLog(`learned ${skillData.name} for ${shopEntry.price} tokens.`, hero.id);
 }
 
 
@@ -110,7 +110,7 @@ export function handleSellItem(heroId, itemId) {
 	}
 	hero.tokens += sellPrice;
 
-	addToLog(`${hero.name} sold ${itemData.name} for ${sellPrice} tokens.`, hero.id);
+	addToLog(`sold ${itemData.name} for ${sellPrice} tokens.`, hero.id);
 }
 
 /**
@@ -128,7 +128,7 @@ export function handleBuyUpgrade(heroId, upgradeId) {
 	}
 
 	if (hero.tokens < upgrade.cost) {
-		addToLog(`${hero.name} doesn't have enough tokens to buy ${upgrade.name}. (Need ${upgrade.cost})`, hero.id);
+		addToLog(`doesn't have enough tokens to buy ${upgrade.name}. (Need ${upgrade.cost})`, hero.id);
 		return;
 	}
 
@@ -140,7 +140,7 @@ export function handleBuyUpgrade(heroId, upgradeId) {
 		: gameState.city.buildings.filter(b => b.owner === 'player');
 
 	if (ownedAssets.length === 0) {
-		addToLog(`${hero.name} has no available ${targetType}s to upgrade.`, hero.id);
+		addToLog(`has no available ${targetType}s to upgrade.`, hero.id);
 		return;
 	}
 
@@ -181,7 +181,7 @@ export function handleBuyUpgrade(heroId, upgradeId) {
 		}
 	}
 
-	addToLog(`${hero.name} purchased ${upgrade.name} for ${targetAsset.name || `${targetType} #${targetId}`} for ${upgrade.cost} tokens!`, hero.id);
+	addToLog(`purchased ${upgrade.name} for ${targetAsset.name || `${targetType} #${targetId}`} for ${upgrade.cost} tokens!`, hero.id);
 }
 
 /**
@@ -202,7 +202,7 @@ export function handleBuyCar(heroId, carId) {
 	// Check if the hero already owns a car.
 	const alreadyOwnsCar = gameState.city.cars.some(c => c.ownerId === heroId);
 	if (alreadyOwnsCar) {
-		addToLog(`${hero.name} already owns a car and cannot buy another.`, hero.id);
+		addToLog(`already owns a car and cannot buy another.`, hero.id);
 		return;
 	}
 
@@ -212,7 +212,7 @@ export function handleBuyCar(heroId, carId) {
 	}
 
 	if (hero.tokens < carData.price) {
-		addToLog(`${hero.name} cannot afford the ${carData.name}. (Needs ${carData.price} Tokens)`, hero.id);
+		addToLog(`cannot afford the ${carData.name}. (Needs ${carData.price} Tokens)`, hero.id);
 		return;
 	}
 
@@ -221,5 +221,5 @@ export function handleBuyCar(heroId, carId) {
 	carState.ownerId = hero.id;
 	hero.carId = carState.id;
 
-	addToLog(`${hero.name} purchased the ${carData.name} for ${carData.price} tokens and is now the driver!`, hero.id);
+	addToLog(`purchased the ${carData.name} for ${carData.price} tokens and is now the driver!`, hero.id);
 }

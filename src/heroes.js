@@ -35,11 +35,11 @@ export function autoEquipBestGear (hero) {
 			hero.equipment[slot] = bestItemId;
 			
 			if (bestItem && oldItem) {
-				addToLog(`${hero.name} upgraded ${slot}: ${oldItem.name} -> ${bestItem.name}.`, hero.id);
+				addToLog(`upgraded ${slot}: ${oldItem.name} -> ${bestItem.name}.`, hero.id);
 			} else if (bestItem) {
-				addToLog(`${hero.name} equipped ${bestItem.name} (${slot}).`, hero.id);
+				addToLog(`equipped ${bestItem.name} (${slot}).`, hero.id);
 			} else if (oldItem) {
-				addToLog(`${hero.name} unequipped ${oldItem.name} (${slot}).`, hero.id);
+				addToLog(`unequipped ${oldItem.name} (${slot}).`, hero.id);
 			}
 		}
 	}
@@ -68,9 +68,6 @@ export function renderHeroes () {
 		
 		const nameText = `${hero.name} | Lv. ${hero.level}`;
 		updateTextIfChanged(card.querySelector('[data-name]'), nameText);
-		
-		const tokensText = `${hero.tokens} T`;
-		updateTextIfChanged(card.querySelector('[data-tokens]'), tokensText);
 		
 		const classEl = card.querySelector('[data-class]');
 		if (classEl) {
@@ -142,9 +139,9 @@ export function renderHeroes () {
 		let survivorText = '';
 		if (hero.carId && hero.hp.current > 0) {
 			const car = gameState.city.cars.find(c => c.id === hero.carId);
-			if (car) {
+			if (car && hero.survivorsCarried > 0) {
 				const capacity = car.survivorCapacity || 4;
-				survivorText = ` (Carrying: ${hero.survivorsCarried}/${capacity})`;
+				survivorText = ` (Carrying: ${hero.survivorsCarried}/${capacity}).`;
 			}
 		}
 		
@@ -183,11 +180,11 @@ export function renderHeroes () {
 				statusHtml = `<span class="text-info">Resting at base in ${carName}.</span>`;
 				statusStateKey = `resting-base-${hero.carId}`;
 			} else if (gameState.party.missionState === 'driving_out') {
-				statusHtml = `<span class="text-success">Searching in ${carName}${survivorText}.</span>`;
+				statusHtml = `<span class="text-success">Searching! ${survivorText}</span>`;
 				const carCapacity = car ? car.survivorCapacity : 0;
 				statusStateKey = `driving-out-${hero.carId}-${hero.survivorsCarried}-${carCapacity}`;
 			} else if (gameState.party.missionState === 'driving_back') {
-				statusHtml = `<span class="text-success">Returning in ${carName}${survivorText}.</span>`;
+				statusHtml = `<span class="text-success">Returning! ${survivorText}</span>`;
 				const carCapacity = car ? car.survivorCapacity : 0;
 				statusStateKey = `driving-back-${hero.carId}-${hero.survivorsCarried}-${carCapacity}`;
 			} else if (gameState.party.missionState === 'in_combat') {

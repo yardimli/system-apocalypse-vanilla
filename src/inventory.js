@@ -23,13 +23,13 @@ export function handleUseConsumable(heroId, itemId) {
 		const oldHp = hero.hp.current;
 		hero.hp.current = Math.min(hero.hp.max, hero.hp.current + value);
 		const healedAmount = Math.floor(hero.hp.current - oldHp);
-		addToLog(`${hero.name} used ${itemData.name} and restored ${healedAmount} HP.`, hero.id);
+		addToLog(`used ${itemData.name} and restored ${healedAmount} HP.`, hero.id);
 		used = true;
 	} else if (type === 'heal_mp' && hero.mp.current < hero.mp.max) {
 		const oldMp = hero.mp.current;
 		hero.mp.current = Math.min(hero.mp.max, hero.mp.current + value);
 		const restoredAmount = Math.floor(hero.mp.current - oldMp);
-		addToLog(`${hero.name} used ${itemData.name} and restored ${restoredAmount} MP.`, hero.id);
+		addToLog(`used ${itemData.name} and restored ${restoredAmount} MP.`, hero.id);
 		used = true;
 	}
 	

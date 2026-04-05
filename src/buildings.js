@@ -40,7 +40,7 @@ export function handleEnterBuilding(heroId, buildingId) {
 			// Remove hero from monster's assignment and agro list
 			monster.assignedTo = monster.assignedTo.filter(id => id !== hero.id);
 			delete monster.agro[hero.id];
-			addToLog(`${hero.name} escaped from ${monster.name} (#${monster.id}) into ${building.name}.`, hero.id);
+			addToLog(`escaped from ${monster.name} (#${monster.id}) into ${building.name}.`, hero.id);
 		}
 		hero.targetMonsterId = null;
 	}
@@ -49,7 +49,7 @@ export function handleEnterBuilding(heroId, buildingId) {
 	if (!building.heroesInside.includes(heroId)) {
 		building.heroesInside.push(heroId);
 	}
-	addToLog(`${hero.name} entered ${building.name}.`, hero.id);
+	addToLog(`entered ${building.name}.`, hero.id);
 }
 
 /**
@@ -63,7 +63,7 @@ export function handleExitBuilding(heroId) {
 	const building = gameState.city.buildings.find(b => b.id === hero.location);
 	if (building) {
 		building.heroesInside = building.heroesInside.filter(id => id !== heroId);
-		addToLog(`${hero.name} exited ${building.name}.`, hero.id);
+		addToLog(`exited ${building.name}.`, hero.id);
 	}
 	
 	hero.location = 'field';
@@ -72,7 +72,7 @@ export function handleExitBuilding(heroId) {
 	const ownedCar = gameState.city.cars.find(c => c.ownerId === hero.id);
 	if (ownedCar) {
 		hero.carId = ownedCar.id;
-		addToLog(`${hero.name} got back in their car, ${ownedCar.name}.`, hero.id);
+		addToLog(`got back in their car, ${ownedCar.name}.`, hero.id);
 	}
 }
 

@@ -1,31 +1,23 @@
 import { gameState, gameData } from './state.js';
 
 /**
- * Adds a message to the global log and, optionally, to a specific hero's log.
+ * MODIFIED: Adds a structured log entry to the universal game log.
  * @param {string} message - The log message.
- * @param {number|null} heroId - The ID of the hero to add the log to.
+ * @param {number|null} heroId - The ID of the hero this log pertains to, or null for a general log.
  */
 export function addToLog (message, heroId = null) {
-	const day = Math.floor(gameState.time / 10) + 1;
-	const tick = (gameState.time % 10) + 1;
-	const timeStr = `[Day ${day}, Tick ${tick}]`;
-	const fullMessage = `${timeStr} ${message}`; // Create full message once
+	const logEntry = {
+		time: gameState.time,
+		message,
+		heroId
+	};
 	
-	// Add to global log
-	gameState.log.unshift(fullMessage);
+	// Add the new entry to the beginning of the global log array.
+	gameState.log.unshift(logEntry);
+	
+	// Trim the log to prevent it from growing indefinitely.
 	if (gameState.log.length > 2000) {
 		gameState.log.pop();
-	}
-	
-	// Add to hero-specific log if heroId is provided
-	if (heroId) {
-		const hero = gameState.heroes.find(h => h.id === heroId);
-		if (hero) {
-			hero.log.unshift(fullMessage); // Add the same full message for consistency
-			if (hero.log.length > 300) { // Keep hero logs shorter
-				hero.log.pop();
-			}
-		}
 	}
 }
 

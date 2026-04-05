@@ -399,7 +399,7 @@ function gameLoop () {
 					
 					hero.xp.current += xpPerHero;
 					hero.tokens += tokensPerHero;
-					addToLog(`${hero.name} gained ${xpPerHero} XP and ${tokensPerHero} Tokens.`, hero.id);
+					addToLog(`gained ${xpPerHero} XP and ${tokensPerHero} Tokens.`, hero.id);
 					
 					const lootChance = hero.class === 'Vanguard' ? 0.4 : 0.25;
 					if (Math.random() < lootChance) {
@@ -407,7 +407,7 @@ function gameLoop () {
 						if (possibleDrops.length > 0) {
 							const dropped = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
 							hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;
-							addToLog(`${hero.name} found an item: ${dropped.name}!`, hero.id);
+							addToLog(`found an item: ${dropped.name}!`, hero.id);
 						}
 					}
 					
@@ -420,7 +420,7 @@ function gameLoop () {
 						hero.hpRegen += hero.hpRegenPerLevel;
 						hero.mpRegen += hero.mpRegenPerLevel;
 						hero.hp.current = hero.hp.max;
-						addToLog(`${hero.name} reached Level ${hero.level}!`, hero.id);
+						addToLog(`reached Level ${hero.level}!`, hero.id);
 					}
 				});
 			}
@@ -584,7 +584,7 @@ async function init () {
 				hero.autoCastSkillId = hero.autoCastSkillId === skillId ? null : skillId;
 				const skillName = gameData.skills.find(s => s.id === skillId).name;
 				const action = hero.autoCastSkillId ? `set auto-cast to: ${skillName}` : 'disabled auto-cast';
-				addToLog(`${hero.name} ${action}.`, hero.id);
+				addToLog(`${action}.`, hero.id);
 				renderContent();
 			}
 			return;

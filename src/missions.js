@@ -161,7 +161,7 @@ export function processMissionTick () {
 				// Survivors being transported are lost in the ambush
 				gameState.heroes.forEach(hero => {
 					if (hero.survivorsCarried > 0) {
-						addToLog(`The ${hero.survivorsCarried} survivors in ${hero.name}'s car were lost in the ambush!`, hero.id);
+						addToLog(`The ${hero.survivorsCarried} survivors were lost in the ambush!`, hero.id);
 						hero.survivorsCarried = 0;
 					}
 				});
@@ -226,7 +226,7 @@ export function processMissionTick () {
 					const car = gameState.city.cars.find(c => c.id === hero.carId);
 					const carName = car ? car.name : 'their car';
 					// Add the log entry to the specific hero's log.
-					addToLog(`${hero.name} picked up ${pickedUp} survivor(s), bringing the total in ${carName} to ${finalCount}.`, hero.id);
+					addToLog(`picked up ${pickedUp} survivor(s), bringing the total in ${carName} to ${finalCount}.`, hero.id);
 				}
 			});
 		}
