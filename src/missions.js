@@ -107,23 +107,31 @@ export function handleStartMission () {
 }
 
 /**
- * Handles the party fleeing from combat, clearing all active monsters.
+ * MODIFIED: Handles the party fleeing from combat.
+ * The party now immediately starts returning to base instead of resuming their mission.
  */
 export function handleFlee () {
-	addToLog('The party is fleeing from combat!');
+	// MODIFIED: Updated log message to reflect the new behavior.
+	addToLog('The party is fleeing from combat and returning to base!');
 	gameState.activeMonsters = [];
 	gameState.heroes.forEach(h => { h.targetMonsterId = null; });
 	
 	if (gameState.party.pausedMission) {
-		addToLog('Resuming mission after fleeing...');
-		gameState.party.missionState = gameState.party.pausedMission.state;
-		gameState.party.missionTimer = gameState.party.pausedMission.timer;
-		// Restore progress from before the ambush
+		// MODIFIED: Set the mission state to 'driving_back'.
+		gameState.party.missionState = 'driving_back';
+		// MODIFIED: Restore progress from before the ambush.
 		gameState.party.missionProgress = gameState.party.pausedMission.progress;
+		// MODIFIED: Calculate the remaining time to get back based on current progress.
+		// e.g., If progress is 40 (40%), the timer is set to 4, for a 4-second return trip.
+		gameState.party.missionTimer = Math.ceil(gameState.party.missionProgress / 10);
+		
 		gameState.party.pausedMission = null;
 	} else {
-		// Fallback if flee is somehow triggered outside of a mission ambush
+		// Fallback if flee is somehow triggered outside of a mission ambush.
 		gameState.party.missionState = 'idle';
+		// NEW: Reset progress and timer for a clean state.
+		gameState.party.missionProgress = 0;
+		gameState.party.missionTimer = 0;
 	}
 }
 
