@@ -44,14 +44,24 @@ export function renderMissionControl () {
 	
 	// Determine status text
 	let statusText = 'The party is idle at the base.';
+	// NEW: Check if party is incapacitated and waiting to heal.
+	const heroesInField = gameState.heroes.filter(h => h.location === 'field');
+	const allIncapacitated = heroesInField.length > 0 && heroesInField.every(h => h.hp.current <= 0);
+	
 	if (isFighting) {
 		statusText = 'Ambushed! Fighting for survival!';
+	} else if (partyState.missionState === 'in_combat' && allIncapacitated) { // NEW
+		statusText = 'Party incapacitated! Waiting for heroes to be healed to continue...';
 	} else if (partyState.missionState === 'driving_out') {
 		const distance = Math.floor(3000 * (partyState.missionProgress / 100));
 		statusText = `Driving out... Distance: ${distance}m.`;
 	} else if (partyState.missionState === 'driving_back') {
 		const distance = Math.floor(3000 * (partyState.missionProgress / 100));
 		statusText = `Driving back... Distance: ${distance}m.`;
+	} else if (partyState.missionState === 'driving_to_attack') { // NEW
+		const monster = gameState.activeMonsters.find(m => m.id === partyState.targetMonsterId);
+		const monsterName = monster ? monster.name : 'a monster';
+		statusText = `Driving to intercept ${monsterName}...`;
 	} else if (partyState.missionState === 'in_combat') {
 		statusText = 'Ambushed! Mission paused.';
 	}
@@ -113,7 +123,24 @@ export function handleStartMission () {
 export function handleFlee () {
 	// MODIFIED: Updated log message to reflect the new behavior.
 	addToLog('The party is fleeing from combat and returning to base!');
-	gameState.activeMonsters = [];
+	
+	// MODIFIED: Monsters are no longer despawned. Instead, they become unassigned.
+	const partyHeroes = gameState.heroes.filter(h => h.location === 'field');
+	const monsterIdsFought = new Set(partyHeroes.map(h => h.targetMonsterId).filter(Boolean));
+	
+	monsterIdsFought.forEach(monsterId => {
+		const monster = gameState.activeMonsters.find(m => m.id === monsterId);
+		if (monster) {
+			// Set the monster's distance based on how far the party was on their mission.
+			if (gameState.party.pausedMission) {
+				const missionProgress = gameState.party.pausedMission.progress;
+				monster.distanceFromCity = 3000 * (missionProgress / 100);
+			}
+			// The monster is now unassigned and will act independently.
+			monster.assignedTo = [];
+		}
+	});
+	
 	gameState.heroes.forEach(h => { h.targetMonsterId = null; });
 	
 	if (gameState.party.pausedMission) {
@@ -140,7 +167,8 @@ export function handleFlee () {
  * This includes movement, monster spawning, and survivor searching.
  */
 export function processMissionTick () {
-	if (!['driving_out', 'driving_back'].includes(gameState.party.missionState)) {
+	// MODIFIED: Added 'driving_to_attack' to the list of active mission states.
+	if (!['driving_out', 'driving_back', 'driving_to_attack'].includes(gameState.party.missionState)) {
 		return;
 	}
 	
@@ -165,8 +193,12 @@ export function processMissionTick () {
 					tokens: monsterData.tokens,
 					assignedTo: [],
 					targetBuilding: null,
-					agro: {}
+					agro: {},
+					speed: monsterData.speed || 50
 				};
+				// NEW: Set the monster's distance from the city based on mission progress.
+				newMonster.distanceFromCity = 3000 * (gameState.party.missionProgress / 100);
+				
 				gameState.activeMonsters.push(newMonster);
 				addToLog(`AMBUSH! A Lv.${monsterData.level} ${monsterData.name} (#${newMonster.id}) appeared!`);
 				
@@ -249,10 +281,16 @@ export function processMissionTick () {
 	// 3. Process Mission Timer and State
 	gameState.party.missionTimer--;
 	
+	// MODIFIED: Handle progress for different mission types.
 	if (gameState.party.missionState === 'driving_out') {
-		gameState.party.missionProgress = 100 - (gameState.party.missionTimer * 10);
+		const totalTime = 10;
+		gameState.party.missionProgress = 100 - ((gameState.party.missionTimer / totalTime) * 100);
 	} else if (gameState.party.missionState === 'driving_back') {
-		gameState.party.missionProgress = gameState.party.missionTimer * 10;
+		const totalTime = 10;
+		gameState.party.missionProgress = (gameState.party.missionTimer / totalTime) * 100;
+	} else if (gameState.party.missionState === 'driving_to_attack') {
+		// Progress for attack missions is not visually important in the same way.
+		gameState.party.missionProgress = 0;
 	}
 	
 	if (gameState.party.missionTimer <= 0) {
@@ -303,6 +341,66 @@ export function processMissionTick () {
 			gameState.party.missionState = 'idle';
 			gameState.party.missionTimer = 0;
 			gameState.party.missionProgress = 0;
+		} else if (gameState.party.missionState === 'driving_to_attack') { // NEW
+			const monster = gameState.activeMonsters.find(m => m.id === gameState.party.targetMonsterId);
+			if (monster) {
+				addToLog(`The party has reached ${monster.name} and is engaging in combat!`);
+				// Assign all combat-capable heroes to the target monster.
+				gameState.heroes.forEach(hero => {
+					if (hero.location === 'field' && (hero.class === 'Striker' || hero.class === 'Vanguard') && hero.hp.current > 0) {
+						hero.targetMonsterId = monster.id;
+					}
+				});
+				gameState.party.missionState = 'in_combat';
+				// The mission is effectively over, it just becomes a combat encounter.
+				// We can pause a "null" mission to indicate we should go idle after combat.
+				gameState.party.pausedMission = {
+					state: 'idle', // State to return to after combat
+					timer: 0,
+					progress: 0
+				};
+			} else {
+				addToLog(`The target monster is gone! Returning to base.`);
+				gameState.party.missionState = 'idle';
+			}
+			gameState.party.targetMonsterId = null;
+			gameState.party.missionProgress = 0;
 		}
 	}
+}
+
+/**
+ * NEW: Starts a mission to intercept a specific monster.
+ * @param {number} monsterId - The ID of the monster to attack.
+ */
+export function handleStartAttackMission (monsterId) {
+	if (gameState.party.missionState !== 'idle') {
+		addToLog('Cannot start an attack mission while another mission is active.');
+		return;
+	}
+	
+	const monster = gameState.activeMonsters.find(m => m.id === monsterId);
+	if (!monster) {
+		addToLog(`Error: Could not find monster #${monsterId} to attack.`);
+		return;
+	}
+	
+	// Make all heroes exit any buildings they are in.
+	gameState.heroes.forEach(hero => {
+		if (hero.location !== 'field') {
+			handleExitBuilding(hero.id);
+		}
+	});
+	
+	addToLog(`The party is embarking on a mission to hunt ${monster.name}!`);
+	
+	// If monster is at the city, travel distance is short. Otherwise, it's their current distance.
+	const distanceToTravel = monster.distanceFromCity > 0 ? monster.distanceFromCity : 100;
+	// Travel time is 1 tick per 300 meters.
+	const travelTime = Math.ceil(distanceToTravel / 300);
+	
+	gameState.party.missionState = 'driving_to_attack';
+	gameState.party.missionTimer = travelTime;
+	gameState.party.missionProgress = 0;
+	gameState.party.targetMonsterId = monsterId;
 }

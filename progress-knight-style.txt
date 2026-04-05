@@ -371,4 +371,27 @@ make the progress bar in mission-control-area grow and shrink smoothly like the 
 
 ----
 
+when monsters spawn track their distance from the city. on a mission it will be the distance the mission is away from the city.
+
+update the game logic so if the player clicks flee the monster remains in the monster tab.
+
+in monsters.json add a monster speed (meters) per tick variable. all unattached monsters should move towards the city and once they reach the city they sould attack a random building.
+
+similarly if the whole party is incapacitated the monster should no longer be assigned to the party.
+once a monster is no longer attached to the party it will wander and eventually attack a building.
+
+when the whole party is healed they should resume the mission. in the mission-control-area add text that says party is waiting for heal to continue driving.
+
+add a monster spawn logic, this will have its own probability in the monsters.json for each monster different than the spawn ratio for monsters spawning on the party missions. these monsters will spawn between 1000-3000 meters away from the city and start moving towards the city.
+
+show the monsters distance from the city in the monsters tab.
+
+on the monsters tab add a button on monsters that are unattached for the party to attack, when the player presses this button the party should drive to the monster the distance to drive will be the same logic as rescue mission.
+
+the party can also attack monsters that are already attacking the city then the distance to go will be 100 meters all the time.
+
+-----
+
+
 change the items in shop to be about the car instead of magic wand sword etc. its the car that gets outfitted ???
+

@@ -53,6 +53,8 @@ export function renderMonsters (contentArea) {
                         <h3 class="font-bold text-lg" data-name></h3>
                         <div class="badge badge-error" data-target></div>
                     </div>
+                    <!-- NEW: Distance from city -->
+                    <div class="text-sm text-warning mt-1" data-distance></div>
                     <div class="mt-2">
                         <progress class="progress progress-error w-full" value="0" max="100" data-hp-bar></progress>
                         <p class="text-xs text-right mt-1" data-hp-label></p>
@@ -61,6 +63,8 @@ export function renderMonsters (contentArea) {
                         <h4 class="font-semibold text-sm mb-1">Threat List</h4>
                         <div data-agro-list></div>
                     </div>
+                    <!-- NEW: Action button area -->
+                    <div class="card-actions justify-end mt-2" data-actions></div>
                     <div class="text-xs text-gray-400 mt-2" data-age></div>
                 </div>
             `;
@@ -79,6 +83,13 @@ export function renderMonsters (contentArea) {
 			targetText = `Attacking Bldg #${monster.targetBuilding}`;
 		}
 		updateTextIfChanged(card.querySelector('[data-target]'), targetText);
+		
+		// NEW: Update distance text
+		let distanceText = `At City Gates`;
+		if (monster.distanceFromCity > 0) {
+			distanceText = `${Math.floor(monster.distanceFromCity)}m from city`;
+		}
+		updateTextIfChanged(card.querySelector('[data-distance]'), distanceText);
 		
 		updateProgressIfChanged(card.querySelector('[data-hp-bar]'), monster.currentHp, monster.maxHp);
 		updateTextIfChanged(card.querySelector('[data-hp-label]'), `${Math.floor(monster.currentHp)} / ${monster.maxHp} HP`);
@@ -100,6 +111,17 @@ export function renderMonsters (contentArea) {
 		
 		const ageInDays = Math.floor((gameState.time - monster.spawnTime) / 10);
 		updateTextIfChanged(card.querySelector('[data-age]'), `Age: ${ageInDays} day(s)`);
+		
+		// NEW: Update action buttons
+		const actionsContainer = card.querySelector('[data-actions]');
+		const canPartyAttack = gameState.party.missionState === 'idle';
+		let actionsHtml = '';
+		if (monster.assignedTo.length === 0) {
+			actionsHtml = `<button class="btn btn-sm btn-error" data-attack-monster-id="${monster.id}" ${!canPartyAttack ? 'disabled' : ''}>Attack</button>`;
+		}
+		// Use a state key to prevent re-rendering the button constantly
+		const actionsStateKey = `${monster.assignedTo.length}-${canPartyAttack}`;
+		updateHtmlIfChanged(actionsContainer, actionsHtml, actionsStateKey);
 	});
 	
 	// NEW: Remove cards for defeated/despawned monsters.

@@ -10,7 +10,8 @@ import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuil
 // Modified: Imported renderPartyLog
 import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview, renderPartyCombat, renderPartyLog } from './ui.js';
 import { renderCars, initiateCarPurchase } from './cars.js';
-import { renderMissionControl, handleStartMission, handleFlee, processMissionTick } from './missions.js';
+// MODIFIED: Imported handleStartAttackMission
+import { renderMissionControl, handleStartMission, handleFlee, processMissionTick, handleStartAttackMission } from './missions.js';
 
 const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'City', 'Items', 'Log', 'Sandbox'];
 let activeTab = 'Heroes';
@@ -95,34 +96,38 @@ function manageCombatAssignments () {
 		}
 	});
 	
-	const vanguards = combatHeroes.filter(h => h.class === 'Vanguard');
-	const strikers = combatHeroes.filter(h => h.class === 'Striker');
-	
-	vanguards.forEach(vanguard => {
-		if (!vanguard.targetMonsterId) {
-			const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
-			if (target) {
-				vanguard.targetMonsterId = target.id;
-			}
-		}
-	});
-	
-	const vanguardTargets = vanguards
-		.map(v => gameState.activeMonsters.find(m => m.id === v.targetMonsterId))
-		.filter(Boolean);
-	
-	strikers.forEach(striker => {
-		const isTargetingVanguardMonster = vanguardTargets.some(m => m.id === striker.targetMonsterId);
+	// MODIFIED: Only perform auto-assignment of new targets if the party is in an active combat state.
+	// This prevents heroes from automatically re-engaging a monster after fleeing.
+	if (gameState.party.missionState === 'in_combat') {
+		const vanguards = combatHeroes.filter(h => h.class === 'Vanguard');
+		const strikers = combatHeroes.filter(h => h.class === 'Striker');
 		
-		if (vanguardTargets.length > 0 && !isTargetingVanguardMonster) {
-			striker.targetMonsterId = vanguardTargets[0].id;
-		} else if (vanguardTargets.length === 0 && !striker.targetMonsterId) {
-			const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
-			if (target) {
-				striker.targetMonsterId = target.id;
+		vanguards.forEach(vanguard => {
+			if (!vanguard.targetMonsterId) {
+				const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
+				if (target) {
+					vanguard.targetMonsterId = target.id;
+				}
 			}
-		}
-	});
+		});
+		
+		const vanguardTargets = vanguards
+			.map(v => gameState.activeMonsters.find(m => m.id === v.targetMonsterId))
+			.filter(Boolean);
+		
+		strikers.forEach(striker => {
+			const isTargetingVanguardMonster = vanguardTargets.some(m => m.id === striker.targetMonsterId);
+			
+			if (vanguardTargets.length > 0 && !isTargetingVanguardMonster) {
+				striker.targetMonsterId = vanguardTargets[0].id;
+			} else if (vanguardTargets.length === 0 && !striker.targetMonsterId) {
+				const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
+				if (target) {
+					striker.targetMonsterId = target.id;
+				}
+			}
+		});
+	}
 	
 	gameState.activeMonsters.forEach(m => {
 		m.assignedTo = gameState.heroes
@@ -134,19 +139,44 @@ function manageCombatAssignments () {
 
 // --- GAME LOOP ---
 
-// MODIFIED: Decouple game logic from rendering loop.
 // These variables manage the timing of game logic ticks.
 let lastTickTime = 0;
 const tickDuration = 1000; // A game tick is 1 second in real time.
 
 /**
- * NEW: This function contains all the logic that advances the game state by one tick.
+ * This function contains all the logic that advances the game state by one tick.
  * It was previously the body of gameLoop().
  */
 function processGameTick () {
 	gameState.time++;
 	
 	processMissionTick();
+	
+	// NEW: World Monster Spawning
+	const currentDay = Math.floor(gameState.time / 10) + 1;
+	const availableMonsters = gameData.monsters.filter(m => m.spawnDay <= currentDay);
+	for (const monsterData of availableMonsters) {
+		if (Math.random() < (monsterData.worldSpawnRatio || 0)) {
+			const newMonster = {
+				id: gameState.nextMonsterId++,
+				spawnTime: gameState.time,
+				name: monsterData.name,
+				level: monsterData.level,
+				maxHp: monsterData.hp,
+				currentHp: monsterData.hp,
+				damage: monsterData.damage,
+				xp: monsterData.xp,
+				tokens: monsterData.tokens,
+				speed: monsterData.speed || 50,
+				distanceFromCity: Math.floor(Math.random() * 2001) + 1000, // 1000-3000m
+				assignedTo: [],
+				targetBuilding: null,
+				agro: {}
+			};
+			gameState.activeMonsters.push(newMonster);
+			addToLog(`A wild Lv.${newMonster.level} ${newMonster.name} (#${newMonster.id}) has appeared ${newMonster.distanceFromCity}m from the city!`);
+		}
+	}
 	
 	// 2. Process Heroes
 	manageCombatAssignments();
@@ -280,6 +310,17 @@ function processGameTick () {
 		}
 	});
 	
+	// NEW: Unassigned Monster Movement
+	gameState.activeMonsters.forEach(monster => {
+		if (monster.assignedTo.length === 0 && monster.distanceFromCity > 0) {
+			monster.distanceFromCity -= monster.speed;
+			if (monster.distanceFromCity <= 0) {
+				monster.distanceFromCity = 0;
+				addToLog(`${monster.name} (#${monster.id}) has reached the city!`);
+			}
+		}
+	});
+	
 	// 3. Monsters Attack Heroes based on Agro
 	gameState.activeMonsters.forEach(monster => {
 		if (monster.assignedTo.length > 0) {
@@ -337,6 +378,16 @@ function processGameTick () {
 					}
 					targetHero.targetMonsterId = null;
 					addToLog(`${targetHero.name} was incapacitated by ${monster.name} (#${monster.id})!`, targetHero.id);
+					
+					// NEW: Check if the monster should become unassigned.
+					const remainingAttackers = monster.assignedTo
+						.map(id => gameState.heroes.find(h => h.id === id))
+						.filter(h => h && h.hp.current > 0);
+					
+					if (remainingAttackers.length === 0) {
+						monster.assignedTo = [];
+						addToLog(`${monster.name} (#${monster.id}) is no longer being fought and will advance on the city.`, null);
+					}
 				}
 			}
 		}
@@ -344,7 +395,8 @@ function processGameTick () {
 	
 	// 4. Unassigned Monsters Attack City
 	gameState.activeMonsters.forEach(monster => {
-		if (monster.assignedTo.length === 0) {
+		// MODIFIED: Added check for distance from city.
+		if (monster.assignedTo.length === 0 && monster.distanceFromCity <= 0) {
 			if (!monster.targetBuilding) {
 				const validTargets = gameState.city.buildings.filter(b => b.state !== 'ruined');
 				if (validTargets.length > 0) {
@@ -718,6 +770,14 @@ async function init () {
 		const buyCarBtn = e.target.closest('[data-buy-car-id]');
 		if (buyCarBtn) {
 			initiateCarPurchase(buyCarBtn.dataset.buyCarId);
+			return;
+		}
+		
+		// NEW: Handle attacking a specific monster.
+		const attackMonsterBtn = e.target.closest('[data-attack-monster-id]');
+		if (attackMonsterBtn) {
+			const monsterId = parseInt(attackMonsterBtn.dataset.attackMonsterId, 10);
+			handleStartAttackMission(monsterId);
 			return;
 		}
 		

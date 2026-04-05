@@ -37,11 +37,12 @@ export const gameState = {
 	threatLevel: 10,
 	nextMonsterId: 1,
 	party: {
-		missionState: 'idle', // 'idle', 'driving_out', 'driving_back', 'in_combat'
+		missionState: 'idle', // 'idle', 'driving_out', 'driving_back', 'in_combat', 'driving_to_attack'
 		missionTimer: 0,
 		missionProgress: 0, // Tracks mission travel progress (0-100)
 		survivorsAwaitingRescue: 0,
-		pausedMission: null
+		pausedMission: null,
+		targetMonsterId: null // NEW: For specific attack missions
 	},
 	city: {
 		buildings: initialBuildings,
