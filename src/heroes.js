@@ -231,6 +231,7 @@ export function renderHeroes () {
 					
 					const mpCost = skillData.mpCost || 0;
 					const rageCost = skillData.rageCost || 0;
+					// Vanguard skills can be used without rage, so we don't check for it when disabling the button.
 					const hasResources = hero.class === 'Vanguard' || (hero.mp.current >= mpCost);
 					const isCastDisabled = !meetsLevelReq || !hasResources || isOnCooldown;
 					const costText = rageCost > 0 ? `${rageCost} Rage` : (mpCost > 0 ? `${mpCost} MP` : '');
@@ -277,7 +278,28 @@ export function renderHeroes () {
 				}).join('');
 			}
 			
-			const skillsStateKey = JSON.stringify(hero.skills) + hero.autoCastSkillId + hero.level + (hero.mp ? hero.mp.current : '') + (hero.rage ? hero.rage.current : '') + JSON.stringify(hero.skillTargets) + JSON.stringify(hero.skillCooldowns) + JSON.stringify(hero.skillFlash) + gameState.time;
+			// MODIFIED: Replaced the inefficient state key with a more stable one.
+			// This new key prevents the skill cards from re-rendering on every minor change (like 1 MP regenerating),
+			// which was causing performance issues and preventing CSS animations from playing.
+			const keyParts = [
+				hero.level,
+				hero.autoCastSkillId,
+				JSON.stringify(hero.skillTargets),
+				JSON.stringify(hero.skillFlash),
+				JSON.stringify(hero.skillCooldowns), // Always include to detect when a new cooldown starts.
+				// Create a boolean flag for each skill based on whether the hero can afford it.
+				// This part of the key only changes when MP crosses a skill's cost threshold.
+				learnedSkills.map(s => (s.mpCost && hero.mp) ? (hero.mp.current >= s.mpCost) : true).join(',')
+			];
+			
+			// Only add the rapidly-changing `gameState.time` to the key if a skill is actively on cooldown.
+			// This is necessary to make the countdown timer update every tick.
+			const anySkillOnCooldown = learnedSkills.some(skill => (hero.skillCooldowns[skill.id] || 0) > gameState.time);
+			if (anySkillOnCooldown) {
+				keyParts.push(gameState.time);
+			}
+			
+			const skillsStateKey = keyParts.join('|');
 			updateHtmlIfChanged(skillsListContainer, skillsHtml, skillsStateKey);
 		}
 		
