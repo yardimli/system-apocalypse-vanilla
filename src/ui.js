@@ -1,5 +1,6 @@
 import { gameState, gameData } from './state.js';
-import { updateTextIfChanged } from './utils.js';
+// MODIFIED: Import additional helper functions for granular updates.
+import { updateTextIfChanged, updateProgressIfChanged, updateHtmlIfChanged } from './utils.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
@@ -204,64 +205,78 @@ export function renderShopDropdown () {
 }
 
 /**
- * Renders the shared combat panel for the party.
+ * MODIFIED: Renders the shared combat panel for the party using granular updates.
+ * This prevents the entire panel from re-rendering, allowing CSS transitions to work.
  */
 export function renderPartyCombat () {
 	const container = getEl('party-combat-area');
 	if (!container) return;
 	
 	// Find the first monster being targeted by any hero.
-	// This simplifies the UI to one monster at a time.
 	const primaryTargetMonster = gameState.activeMonsters.find(m =>
 		gameState.heroes.some(h => h.targetMonsterId === m.id)
 	);
 	
-	const stateKey = primaryTargetMonster
-		? `${primaryTargetMonster.id}-${primaryTargetMonster.currentHp}-${JSON.stringify(primaryTargetMonster.agro)}`
-		: 'no-combat';
-	
-	if (container.getAttribute('data-prev-state') === stateKey) return;
-	
-	if (primaryTargetMonster) {
-		const monster = primaryTargetMonster;
-		const agroEntries = Object.entries(monster.agro)
-			.map(([heroId, value]) => ({ heroId: parseInt(heroId, 10), value }))
-			.sort((a, b) => b.value - a.value);
-		
-		let agroHtml = '<div class="text-xs text-gray-500 italic">No threat</div>';
-		if (agroEntries.length > 0) {
-			agroHtml = agroEntries.map((entry, index) => {
-				const threatHero = gameState.heroes.find(h => h.id === entry.heroId);
-				if (!threatHero) return '';
-				const isTarget = index === 0;
-				return `
-					<div class="badge ${isTarget ? 'badge-error' : 'badge-neutral'} gap-1">
-						${threatHero.name}
-						<div class="badge badge-sm badge-circle ${isTarget ? 'badge-ghost' : 'badge-secondary'}">${Math.floor(entry.value)}</div>
-					</div>
-				`;
-			}).join(' ');
+	// If no monster is being fought, ensure the container is empty and then exit.
+	if (!primaryTargetMonster) {
+		if (container.getAttribute('data-prev-state') !== 'no-combat') {
+			container.innerHTML = '';
+			container.setAttribute('data-prev-state', 'no-combat');
 		}
-		
+		return;
+	}
+	
+	// If a monster is being fought, ensure the panel's static HTML structure exists.
+	let panel = container.querySelector('[data-combat-panel]');
+	if (!panel) {
 		container.innerHTML = `
-			<div class="card bg-base-200 shadow-md p-4">
+			<div class="card bg-base-200 shadow-md p-4" data-combat-panel>
 				<div class="flex justify-between items-center mb-2">
-					<h3 class="font-bold text-lg text-error">Fighting: Lv.${monster.level} ${monster.name}</h3>
+					<h3 class="font-bold text-lg text-error" data-monster-name></h3>
 				</div>
-				<progress class="progress progress-error w-full" value="${monster.currentHp}" max="${monster.maxHp}"></progress>
-				<p class="text-xs text-right mt-1">${Math.floor(monster.currentHp)}/${monster.maxHp} HP</p>
+				<progress class="progress progress-error w-full" value="0" max="100" data-monster-hp-bar></progress>
+				<p class="text-xs text-right mt-1" data-monster-hp-label></p>
 				<div class="mt-2 border-t border-base-100 pt-1">
 					<h4 class="font-semibold text-xs mb-1 text-center">Threat List</h4>
-					<div class="flex flex-wrap gap-1 justify-center">${agroHtml}</div>
+					<div class="flex flex-wrap gap-1 justify-center" data-monster-agro-list></div>
 				</div>
 			</div>
 		`;
-	} else {
-		container.innerHTML = '';
+		panel = container.querySelector('[data-combat-panel]');
+		container.setAttribute('data-prev-state', 'in-combat');
 	}
 	
-	container.setAttribute('data-prev-state', stateKey);
+	const monster = primaryTargetMonster;
+	
+	// Granularly update the panel's content.
+	updateTextIfChanged(panel.querySelector('[data-monster-name]'), `Fighting: Lv.${monster.level} ${monster.name}`);
+	updateProgressIfChanged(panel.querySelector('[data-monster-hp-bar]'), monster.currentHp, monster.maxHp);
+	updateTextIfChanged(panel.querySelector('[data-monster-hp-label]'), `${Math.floor(monster.currentHp)}/${monster.maxHp} HP`);
+	
+	// Build and update the threat (agro) list.
+	const agroEntries = Object.entries(monster.agro)
+		.map(([heroId, value]) => ({ heroId: parseInt(heroId, 10), value }))
+		.sort((a, b) => b.value - a.value);
+	
+	let agroHtml = '<div class="text-xs text-gray-500 italic">No threat</div>';
+	if (agroEntries.length > 0) {
+		agroHtml = agroEntries.map((entry, index) => {
+			const threatHero = gameState.heroes.find(h => h.id === entry.heroId);
+			if (!threatHero) return '';
+			const isTarget = index === 0;
+			return `
+				<div class="badge ${isTarget ? 'badge-error' : 'badge-neutral'} gap-1">
+					${threatHero.name}
+					<div class="badge badge-sm badge-circle ${isTarget ? 'badge-ghost' : 'badge-secondary'}">${Math.floor(entry.value)}</div>
+				</div>
+			`;
+		}).join(' ');
+	}
+	
+	const agroStateKey = JSON.stringify(monster.agro);
+	updateHtmlIfChanged(panel.querySelector('[data-monster-agro-list]'), agroHtml, agroStateKey);
 }
+
 
 /**
  * MODIFIED: Renders the consolidated party log from the new universal log structure.
