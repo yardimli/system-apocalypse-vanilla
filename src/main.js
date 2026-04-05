@@ -3,14 +3,12 @@ import { handleCombatAction, handleAegisAction } from './hero-actions.js';
 import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { handleUseConsumable } from './inventory.js';
-import { handleBuyItem, handleSellItem, handleBuySkill, handleBuyUpgrade, handleBuyCar } from './shop.js';
+import { handleShopAndPurchaseClicks } from './shop.js';
 import { renderHeroes, autoEquipBestGear, renderShopModal } from './heroes.js';
 import { renderMonsters } from './monsters.js';
 import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding } from './buildings.js';
-// Modified: Imported renderPartyLog
 import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview, renderPartyCombat, renderPartyLog } from './ui.js';
 import { renderCars, initiateCarPurchase } from './cars.js';
-// MODIFIED: Imported handleStartAttackMission
 import { renderMissionControl, handleStartMission, handleFlee, processMissionTick, handleStartAttackMission } from './missions.js';
 
 const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'City', 'Items', 'Log', 'Sandbox'];
@@ -96,7 +94,7 @@ function manageCombatAssignments () {
 		}
 	});
 	
-	// MODIFIED: Only perform auto-assignment of new targets if the party is in an active combat state.
+	// Only perform auto-assignment of new targets if the party is in an active combat state.
 	// This prevents heroes from automatically re-engaging a monster after fleeing.
 	if (gameState.party.missionState === 'in_combat') {
 		const vanguards = combatHeroes.filter(h => h.class === 'Vanguard');
@@ -152,7 +150,7 @@ function processGameTick () {
 	
 	processMissionTick();
 	
-	// NEW: World Monster Spawning
+	// World Monster Spawning
 	const currentDay = Math.floor(gameState.time / 10) + 1;
 	const availableMonsters = gameData.monsters.filter(m => m.spawnDay <= currentDay);
 	for (const monsterData of availableMonsters) {
@@ -310,7 +308,7 @@ function processGameTick () {
 		}
 	});
 	
-	// NEW: Unassigned Monster Movement
+	// Unassigned Monster Movement
 	gameState.activeMonsters.forEach(monster => {
 		if (monster.assignedTo.length === 0 && monster.distanceFromCity > 0) {
 			monster.distanceFromCity -= monster.speed;
@@ -379,7 +377,7 @@ function processGameTick () {
 					targetHero.targetMonsterId = null;
 					addToLog(`${targetHero.name} was incapacitated by ${monster.name} (#${monster.id})!`, targetHero.id);
 					
-					// NEW: Check if the monster should become unassigned.
+					// Check if the monster should become unassigned.
 					const remainingAttackers = monster.assignedTo
 						.map(id => gameState.heroes.find(h => h.id === id))
 						.filter(h => h && h.hp.current > 0);
@@ -395,7 +393,7 @@ function processGameTick () {
 	
 	// 4. Unassigned Monsters Attack City
 	gameState.activeMonsters.forEach(monster => {
-		// MODIFIED: Added check for distance from city.
+		// Added check for distance from city.
 		if (monster.assignedTo.length === 0 && monster.distanceFromCity <= 0) {
 			if (!monster.targetBuilding) {
 				const validTargets = gameState.city.buildings.filter(b => b.state !== 'ruined');
@@ -500,7 +498,7 @@ function processGameTick () {
 }
 
 /**
- * MODIFIED: The main game loop, now running multiple times per second.
+ * The main game loop, now running multiple times per second.
  * It's responsible for triggering game logic ticks based on real time passed
  * and for calling the render functions on every frame.
  */
@@ -604,7 +602,6 @@ async function init () {
 	renderContent();
 	
 	document.body.addEventListener('click', (e) => {
-		// NEW: Handle game speed controls.
 		const speedBtn = e.target.closest('[data-speed]');
 		if (speedBtn) {
 			const newSpeed = parseFloat(speedBtn.dataset.speed);
@@ -628,15 +625,9 @@ async function init () {
 			return; // Stop further processing to prevent other listeners from firing.
 		}
 		
-		const sellBtn = e.target.closest('[data-sell-item-id]');
-		if (sellBtn) {
-			const heroId = parseInt(sellBtn.dataset.heroId, 10);
-			const itemId = sellBtn.dataset.sellItemId;
-			handleSellItem(heroId, itemId);
-			const modal = getEl('system-shop-modal');
-			if (modal.open) {
-				renderShopModal(heroId);
-			}
+		// Centralized shop and purchase click handling.
+		// The new handler returns true if it processed an event that requires a re-render.
+		if (handleShopAndPurchaseClicks(e)) {
 			renderContent();
 			return;
 		}
@@ -701,44 +692,6 @@ async function init () {
 			return;
 		}
 		
-		const buyItemBtn = e.target.closest('[data-buy-item-id]');
-		if (buyItemBtn) {
-			const heroId = parseInt(buyItemBtn.dataset.heroId, 10);
-			const itemId = buyItemBtn.dataset.buyItemId;
-			handleBuyItem(heroId, itemId);
-			renderShopModal(heroId);
-			renderContent();
-			return;
-		}
-		
-		const buySkillBtn = e.target.closest('[data-buy-skill-id]');
-		if (buySkillBtn) {
-			const heroId = parseInt(buySkillBtn.dataset.heroId, 10);
-			const skillId = buySkillBtn.dataset.buySkillId;
-			handleBuySkill(heroId, skillId);
-			renderShopModal(heroId);
-			renderContent();
-			return;
-		}
-		
-		const buyUpgradeBtn = e.target.closest('[data-buy-upgrade-id]');
-		if (buyUpgradeBtn) {
-			const upgradeId = buyUpgradeBtn.dataset.buyUpgradeId;
-			const heroId = parseInt(buyUpgradeBtn.dataset.heroId, 10);
-			handleBuyUpgrade(heroId, upgradeId);
-			renderShopModal(heroId);
-			renderContent();
-			return;
-		}
-		
-		const buyBuildingBtn = e.target.closest('[data-buy-building-id]');
-		if (buyBuildingBtn) {
-			const buildingId = parseInt(buyBuildingBtn.dataset.buyBuildingId, 10);
-			handleBuyBuilding(buildingId);
-			renderContent();
-			return;
-		}
-		
 		const enterBuildingBtn = e.target.closest('[data-enter-building-hero]');
 		if (enterBuildingBtn) {
 			const heroId = parseInt(enterBuildingBtn.dataset.enterBuildingHero, 10);
@@ -756,24 +709,7 @@ async function init () {
 			return;
 		}
 		
-		const confirmBuyCarBtn = e.target.closest('[data-confirm-buy-car]');
-		if (confirmBuyCarBtn) {
-			const heroId = parseInt(confirmBuyCarBtn.dataset.heroId, 10);
-			const carId = confirmBuyCarBtn.dataset.carId;
-			handleBuyCar(heroId, carId);
-			const modal = getEl('car-purchase-modal');
-			if (modal) modal.close();
-			renderContent();
-			return;
-		}
-		
-		const buyCarBtn = e.target.closest('[data-buy-car-id]');
-		if (buyCarBtn) {
-			initiateCarPurchase(buyCarBtn.dataset.buyCarId);
-			return;
-		}
-		
-		// NEW: Handle attacking a specific monster.
+		// Handle attacking a specific monster.
 		const attackMonsterBtn = e.target.closest('[data-attack-monster-id]');
 		if (attackMonsterBtn) {
 			const monsterId = parseInt(attackMonsterBtn.dataset.attackMonsterId, 10);
@@ -812,7 +748,6 @@ async function init () {
 		}
 	});
 	
-	// MODIFIED: The interval is now faster for a more responsive UI.
 	setInterval(gameLoop, 200);
 }
 

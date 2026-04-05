@@ -30,7 +30,6 @@ const initialCars = [];
 
 export const gameState = {
 	time: 0,
-	// NEW: Add gameSettings object for speed control.
 	gameSettings: {
 		speedMultiplier: 1 // Can be 0.5, 1, 2, 4
 	},
@@ -42,7 +41,7 @@ export const gameState = {
 		missionProgress: 0, // Tracks mission travel progress (0-100)
 		survivorsAwaitingRescue: 0,
 		pausedMission: null,
-		targetMonsterId: null // NEW: For specific attack missions
+		targetMonsterId: null // For specific attack missions
 	},
 	city: {
 		buildings: initialBuildings,
@@ -77,7 +76,6 @@ export const gameState = {
 			skillTargets: { 'AEG004': 1 },
 			skillCooldowns: {},
 			skillFlash: null,
-			// MODIFIED: Removed individual hero log.
 			inventory: {
 				'ARM001': 1,
 				'WAND001': 1,
@@ -112,7 +110,6 @@ export const gameState = {
 			skillTargets: {},
 			skillCooldowns: {},
 			skillFlash: null,
-			// MODIFIED: Removed individual hero log.
 			inventory: {
 				'ARM001': 1,
 				'WAND001': 1,
@@ -142,7 +139,6 @@ export const gameState = {
 			skillTargets: {},
 			skillCooldowns: {},
 			skillFlash: null,
-			// MODIFIED: Removed individual hero log.
 			inventory: {
 				'ARM001': 1,
 				'SWD001': 1,
@@ -152,7 +148,6 @@ export const gameState = {
 			}
 		}
 	],
-	// MODIFIED: Changed log from an array of strings to an array of objects.
 	log: [
 		{ time: 0, message: 'The Awakening has begun. Defend the city.', heroId: null }
 	]

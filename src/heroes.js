@@ -278,9 +278,6 @@ export function renderHeroes () {
 				}).join('');
 			}
 			
-			// MODIFIED: Replaced the inefficient state key with a more stable one.
-			// This new key prevents the skill cards from re-rendering on every minor change (like 1 MP regenerating),
-			// which was causing performance issues and preventing CSS animations from playing.
 			const keyParts = [
 				hero.level,
 				hero.autoCastSkillId,
@@ -302,8 +299,6 @@ export function renderHeroes () {
 			const skillsStateKey = keyParts.join('|');
 			updateHtmlIfChanged(skillsListContainer, skillsHtml, skillsStateKey);
 		}
-		
-		// Modified: Removed the individual hero log rendering block.
 	});
 }
 

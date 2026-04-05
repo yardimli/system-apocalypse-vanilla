@@ -1,5 +1,4 @@
 import { gameState, gameData } from './state.js';
-// MODIFIED: Import additional helper functions for granular updates.
 import { updateTextIfChanged, updateProgressIfChanged, updateHtmlIfChanged } from './utils.js';
 
 // Helper function to get an element by its ID.
@@ -10,7 +9,7 @@ const headerContainer = getEl('game-header');
 const tabsContainer = getEl('tabs-container');
 
 /**
- * NEW: Formats a game time tick into a Day/Tick string for display in logs.
+ * Formats a game time tick into a Day/Tick string for display in logs.
  * @param {number} time - The game time in ticks.
  * @returns {string} The formatted time string, e.g., "[Day 1, Tick 1]".
  */
@@ -49,7 +48,6 @@ export function renderHeader () {
 	
 	updateTextIfChanged(headerContainer.querySelector('[data-stat="population"]'), totalPop);
 	
-	// MODIFIED: Update the active state of speed control buttons.
 	const speed = gameState.gameSettings.speedMultiplier;
 	const speedControls = headerContainer.querySelector('#speed-controls');
 	if (speedControls) {
@@ -125,11 +123,10 @@ export function renderLog (contentArea) {
 	const container = getEl('log-container');
 	if (!container) return;
 	
-	// MODIFIED: Use the time of the latest log entry as the state key.
+	// Use the time of the latest log entry as the state key.
 	const stateStr = gameState.log.length > 0 ? String(gameState.log[0].time) : '';
 	if (container.getAttribute('data-prev-state') === stateStr) return;
 	
-	// MODIFIED: Render from the new log object structure.
 	container.innerHTML = gameState.log.map(entry => {
 		const timeStr = formatLogTime(entry.time);
 		let prefix = '';
@@ -223,7 +220,7 @@ export function renderShopDropdown () {
 }
 
 /**
- * MODIFIED: Renders the shared combat panel for the party using granular updates.
+ * Renders the shared combat panel for the party using granular updates.
  * This prevents the entire panel from re-rendering, allowing CSS transitions to work.
  */
 export function renderPartyCombat () {
@@ -297,7 +294,7 @@ export function renderPartyCombat () {
 
 
 /**
- * MODIFIED: Renders the consolidated party log from the new universal log structure.
+ * Renders the consolidated party log from the new universal log structure.
  */
 export function renderPartyLog () {
 	const container = getEl('party-log-area');

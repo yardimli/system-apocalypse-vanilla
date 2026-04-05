@@ -1,12 +1,11 @@
 import { gameState } from './state.js';
-// MODIFIED: Import helper functions for granular updates.
 import { updateTextIfChanged, updateHtmlIfChanged, updateProgressIfChanged } from './utils.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
 
 /**
- * MODIFIED: Renders the list of active monsters using a granular update strategy.
+ * Renders the list of active monsters using a granular update strategy.
  * @param {HTMLElement} contentArea - The main content DOM element.
  */
 export function renderMonsters (contentArea) {
@@ -53,7 +52,7 @@ export function renderMonsters (contentArea) {
                         <h3 class="font-bold text-lg" data-name></h3>
                         <div class="badge badge-error" data-target></div>
                     </div>
-                    <!-- NEW: Distance from city -->
+                    <!-- Distance from city -->
                     <div class="text-sm text-warning mt-1" data-distance></div>
                     <div class="mt-2">
                         <progress class="progress progress-error w-full" value="0" max="100" data-hp-bar></progress>
@@ -63,7 +62,7 @@ export function renderMonsters (contentArea) {
                         <h4 class="font-semibold text-sm mb-1">Threat List</h4>
                         <div data-agro-list></div>
                     </div>
-                    <!-- NEW: Action button area -->
+                    <!-- Action button area -->
                     <div class="card-actions justify-end mt-2" data-actions></div>
                     <div class="text-xs text-gray-400 mt-2" data-age></div>
                 </div>
@@ -84,7 +83,7 @@ export function renderMonsters (contentArea) {
 		}
 		updateTextIfChanged(card.querySelector('[data-target]'), targetText);
 		
-		// NEW: Update distance text
+		// Update distance text
 		let distanceText = `At City Gates`;
 		if (monster.distanceFromCity > 0) {
 			distanceText = `${Math.floor(monster.distanceFromCity)}m from city`;
@@ -112,7 +111,7 @@ export function renderMonsters (contentArea) {
 		const ageInDays = Math.floor((gameState.time - monster.spawnTime) / 10);
 		updateTextIfChanged(card.querySelector('[data-age]'), `Age: ${ageInDays} day(s)`);
 		
-		// NEW: Update action buttons
+		// Update action buttons
 		const actionsContainer = card.querySelector('[data-actions]');
 		const canPartyAttack = gameState.party.missionState === 'idle';
 		let actionsHtml = '';
@@ -124,7 +123,7 @@ export function renderMonsters (contentArea) {
 		updateHtmlIfChanged(actionsContainer, actionsHtml, actionsStateKey);
 	});
 	
-	// NEW: Remove cards for defeated/despawned monsters.
+	// Remove cards for defeated/despawned monsters.
 	grid.querySelectorAll('.card').forEach(card => {
 		const cardId = parseInt(card.id.replace('monster-card-', ''), 10);
 		if (!activeMonsterIds.has(cardId)) {

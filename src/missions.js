@@ -1,12 +1,12 @@
 import { gameState, gameData } from './state.js';
-import { addToLog, updateTextIfChanged, updateProgressIfChanged } from './utils.js'; // MODIFIED: Added new imports
+import { addToLog, updateTextIfChanged, updateProgressIfChanged } from './utils.js';
 import { handleExitBuilding, handleEnterBuilding } from './buildings.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
 
 /**
- * MODIFIED: Renders the mission control panel using a granular update strategy.
+ * Renders the mission control panel using a granular update strategy.
  * This includes mission status, progress, survivor counts, and action buttons.
  */
 export function renderMissionControl () {
@@ -44,7 +44,7 @@ export function renderMissionControl () {
 	
 	// Determine status text
 	let statusText = 'The party is idle at the base.';
-	// NEW: Check if party is incapacitated and waiting to heal.
+	// Check if party is incapacitated and waiting to heal.
 	const heroesInField = gameState.heroes.filter(h => h.location === 'field');
 	const allIncapacitated = heroesInField.length > 0 && heroesInField.every(h => h.hp.current <= 0);
 	
@@ -117,14 +117,12 @@ export function handleStartMission () {
 }
 
 /**
- * MODIFIED: Handles the party fleeing from combat.
+ * Handles the party fleeing from combat.
  * The party now immediately starts returning to base instead of resuming their mission.
  */
 export function handleFlee () {
-	// MODIFIED: Updated log message to reflect the new behavior.
 	addToLog('The party is fleeing from combat and returning to base!');
 	
-	// MODIFIED: Monsters are no longer despawned. Instead, they become unassigned.
 	const partyHeroes = gameState.heroes.filter(h => h.location === 'field');
 	const monsterIdsFought = new Set(partyHeroes.map(h => h.targetMonsterId).filter(Boolean));
 	
@@ -144,19 +142,15 @@ export function handleFlee () {
 	gameState.heroes.forEach(h => { h.targetMonsterId = null; });
 	
 	if (gameState.party.pausedMission) {
-		// MODIFIED: Set the mission state to 'driving_back'.
 		gameState.party.missionState = 'driving_back';
-		// MODIFIED: Restore progress from before the ambush.
 		gameState.party.missionProgress = gameState.party.pausedMission.progress;
-		// MODIFIED: Calculate the remaining time to get back based on current progress.
-		// e.g., If progress is 40 (40%), the timer is set to 4, for a 4-second return trip.
 		gameState.party.missionTimer = Math.ceil(gameState.party.missionProgress / 10);
 		
 		gameState.party.pausedMission = null;
 	} else {
 		// Fallback if flee is somehow triggered outside of a mission ambush.
 		gameState.party.missionState = 'idle';
-		// NEW: Reset progress and timer for a clean state.
+		// Reset progress and timer for a clean state.
 		gameState.party.missionProgress = 0;
 		gameState.party.missionTimer = 0;
 	}
@@ -167,7 +161,6 @@ export function handleFlee () {
  * This includes movement, monster spawning, and survivor searching.
  */
 export function processMissionTick () {
-	// MODIFIED: Added 'driving_to_attack' to the list of active mission states.
 	if (!['driving_out', 'driving_back', 'driving_to_attack'].includes(gameState.party.missionState)) {
 		return;
 	}
@@ -196,7 +189,7 @@ export function processMissionTick () {
 					agro: {},
 					speed: monsterData.speed || 50
 				};
-				// NEW: Set the monster's distance from the city based on mission progress.
+				// Set the monster's distance from the city based on mission progress.
 				newMonster.distanceFromCity = 3000 * (gameState.party.missionProgress / 100);
 				
 				gameState.activeMonsters.push(newMonster);
@@ -281,7 +274,7 @@ export function processMissionTick () {
 	// 3. Process Mission Timer and State
 	gameState.party.missionTimer--;
 	
-	// MODIFIED: Handle progress for different mission types.
+	// Handle progress for different mission types.
 	if (gameState.party.missionState === 'driving_out') {
 		const totalTime = 10;
 		gameState.party.missionProgress = 100 - ((gameState.party.missionTimer / totalTime) * 100);
@@ -370,7 +363,7 @@ export function processMissionTick () {
 }
 
 /**
- * NEW: Starts a mission to intercept a specific monster.
+ * Starts a mission to intercept a specific monster.
  * @param {number} monsterId - The ID of the monster to attack.
  */
 export function handleStartAttackMission (monsterId) {

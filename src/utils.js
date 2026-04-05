@@ -1,7 +1,6 @@
 import { gameState, gameData } from './state.js';
 
 /**
- * MODIFIED: Adds a structured log entry to the universal game log.
  * @param {string} message - The log message.
  * @param {number|null} heroId - The ID of the hero this log pertains to, or null for a general log.
  */
