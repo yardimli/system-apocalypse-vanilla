@@ -7,7 +7,8 @@ import { handleBuyItem, handleSellItem, handleBuySkill, handleBuyUpgrade, handle
 import { renderHeroes, autoEquipBestGear, renderShopModal } from './heroes.js';
 import { renderMonsters } from './monsters.js';
 import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding } from './buildings.js';
-import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview, renderPartyCombat } from './ui.js';
+// Modified: Imported renderPartyLog
+import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview, renderPartyCombat, renderPartyLog } from './ui.js';
 import { renderCars, initiateCarPurchase } from './cars.js';
 import { renderMissionControl, handleStartMission, handleFlee, processMissionTick } from './missions.js';
 
@@ -33,8 +34,6 @@ function renderContent () {
                         <!-- Sidebar Area (4th column) -->
                         <div id="heroes-sidebar" class="flex flex-col gap-4">
 
-                            <!-- REMOVED: Shop Dropdown has been moved to the header. -->
-
                             <!-- Mission Control -->
                             <div id="mission-control-area" class="card bg-base-200 shadow-md p-4 flex flex-col gap-4">
                                 <!-- Mission control content will be dynamically rendered here -->
@@ -44,13 +43,19 @@ function renderContent () {
                             <div id="party-combat-area" class="w-full">
                                 <!-- Shared combat info will be injected here -->
                             </div>
+
+                            <!-- New: Party Log Area -->
+                            
+                            <div id="party-log-area" class="flex flex-col gap-1 bg-base-100 rounded p-2 h-60 overflow-y-auto text-xs font-mono">
+                                <!-- Party log content will be injected by renderPartyLog -->
+                            </div>
                         </div>
                     </div>
                 `;
 			}
 			renderMissionControl();
-			// REMOVED: renderShopDropdown(); is no longer needed here.
 			renderPartyCombat();
+			renderPartyLog(); // Added call to render the new party log
 			renderHeroes();
 			break;
 		case 'Buildings':
@@ -438,6 +443,7 @@ function gameLoop () {
 	if (activeTab === 'Heroes') {
 		renderMissionControl();
 		renderPartyCombat();
+		renderPartyLog(); // Added call to render the new party log
 		renderHeroes();
 	}
 	if (activeTab === 'Buildings') renderBuildings(contentArea);

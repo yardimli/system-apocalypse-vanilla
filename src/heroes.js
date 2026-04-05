@@ -284,23 +284,7 @@ export function renderHeroes () {
 			updateHtmlIfChanged(skillsListContainer, skillsHtml, skillsStateKey);
 		}
 		
-		const heroLogContainer = card.querySelector('[data-hero-log-list]');
-		if (heroLogContainer) {
-			const battleLogToggle = card.querySelector('[data-toggle-battle-log]');
-			const showBattleLogs = battleLogToggle ? battleLogToggle.checked : false;
-			
-			const filteredLogs = hero.log.filter(entry => {
-				if (showBattleLogs) {
-					return true;
-				}
-				const isBattleDamageLog = /attacked.*, dealing|deals \d+ damage/.test(entry);
-				return !isBattleDamageLog;
-			});
-			
-			const logHtml = filteredLogs.map(entry => `<p>${entry}</p>`).join('');
-			const logStateKey = (hero.log.length > 0 ? hero.log[0] : '') + showBattleLogs;
-			updateHtmlIfChanged(heroLogContainer, logHtml, logStateKey);
-		}
+		// Modified: Removed the individual hero log rendering block.
 	});
 }
 

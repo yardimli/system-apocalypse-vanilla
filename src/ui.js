@@ -9,6 +9,20 @@ const headerContainer = getEl('game-header');
 const tabsContainer = getEl('tabs-container');
 
 /**
+ * Helper to parse a timestamp from a log string for sorting.
+ * @param {string} logString - The log message containing a timestamp.
+ * @returns {number} A numeric value for sorting.
+ */
+function parseTimestamp (logString) {
+	const match = logString.match(/\[Day (\d+), Tick (\d+)\]/);
+	if (!match) return -1;
+	const day = parseInt(match[1], 10);
+	const tick = parseInt(match[2], 10);
+	// Create a single numeric value for easy sorting.
+	return (day * 100) + tick;
+}
+
+/**
  * Renders the main game header with current stats.
  */
 export function renderHeader () {
@@ -234,4 +248,75 @@ export function renderPartyCombat () {
 	}
 	
 	container.setAttribute('data-prev-state', stateKey);
+}
+
+/**
+ * New: Renders the consolidated party log in the sidebar of the Heroes tab.
+ */
+export function renderPartyLog () {
+	const container = getEl('party-log-area');
+	if (!container) return;
+	
+	// Check if the static structure is present, if not, create it.
+	if (!getEl('party-log-list')) {
+		container.innerHTML = `
+			<div class="card bg-base-200 shadow-md p-4 flex flex-col gap-2 h-full">
+				<div class="flex justify-between items-center gap-4">
+					<h3 class="font-bold text-lg">Party Log</h3>
+					<div class="form-control">
+						<label class="label cursor-pointer py-0 px-1 gap-2">
+							<span class="label-text text-xs">Battle Logs</span>
+							<input type="checkbox" class="toggle toggle-xs" data-toggle-battle-log />
+						</label>
+					</div>
+				</div>
+				<div class="flex flex-col gap-1 bg-base-100 rounded p-2 flex-grow overflow-y-auto text-xs font-mono" id="party-log-list">
+					<!-- Log entries will be rendered here -->
+				</div>
+			</div>
+		`;
+	}
+	
+	const logListEl = getEl('party-log-list');
+	const battleLogToggle = container.querySelector('[data-toggle-battle-log]');
+	const showBattleLogs = battleLogToggle ? battleLogToggle.checked : false;
+	
+	// Generate a state key to prevent unnecessary re-renders
+	const stateKey = gameState.heroes.map(h => h.log.length).join('-') + showBattleLogs;
+	if (logListEl.getAttribute('data-prev-state') === stateKey) return;
+	
+	// 1. Combine logs from all heroes
+	const combinedLogs = [];
+	gameState.heroes.forEach(hero => {
+		hero.log.forEach(entry => {
+			combinedLogs.push({
+				heroName: hero.name,
+				message: entry,
+				sortKey: parseTimestamp(entry)
+			});
+		});
+	});
+	
+	// 2. Sort logs by time, newest first
+	combinedLogs.sort((a, b) => b.sortKey - a.sortKey);
+	
+	// 3. Filter logs based on the toggle
+	const filteredLogs = combinedLogs.filter(log => {
+		if (showBattleLogs) return true;
+		// Same regex used in the old individual logs
+		const isBattleDamageLog = /attacked.*, dealing|deals \d+ damage/.test(log.message);
+		return !isBattleDamageLog;
+	});
+	
+	// 4. Generate HTML
+	const logHtml = filteredLogs.map(log => {
+		// Split the message to insert the hero's name after the timestamp
+		const timeEndIndex = log.message.indexOf(']') + 1;
+		const timePart = log.message.substring(0, timeEndIndex);
+		const messagePart = log.message.substring(timeEndIndex);
+		return `<p>${timePart} <strong class="text-primary">${log.heroName}:</strong>${messagePart}</p>`;
+	}).join('');
+	
+	logListEl.innerHTML = logHtml || '<p class="text-gray-500 italic">No hero logs to display.</p>';
+	logListEl.setAttribute('data-prev-state', stateKey);
 }
