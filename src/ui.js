@@ -246,7 +246,7 @@ export function renderPartyCombat () {
 		container.innerHTML = `
 			<div class="card bg-base-200 shadow-md p-4">
 				<div class="flex justify-between items-center mb-2">
-					<h3 class="font-bold text-lg text-error">Party is Fighting: Lv.${monster.level} ${monster.name} (#${monster.id})</h3>
+					<h3 class="font-bold text-lg text-error">Fighting: Lv.${monster.level} ${monster.name}</h3>
 				</div>
 				<progress class="progress progress-error w-full" value="${monster.currentHp}" max="${monster.maxHp}"></progress>
 				<p class="text-xs text-right mt-1">${Math.floor(monster.currentHp)}/${monster.maxHp} HP</p>
@@ -278,8 +278,8 @@ export function renderPartyLog () {
 					<h3 class="font-bold text-lg">Party Log</h3>
 					<div class="form-control">
 						<label class="label cursor-pointer py-0 px-1 gap-2">
-							<span class="label-text text-xs">Battle Logs</span>
-							<input type="checkbox" class="toggle toggle-xs" data-toggle-battle-log />
+							<span class="label-text text-xs">Extra Logs</span>
+							<input type="checkbox" class="toggle toggle-xs" data-toggle-extra-log />
 						</label>
 					</div>
 				</div>
@@ -291,29 +291,34 @@ export function renderPartyLog () {
 	}
 	
 	const logListEl = getEl('party-log-list');
-	const battleLogToggle = container.querySelector('[data-toggle-battle-log]');
-	const showBattleLogs = battleLogToggle ? battleLogToggle.checked : false;
+	const extraLogToggle = container.querySelector('[data-toggle-extra-log]');
+	const showExtraLogs = extraLogToggle ? extraLogToggle.checked : false;
 	
 	// Generate a state key to prevent unnecessary re-renders.
-	const stateKey = (gameState.log[0]?.time || 0) + '-' + showBattleLogs;
+	const stateKey = (gameState.log[0]?.time || 0) + '-' + showExtraLogs;
 	if (logListEl.getAttribute('data-prev-state') === stateKey) return;
 	
-	// 1. Filter logs to only include hero-specific ones, and apply battle log toggle.
+	// 1. Filter logs to only include hero-specific ones, and apply extra log toggle.
 	const filteredLogs = gameState.log.filter(entry => {
-		if (!entry.heroId) return false; // Only show hero-related logs.
-		if (showBattleLogs) return true;
+		if (showExtraLogs) return true;
 		
-		// Filter out detailed battle damage logs if the toggle is off.
+		// Filter out detailed extra damage logs if the toggle is off.
 		const isBattleDamageLog = /attacked.*, dealing|deals \d+ damage/.test(entry.message);
-		return !isBattleDamageLog;
+		const isEnterExitLog = /entered|exited|got back in their car/.test(entry.message);
+		return !isBattleDamageLog && !isEnterExitLog;
 	});
 	
+	let lastDay = 0;
 	// 2. Generate HTML from the filtered logs.
 	const logHtml = filteredLogs.map(entry => {
-		const timeStr = formatLogTime(entry.time);
+		let timeStr = '';
+		if (lastDay !== Math.floor(entry.time / 10)) {
+			lastDay = Math.floor(entry.time / 10);
+			timeStr = `<p>Day ${lastDay + 1}</p>`; // +1 to convert from 0-indexed to 1-indexed days
+		}
 		const hero = gameState.heroes.find(h => h.id === entry.heroId);
-		const heroName = hero ? hero.name : 'Unknown';
-		return `<p>${timeStr} <strong class="text-primary">${heroName}:</strong> ${entry.message}</p>`;
+		const heroName = hero ? hero.name + ':' : '';
+		return `${timeStr}<p><strong class="text-primary">${heroName}</strong> ${entry.message}</p>`;
 	}).join('');
 	
 	logListEl.innerHTML = logHtml || '<p class="text-gray-500 italic">No hero logs to display.</p>';

@@ -7,7 +7,7 @@
     "xp": 20,
     "level": 1,
     "spawnDay": 1,
-    "spawnRatio": 0.04,
+    "spawnRatio": 0.06,
     "tokens": 5
   },
   {
@@ -17,8 +17,8 @@
     "damage": "8-15",
     "xp": 50,
     "level": 1,
-    "spawnDay": 40,
-    "spawnRatio": 0.04,
+    "spawnDay": 15,
+    "spawnRatio": 0.05,
     "tokens": 15
   },
   {

@@ -39,15 +39,14 @@ function renderContent () {
                                 <!-- Mission control content will be dynamically rendered here -->
                             </div>
 
+                            <!-- Party Log Area -->
+                            <div id="party-log-area" class="flex flex-col gap-1 bg-base-100 rounded p-2 h-60 overflow-y-auto text-xs font-mono">
+                                <!-- Party log content will be injected by renderPartyLog -->
+                            </div>
+                            
                             <!-- Shared Party Combat Area -->
                             <div id="party-combat-area" class="w-full">
                                 <!-- Shared combat info will be injected here -->
-                            </div>
-
-                            <!-- New: Party Log Area -->
-                            
-                            <div id="party-log-area" class="flex flex-col gap-1 bg-base-100 rounded p-2 h-60 overflow-y-auto text-xs font-mono">
-                                <!-- Party log content will be injected by renderPartyLog -->
                             </div>
                         </div>
                     </div>
@@ -698,8 +697,8 @@ async function init () {
 			return;
 		}
 		
-		const battleLogToggle = e.target.closest('[data-toggle-battle-log]');
-		if (battleLogToggle) {
+		const extraLogToggle = e.target.closest('[data-toggle-extra-log]');
+		if (extraLogToggle) {
 			if (activeTab === 'Heroes') renderContent();
 			return;
 		}

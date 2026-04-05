@@ -1,69 +1,83 @@
 import { gameState, gameData } from './state.js';
-import { addToLog } from './utils.js';
+import { addToLog, updateTextIfChanged, updateProgressIfChanged } from './utils.js'; // MODIFIED: Added new imports
 import { handleExitBuilding, handleEnterBuilding } from './buildings.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
 
 /**
- * Renders the mission control panel on the Heroes tab.
+ * MODIFIED: Renders the mission control panel using a granular update strategy.
  * This includes mission status, progress, survivor counts, and action buttons.
  */
 export function renderMissionControl () {
 	const missionControlArea = getEl('mission-control-area');
 	if (!missionControlArea) return;
 	
-	// State data is now calculated first to build a state key.
+	// If the static structure isn't there, create it.
+	if (!missionControlArea.querySelector('[data-mission-status]')) {
+		missionControlArea.innerHTML = `
+			<div class="flex-grow flex flex-col gap-2">
+				<div>
+					<h3 class="font-bold text-lg">Party Mission</h3>
+					<p class="text-sm text-gray-400" data-mission-status></p>
+				</div>
+				<progress class="progress progress-primary w-full" value="0" max="100" data-mission-progress></progress>
+			</div>
+			<div class="flex gap-4" data-mission-buttons>
+				<!-- Buttons will be injected here -->
+			</div>
+		`;
+	}
+	
+	// Get references to the dynamic elements.
+	const statusEl = missionControlArea.querySelector('[data-mission-status]');
+	const progressEl = missionControlArea.querySelector('[data-mission-progress]');
+	const buttonsEl = missionControlArea.querySelector('[data-mission-buttons]');
+	
+	// --- Logic from the old function ---
 	const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
 	const maxPopulation = playerBases.length * 10;
 	const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
 	const isFull = currentPopulation >= maxPopulation;
 	const isFighting = gameState.activeMonsters.length > 0;
-	
-	// Generate a state key to prevent unnecessary DOM updates, which can cause missed clicks.
-	const stateKey = JSON.stringify(gameState.party) + isFighting + isFull;
-	if (missionControlArea.getAttribute('data-prev-state') === stateKey) {
-		return;
-	}
-	
 	const partyState = gameState.party;
-	let html = '';
 	
-	const buttonText = isFull ? 'Look for Monsters' : 'Look for Survivors';
-	const buttonDisabled = partyState.missionState !== 'idle';
-	const distance = Math.floor(3000 * (partyState.missionProgress / 100));
-	
+	// Determine status text
 	let statusText = 'The party is idle at the base.';
 	if (isFighting) {
 		statusText = 'Ambushed! Fighting for survival!';
 	} else if (partyState.missionState === 'driving_out') {
+		const distance = Math.floor(3000 * (partyState.missionProgress / 100));
 		statusText = `Driving out... Distance: ${distance}m.`;
 	} else if (partyState.missionState === 'driving_back') {
+		const distance = Math.floor(3000 * (partyState.missionProgress / 100));
 		statusText = `Driving back... Distance: ${distance}m.`;
 	} else if (partyState.missionState === 'in_combat') {
 		statusText = 'Ambushed! Mission paused.';
 	}
 	
-	const heroesOnMission = gameState.heroes.filter(h => h.carId && h.hp.current > 0);
+	// Update the elements if their content has changed.
+	updateTextIfChanged(statusEl, statusText);
+	updateProgressIfChanged(progressEl, partyState.missionProgress, 100);
 	
-	html = `
-        <div class="flex-grow flex flex-col gap-2">
-            <div>
-				<h3 class="font-bold text-lg">Party Mission</h3>
-				<p class="text-sm text-gray-400">${statusText}</p>
-			</div>
-			<progress class="progress progress-primary w-full" value="${partyState.missionProgress}" max="100"></progress>
-        </div>
-        <div class="flex gap-4">
-            ${isFighting ? '<button id="flee-btn" class="btn btn-warning">Flee</button>' : ''}
+	// Determine button state and update HTML only if necessary.
+	const buttonText = isFull ? 'Look for Monsters' : 'Look for Survivors';
+	const buttonDisabled = partyState.missionState !== 'idle';
+	const buttonsStateKey = `${isFighting}-${buttonDisabled}`;
+	
+	if (buttonsEl.getAttribute('data-prev-state') !== buttonsStateKey) {
+		let buttonsHtml = '';
+		if (isFighting) {
+			buttonsHtml += '<button id="flee-btn" class="btn btn-warning">Flee</button>';
+		}
+		buttonsHtml += `
             <button id="mission-btn" class="btn btn-primary" ${buttonDisabled ? 'disabled' : ''}>
                 ${buttonText}
             </button>
-        </div>
-    `;
-	
-	missionControlArea.innerHTML = html;
-	missionControlArea.setAttribute('data-prev-state', stateKey);
+        `;
+		buttonsEl.innerHTML = buttonsHtml;
+		buttonsEl.setAttribute('data-prev-state', buttonsStateKey);
+	}
 }
 
 /**
@@ -157,14 +171,6 @@ export function processMissionTick () {
 				gameState.party.missionState = 'in_combat';
 				gameState.party.missionTimer = 0;
 				wasAmbushed = true;
-				
-				// Survivors being transported are lost in the ambush
-				gameState.heroes.forEach(hero => {
-					if (hero.survivorsCarried > 0) {
-						addToLog(`The ${hero.survivorsCarried} survivors were lost in the ambush!`, hero.id);
-						hero.survivorsCarried = 0;
-					}
-				});
 				break; // Only one ambush per tick
 			}
 		}

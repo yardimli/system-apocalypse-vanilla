@@ -40,7 +40,7 @@ export function handleEnterBuilding(heroId, buildingId) {
 			// Remove hero from monster's assignment and agro list
 			monster.assignedTo = monster.assignedTo.filter(id => id !== hero.id);
 			delete monster.agro[hero.id];
-			addToLog(`escaped from ${monster.name} (#${monster.id}) into ${building.name}.`, hero.id);
+			addToLog(`escaped from ${monster.name} into ${building.name}.`, hero.id);
 		}
 		hero.targetMonsterId = null;
 	}

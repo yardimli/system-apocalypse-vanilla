@@ -1,10 +1,12 @@
 import { gameState } from './state.js';
+// MODIFIED: Import helper functions for granular updates.
+import { updateTextIfChanged, updateHtmlIfChanged, updateProgressIfChanged } from './utils.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
 
 /**
- * Renders the list of active monsters into the main content area.
+ * MODIFIED: Renders the list of active monsters using a granular update strategy.
  * @param {HTMLElement} contentArea - The main content DOM element.
  */
 export function renderMonsters (contentArea) {
@@ -22,6 +24,9 @@ export function renderMonsters (contentArea) {
 	const grid = getEl('monsters-grid');
 	if (!grid) return;
 	
+	const activeMonsterIds = new Set(gameState.activeMonsters.map(m => m.id));
+	
+	// If no monsters, clear the grid and set a message.
 	if (gameState.activeMonsters.length === 0) {
 		if (grid.getAttribute('data-prev-state') !== 'empty') {
 			grid.innerHTML = '<p class="text-gray-500 italic col-span-full">No active monsters.</p>';
@@ -30,25 +35,54 @@ export function renderMonsters (contentArea) {
 		return;
 	}
 	
-	// Generate a state string to check if an update is actually needed
-	const stateStr = JSON.stringify(gameState.activeMonsters.map(m => [m.id, m.currentHp, m.targetBuilding, m.assignedTo, m.agro]));
-	if (grid.getAttribute('data-prev-state') === stateStr) return;
+	// Set a non-empty state to clear the "No active monsters" message if it exists.
+	if (grid.getAttribute('data-prev-state') === 'empty') {
+		grid.innerHTML = '';
+		grid.setAttribute('data-prev-state', 'active');
+	}
 	
-	// Generate a card for each active monster individually
-	grid.innerHTML = gameState.activeMonsters.map(monster => {
+	// Update or create cards for each active monster.
+	gameState.activeMonsters.forEach(monster => {
+		let card = getEl(`monster-card-${monster.id}`);
+		
+		// If card doesn't exist, create it from a template string.
+		if (!card) {
+			const cardHtml = `
+                <div class="card bg-base-200 shadow-md p-4" id="monster-card-${monster.id}">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-lg" data-name></h3>
+                        <div class="badge badge-error" data-target></div>
+                    </div>
+                    <div class="mt-2">
+                        <progress class="progress progress-error w-full" value="0" max="100" data-hp-bar></progress>
+                        <p class="text-xs text-right mt-1" data-hp-label></p>
+                    </div>
+                    <div class="mt-2 border-t border-base-300 pt-2">
+                        <h4 class="font-semibold text-sm mb-1">Threat List</h4>
+                        <div data-agro-list></div>
+                    </div>
+                    <div class="text-xs text-gray-400 mt-2" data-age></div>
+                </div>
+            `;
+			grid.insertAdjacentHTML('beforeend', cardHtml);
+			card = getEl(`monster-card-${monster.id}`);
+		}
+		
+		// Update card content using helper functions.
+		updateTextIfChanged(card.querySelector('[data-name]'), `Lv.${monster.level} ${monster.name} (#${monster.id})`);
+		
 		let targetText = 'Roaming';
-		// Determine the monster's current target for display
-		if (monster.assignedTo.length > 0) { // Check assignedTo array
-			const heroNames = monster.assignedTo.map(heroId => {
-				const hero = gameState.heroes.find(h => h.id === heroId);
-				return hero ? hero.name : 'Unknown';
-			}).join(', ');
+		if (monster.assignedTo.length > 0) {
+			const heroNames = monster.assignedTo.map(heroId => gameState.heroes.find(h => h.id === heroId)?.name || 'Unknown').join(', ');
 			targetText = `Fighting ${heroNames}`;
 		} else if (monster.targetBuilding) {
 			targetText = `Attacking Bldg #${monster.targetBuilding}`;
 		}
+		updateTextIfChanged(card.querySelector('[data-target]'), targetText);
 		
-		// Generate the agro list display
+		updateProgressIfChanged(card.querySelector('[data-hp-bar]'), monster.currentHp, monster.maxHp);
+		updateTextIfChanged(card.querySelector('[data-hp-label]'), `${Math.floor(monster.currentHp)} / ${monster.maxHp} HP`);
+		
 		const agroEntries = Object.entries(monster.agro)
 			.map(([heroId, value]) => ({ heroId: parseInt(heroId, 10), value }))
 			.sort((a, b) => b.value - a.value);
@@ -62,30 +96,17 @@ export function renderMonsters (contentArea) {
 				return `<div class="text-xs ${isTarget ? 'text-error font-bold' : ''}">${hero.name}: ${Math.floor(entry.value)}</div>`;
 			}).join('');
 		}
+		updateHtmlIfChanged(card.querySelector('[data-agro-list]'), agroHtml, JSON.stringify(monster.agro));
 		
-		// Calculate monster's age in days from its spawn time.
 		const ageInDays = Math.floor((gameState.time - monster.spawnTime) / 10);
-		
-		return `
-            <div class="card bg-base-200 shadow-md p-4">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-bold text-lg">Lv.${monster.level} ${monster.name} (#${monster.id})</h3>
-                    <div class="badge badge-error">${targetText}</div>
-                </div>
-                <div class="mt-2">
-                    <progress class="progress progress-error w-full" value="${monster.currentHp}" max="${monster.maxHp}"></progress>
-                    <p class="text-xs text-right mt-1">${Math.floor(monster.currentHp)} / ${monster.maxHp} HP</p>
-                </div>
-                <!-- Agro list display -->
-                <div class="mt-2 border-t border-base-300 pt-2">
-                    <h4 class="font-semibold text-sm mb-1">Threat List</h4>
-                    ${agroHtml}
-                </div>
-                <div class="text-xs text-gray-400 mt-2">Age: ${ageInDays} day(s)</div>
-            </div>
-        `;
-	}).join('');
+		updateTextIfChanged(card.querySelector('[data-age]'), `Age: ${ageInDays} day(s)`);
+	});
 	
-	// Save the current state to prevent unnecessary updates
-	grid.setAttribute('data-prev-state', stateStr);
+	// NEW: Remove cards for defeated/despawned monsters.
+	grid.querySelectorAll('.card').forEach(card => {
+		const cardId = parseInt(card.id.replace('monster-card-', ''), 10);
+		if (!activeMonsterIds.has(cardId)) {
+			card.remove();
+		}
+	});
 }
