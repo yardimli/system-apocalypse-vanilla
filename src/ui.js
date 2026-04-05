@@ -34,23 +34,12 @@ export function renderHeader () {
 	ticksEl.textContent = gameState.time;
 	
 	const totalPop = gameState.city.buildings.reduce((sum, b) => sum + b.population, 0);
-	const functional = gameState.city.buildings.filter(b => b.state === 'functional').length;
-	const shielded = gameState.city.buildings.filter(b => b.owner === 'player' && b.shieldHp > 0).length;
-	const broken = gameState.city.buildings.filter(b => b.state !== 'functional').length;
 	
-	const attackingBldg = gameState.activeMonsters.filter(m => !m.assigned && m.targetBuilding).length;
-	const attackingHero = gameState.activeMonsters.filter(m => m.assigned).length;
-	const roaming = gameState.activeMonsters.filter(m => !m.assigned && !m.targetBuilding).length;
+	// MODIFIED: Simplified header stats.
+	updateTextIfChanged(headerContainer.querySelector('[data-stat="population"]'), totalPop);
 	
-	// MODIFIED: Car count is now based on player-owned cars.
-	const activeCars = gameState.city.cars.filter(c => c.owner === 'player').length;
-	
-	const bldgText = `F:${functional} | S:${shielded} | B:${broken}`;
-	headerContainer.querySelector('[data-stat="population"]').textContent = totalPop;
-	headerContainer.querySelector('[data-stat="buildings"]').textContent = bldgText;
-	headerContainer.querySelector('[data-stat="cars"]').textContent = `${activeCars}/${gameState.city.cars.length}`;
-	headerContainer.querySelector('[data-stat="monsters"]').textContent = `${attackingBldg} / ${attackingHero}`;
-	headerContainer.querySelector('[data-stat="roaming"]').textContent = roaming;
+	// NEW: The shop dropdown is now part of the header.
+	renderShopDropdown();
 }
 
 /**
@@ -180,7 +169,8 @@ export function renderItemsOverview (contentArea) {
  * NEW: Renders the dropdown menu for accessing each hero's shop.
  */
 export function renderShopDropdown () {
-	const list = getEl('shop-dropdown-list');
+	// MODIFIED: Target the new dropdown list in the header.
+	const list = getEl('header-shop-dropdown-list');
 	if (!list) return;
 	
 	const stateKey = gameState.heroes.map(h => h.id + h.name).join(',');

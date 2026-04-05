@@ -8,7 +8,8 @@ import { handleBuyItem, handleSellItem, handleBuySkill, handleBuyUpgrade, handle
 import { renderHeroes, autoEquipBestGear, renderShopModal } from './heroes.js';
 import { renderMonsters } from './monsters.js';
 import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding } from './buildings.js';
-import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview, renderShopDropdown, renderPartyCombat } from './ui.js';
+// MODIFIED: Removed renderShopDropdown as it's now handled within renderHeader
+import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview, renderPartyCombat } from './ui.js';
 import { renderCars, initiateCarPurchase } from './cars.js';
 import { renderMissionControl, handleStartMission, handleFlee, processMissionTick } from './missions.js';
 
@@ -35,13 +36,7 @@ function renderContent () {
                         <!-- Sidebar Area (4th column) -->
                         <div id="heroes-sidebar" class="flex flex-col gap-4">
 
-                            <!-- Shop Dropdown -->
-                            <div class="dropdown w-full">
-                                <div tabindex="0" role="button" class="btn btn-accent w-full">System Shop</div>
-                                <ul tabindex="0" id="shop-dropdown-list" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-full">
-                                    <!-- Hero list for shop will be injected here -->
-                                </ul>
-                            </div>
+                            <!-- REMOVED: Shop Dropdown has been moved to the header. -->
 
                             <!-- Mission Control -->
                             <div id="mission-control-area" class="card bg-base-200 shadow-md p-4 flex flex-col gap-4">
@@ -57,7 +52,7 @@ function renderContent () {
                 `;
 			}
 			renderMissionControl();
-			renderShopDropdown();
+			// REMOVED: renderShopDropdown(); is no longer needed here.
 			renderPartyCombat();
 			renderHeroes();
 			break;
@@ -445,7 +440,6 @@ function gameLoop () {
 	renderHeader();
 	if (activeTab === 'Heroes') {
 		renderMissionControl();
-		renderShopDropdown();
 		renderPartyCombat();
 		renderHeroes();
 	}
@@ -532,6 +526,18 @@ async function init () {
 	renderContent();
 	
 	document.body.addEventListener('click', (e) => {
+		// NEW: Added event listener for tab switching.
+		const tabBtn = e.target.closest('[data-tab]');
+		if (tabBtn) {
+			const newTab = tabBtn.dataset.tab;
+			if (newTab !== activeTab) {
+				activeTab = newTab;
+				renderTabs(activeTab, TABS);
+				renderContent();
+			}
+			return; // Stop further processing to prevent other listeners from firing.
+		}
+		
 		const sellBtn = e.target.closest('[data-sell-item-id]');
 		if (sellBtn) {
 			const heroId = parseInt(sellBtn.dataset.heroId, 10);
