@@ -138,22 +138,29 @@
 	</div>
 </template>
 
+<!-- MODIFIED: Hero card template updated for new layout -->
 <template id="hero-card-template">
 	<div class="card bg-base-200 shadow-xl">
 		<div class="card-body p-4">
 			<div class="flex justify-between items-start">
 				<div>
 					<h2 class="card-title text-lg" data-name></h2>
-					<div class="text-sm font-bold text-warning" data-tokens></div>
+					<!-- NEW: Hero status line -->
+					<p class="text-sm text-gray-400 min-h-5" data-hero-status></p>
 				</div>
-				<div class="badge" data-class></div>
+				<!-- MODIFIED: Container for class and token badges -->
+				<div class="flex flex-col items-end gap-1">
+					<div class="badge" data-class></div>
+					<div class="badge badge-warning" data-tokens></div>
+				</div>
 			</div>
+			
 			<!-- Container for multi-slot equipment (now shows images) -->
 			<div class="text-xs text-gray-400 mb-2 flex flex-wrap gap-1" data-equipment-container>
 				<!-- Equipment will be rendered here by JS -->
 			</div>
 			
-			<!-- MODIFIED: Stat bars are now inline with labels, smaller, and right-aligned -->
+			<!-- Stat bars -->
 			<div class="flex justify-between items-center my-1">
 				<span class="label-text text-xs" data-xp-label></span>
 				<progress class="progress progress-primary w-[40%]" data-xp-bar></progress>
@@ -171,32 +178,20 @@
 				<progress class="progress progress-error w-[40%]" data-rage-bar></progress>
 			</div>
 			
-			<!-- Dynamic Action/Combat Area -->
-			<div class="w-full mt-2 min-h-[150px] bg-base-300 rounded p-2 flex flex-col justify-center" data-dynamic-area>
-			</div>
-			
-			<!-- System Shop Area is now a button -->
-			<div class="mt-2 border-t border-base-300 pt-2">
-				<button class="btn btn-sm btn-accent w-full" data-open-shop-btn>
-					Open Shop
-				</button>
-			</div>
+			<!-- REMOVED: Dynamic Action/Combat Area and Shop Button -->
 			
 			<!-- Skill Progression Area -->
 			<div class="mt-2 border-t border-base-300 pt-2" data-skills-container>
 				<div class="divider my-1">Skills</div>
-				<!-- MODIFIED: Removed max-height and overflow to fix scrollbar issue. -->
 				<div class="grid grid-cols-2 gap-2" data-skills-list>
 					<!-- Skill cards will be rendered here by JS -->
 				</div>
 			</div>
 			
-			<!-- MODIFIED: Hero Log Area is now collapsible with a battle log filter -->
+			<!-- Hero Log Area -->
 			<div class="mt-2 border-t border-base-300 pt-2" data-log-container>
-				<!-- NEW: Flex container for divider and toggle switch -->
 				<div class="flex justify-between items-center gap-4">
 					<div class="divider my-1 cursor-pointer flex-grow" data-toggle-log>Log</div>
-					<!-- NEW: Toggle to show/hide battle damage logs -->
 					<div class="form-control">
 						<label class="label cursor-pointer py-0 px-1 gap-2">
 							<span class="label-text text-xs">Battle Logs</span>
@@ -204,7 +199,6 @@
 						</label>
 					</div>
 				</div>
-				<!-- MODIFIED: Removed 'hidden' class to make logs visible by default. The parent toggler still works. -->
 				<div class="flex flex-col gap-1 bg-base-100 rounded p-2 h-60 overflow-y-auto text-xs font-mono" data-hero-log-list>
 					<!-- Hero log entries will be rendered here by JS -->
 				</div>

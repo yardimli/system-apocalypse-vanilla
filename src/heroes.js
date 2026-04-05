@@ -69,7 +69,8 @@ export function renderHeroes () {
 		const nameText = `${hero.name} | Lv. ${hero.level}`;
 		updateTextIfChanged(card.querySelector('[data-name]'), nameText);
 		
-		const tokensText = `Tokens: ${hero.tokens}`;
+		// MODIFIED: Update token badge instead of text line.
+		const tokensText = `${hero.tokens} T`;
 		updateTextIfChanged(card.querySelector('[data-tokens]'), tokensText);
 		
 		const classEl = card.querySelector('[data-class]');
@@ -134,101 +135,69 @@ export function renderHeroes () {
 			rageContainer.style.display = 'none';
 		}
 		
-		const dynamicArea = card.querySelector('[data-dynamic-area]');
-		let dynamicHtml = '';
-		let dynamicStateKey = '';
+		// MODIFIED: Logic for the dynamic area is now a single status line under the hero's name.
+		const statusArea = card.querySelector('[data-hero-status]');
+		let statusHtml = '';
+		let statusStateKey = '';
 		
-		// MODIFIED: Always generate survivor HTML when on a mission to show capacity.
-		let survivorHtml = '';
+		// Generate survivor count text to append to relevant statuses.
+		let survivorText = '';
 		if (hero.carId && hero.hp.current > 0) {
 			const car = gameState.city.cars.find(c => c.id === hero.carId);
 			if (car) {
 				const capacity = car.survivorCapacity || 4;
-				const textClass = hero.survivorsCarried > 0 ? 'text-success' : 'text-gray-500';
-				survivorHtml = `<p class="text-xs text-center ${textClass} mb-1">Carrying: ${hero.survivorsCarried} / ${capacity} Survivors</p>`;
+				survivorText = ` (Carrying: ${hero.survivorsCarried}/${capacity})`;
 			}
 		}
 		
 		if (hero.hp.current <= 0) {
-			dynamicHtml = `<p class="text-error font-bold text-center">INCAPACITATED</p><p class="text-xs text-center">Awaiting Aegis Healing...</p>`;
+			statusHtml = `<span class="text-error font-bold">INCAPACITATED</span>`;
 			if (hero.location !== 'field') {
-				dynamicHtml += `<p class="text-xs text-center text-warning">Cannot be healed at base.</p>`;
+				statusHtml += ` (at base)`;
 			}
-			dynamicStateKey = `incapacitated-${hero.location}`;
+			statusStateKey = `incapacitated-${hero.location}`;
 		} else if (hero.location !== 'field') {
 			const building = gameState.city.buildings.find(b => b.id === hero.location);
 			const buildingName = building ? building.name : `Building #${hero.location}`;
-			dynamicHtml = `<p class="text-info text-center text-sm">Resting in ${buildingName}.</p>`;
-			dynamicStateKey = `resting-${hero.location}`;
+			statusHtml = `<span class="text-info">Resting in ${buildingName}.</span>`;
+			statusStateKey = `resting-${hero.location}`;
 		} else if (!hero.carId) {
-			dynamicHtml = `<p class="text-warning text-center text-sm">Waiting for an available car...</p>`;
-			dynamicStateKey = 'no-car';
+			statusHtml = `<span class="text-warning">Waiting for an available car...</span>`;
+			statusStateKey = 'no-car';
 		} else if (hero.targetMonsterId) {
+			// The detailed combat view is now in the shared panel.
+			// We just show a simple status here.
 			const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
 			if (monster) {
-				const agroEntries = Object.entries(monster.agro)
-					.map(([heroId, value]) => ({ heroId: parseInt(heroId, 10), value }))
-					.sort((a, b) => b.value - a.value);
-				
-				let agroHtml = '<div class="text-xs text-gray-500 italic">No threat</div>';
-				if (agroEntries.length > 0) {
-					agroHtml = agroEntries.map((entry, index) => {
-						const threatHero = gameState.heroes.find(h => h.id === entry.heroId);
-						if (!threatHero) return '';
-						const isTarget = index === 0;
-						return `
-							<div class="badge ${isTarget ? 'badge-error' : 'badge-neutral'} gap-1">
-								${threatHero.name}
-								<div class="badge badge-sm badge-circle ${isTarget ? 'badge-ghost' : 'badge-secondary'}">${Math.floor(entry.value)}</div>
-							</div>
-						`;
-					}).join(' ');
-				}
-				
-				const car = gameState.city.cars.find(c => c.id === hero.carId);
-				const carName = car ? (car.name || `Car #${car.id}`) : 'Unknown Car';
-				
-				dynamicHtml = `
-                    <p class="text-sm font-bold text-error mb-1">Fighting: Lv.${monster.level} ${monster.name} (#${monster.id})</p>
-                    <p class="text-xs text-center text-info mb-1">From: ${carName}</p>
-					${survivorHtml}
-                    <progress class="progress progress-error w-full" value="${monster.currentHp}" max="${monster.maxHp}"></progress>
-                    <p class="text-xs text-right mt-1">${Math.floor(monster.currentHp)}/${monster.maxHp} HP</p>
-                    <div class="mt-2 border-t border-base-100 pt-1">
-                        <h4 class="font-semibold text-xs mb-1 text-center">Threat List</h4>
-                        <div class="flex flex-wrap gap-1 justify-center">${agroHtml}</div>
-                    </div>
-                `;
-				// MODIFIED: Add car survivor capacity to state key to force updates
-				const carCapacity = car ? car.survivorCapacity : 0;
-				dynamicStateKey = `fighting-${monster.id}-${monster.currentHp}-${JSON.stringify(monster.agro)}-${hero.survivorsCarried}-${carCapacity}`;
+				statusHtml = `<span class="text-error">Fighting ${monster.name}!</span>`;
+				statusStateKey = `fighting-${monster.id}`;
 			} else {
+				// Monster is dead, but target ID not cleared yet.
 				hero.targetMonsterId = null;
-				const car = gameState.city.cars.find(c => c.id === hero.carId);
-				const carName = car ? (car.name || `Car #${car.id}`) : 'Unknown Car';
-				dynamicHtml = `<p class="text-info text-center text-sm">Resting at base in ${carName}.</p>`;
-				dynamicStateKey = `resting-base-${hero.carId}`;
+				statusHtml = `<span class="text-success">Searching for targets...</span>`;
+				statusStateKey = 'searching-after-kill';
 			}
 		} else {
 			const car = gameState.city.cars.find(c => c.id === hero.carId);
 			const carName = car ? (car.name || `Car #${car.id}`) : 'Unknown Car';
-			const carCapacity = car ? car.survivorCapacity : 0; // Get capacity for state key
 			
 			if (gameState.party.missionState === 'idle') {
-				dynamicHtml = `<p class="text-info text-center text-sm">Resting at base in ${carName}.</p>`;
-				dynamicStateKey = `resting-base-${hero.carId}`;
+				statusHtml = `<span class="text-info">Resting at base in ${carName}.</span>`;
+				statusStateKey = `resting-base-${hero.carId}`;
 			} else if (gameState.party.missionState === 'driving_out') {
-				dynamicHtml = `<p class="text-success text-center text-sm">Searching for survivors in ${carName}.</p>${survivorHtml}`; // MODIFIED: Added survivorHtml
-				dynamicStateKey = `driving-out-${hero.carId}-${hero.survivorsCarried}-${carCapacity}`; // MODIFIED: Added state data
+				statusHtml = `<span class="text-success">Searching in ${carName}${survivorText}.</span>`;
+				const carCapacity = car ? car.survivorCapacity : 0;
+				statusStateKey = `driving-out-${hero.carId}-${hero.survivorsCarried}-${carCapacity}`;
 			} else if (gameState.party.missionState === 'driving_back') {
-				dynamicHtml = `<p class="text-success text-center text-sm">Returning to base in ${carName}.</p>${survivorHtml}`;
-				dynamicStateKey = `driving-back-${hero.carId}-${hero.survivorsCarried}-${carCapacity}`; // MODIFIED: Added state data
+				statusHtml = `<span class="text-success">Returning in ${carName}${survivorText}.</span>`;
+				const carCapacity = car ? car.survivorCapacity : 0;
+				statusStateKey = `driving-back-${hero.carId}-${hero.survivorsCarried}-${carCapacity}`;
 			} else if (gameState.party.missionState === 'in_combat') {
-				dynamicHtml = `<p class="text-error text-center text-sm">Ambushed! Waiting for combat to resolve...</p>`;
-				dynamicStateKey = `in-combat-${hero.carId}`;
+				statusHtml = `<span class="text-error">Ambushed!</span>`;
+				statusStateKey = `in-combat-${hero.carId}`;
 			}
 		}
-		updateHtmlIfChanged(dynamicArea, dynamicHtml, dynamicStateKey);
+		updateHtmlIfChanged(statusArea, statusHtml, statusStateKey);
 		
 		const skillsListContainer = card.querySelector('[data-skills-list]');
 		if (skillsListContainer) {

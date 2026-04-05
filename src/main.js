@@ -8,7 +8,7 @@ import { handleBuyItem, handleSellItem, handleBuySkill, handleBuyUpgrade, handle
 import { renderHeroes, autoEquipBestGear, renderShopModal } from './heroes.js';
 import { renderMonsters } from './monsters.js';
 import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding } from './buildings.js';
-import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview } from './ui.js';
+import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview, renderShopDropdown, renderPartyCombat } from './ui.js';
 import { renderCars, initiateCarPurchase } from './cars.js';
 import { renderMissionControl, handleStartMission, handleFlee, processMissionTick } from './missions.js';
 
@@ -23,17 +23,42 @@ const contentArea = getEl('content-area');
 function renderContent () {
 	switch (activeTab) {
 		case 'Heroes':
+			// MODIFIED: The HTML structure for the Heroes tab is updated to a 4-column grid layout on large screens.
 			if (!getEl('heroes-tab-content')) {
 				contentArea.innerHTML = `
-                    <div id="heroes-tab-content" class="flex flex-col gap-4">
-						<div id="mission-control-area" class="card bg-base-200 shadow-md p-4 flex flex-col md:flex-row justify-between items-center gap-4">
-							{/* Content will be dynamically rendered */}
-						</div>
-                        <div id="heroes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                    <div id="heroes-tab-content" class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                        <!-- Hero Cards Area (spans 3 columns on large screens) -->
+                        <div id="heroes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 col-span-1 lg:col-span-3 gap-4">
+                            <!-- Hero cards will be injected here -->
+                        </div>
+
+                        <!-- Sidebar Area (4th column) -->
+                        <div id="heroes-sidebar" class="flex flex-col gap-4">
+
+                            <!-- Shop Dropdown -->
+                            <div class="dropdown w-full">
+                                <div tabindex="0" role="button" class="btn btn-accent w-full">System Shop</div>
+                                <ul tabindex="0" id="shop-dropdown-list" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-full">
+                                    <!-- Hero list for shop will be injected here -->
+                                </ul>
+                            </div>
+
+                            <!-- Mission Control -->
+                            <div id="mission-control-area" class="card bg-base-200 shadow-md p-4 flex flex-col gap-4">
+                                <!-- Mission control content will be dynamically rendered here -->
+                            </div>
+
+                            <!-- Shared Party Combat Area -->
+                            <div id="party-combat-area" class="w-full">
+                                <!-- Shared combat info will be injected here -->
+                            </div>
+                        </div>
                     </div>
                 `;
 			}
 			renderMissionControl();
+			renderShopDropdown();
+			renderPartyCombat();
 			renderHeroes();
 			break;
 		case 'Buildings':
@@ -420,6 +445,8 @@ function gameLoop () {
 	renderHeader();
 	if (activeTab === 'Heroes') {
 		renderMissionControl();
+		renderShopDropdown();
+		renderPartyCombat();
 		renderHeroes();
 	}
 	if (activeTab === 'Buildings') renderBuildings(contentArea);
@@ -504,16 +531,6 @@ async function init () {
 	renderTabs(activeTab, TABS);
 	renderContent();
 	
-	tabsContainer.addEventListener('click', (e) => {
-		const tabLink = e.target.closest('[data-tab]');
-		if (tabLink) {
-			activeTab = tabLink.dataset.tab;
-			renderTabs(activeTab, TABS);
-			renderContent();
-		}
-	});
-	
-	// MODIFIED: Complete refactor of the event listener for robustness.
 	document.body.addEventListener('click', (e) => {
 		const sellBtn = e.target.closest('[data-sell-item-id]');
 		if (sellBtn) {
@@ -541,13 +558,11 @@ async function init () {
 			return;
 		}
 		
-		const openShopBtn = e.target.closest('[data-open-shop-btn]');
-		if (openShopBtn) {
-			const card = openShopBtn.closest('.card');
-			if (card && card.id.startsWith('hero-card-')) {
-				const heroId = parseInt(card.id.replace('hero-card-', ''), 10);
-				renderShopModal(heroId);
-			}
+		const openShopForHeroBtn = e.target.closest('[data-open-shop-for-hero]');
+		if (openShopForHeroBtn) {
+			const heroId = parseInt(openShopForHeroBtn.dataset.openShopForHero, 10);
+			renderShopModal(heroId);
+			if (document.activeElement) document.activeElement.blur();
 			return;
 		}
 		

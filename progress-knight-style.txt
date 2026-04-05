@@ -360,3 +360,15 @@ then they should return the progress bar should empty on return.
 they are constantly looking for survivors each car can carry 4 survivors and survivors are found in groups of 1-10  until they cant carry anymore
 in that status panel write how many survivors in each hero's car or no survivor found yet.
 
+-------
+
+change the logic so the party will fight a monster together instead of having individual panels <!-- Dynamic Action/Combat Area --> there should be one common panel for the monster the whole party is fighting.
+put the state like "Resting in Alpha Base." under the Heros name
+move tokens as a badge to the right besides the class badge
+in the state string also write how many survivors they have with them as a string on the same line
+remove the open shop buttons for each hero instead add a shop button to the top that will open a dropdown when clicked where user choose which heros shop to open.
+make the progress bar in mission-control-area grow and shrink smoothly like the other progress bars
+
+----
+
+change the items in shop to be about the car instead of magic wand sword etc. its the car that gets outfitted ???

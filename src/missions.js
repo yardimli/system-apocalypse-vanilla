@@ -54,7 +54,7 @@ export function renderMissionControl () {
 			</div>
 			<progress class="progress progress-primary w-full" value="${partyState.missionProgress}" max="100"></progress>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-4">
             ${isFighting ? '<button id="flee-btn" class="btn btn-warning">Flee</button>' : ''}
             <button id="mission-btn" class="btn btn-primary" ${buttonDisabled ? 'disabled' : ''}>
                 ${buttonText}

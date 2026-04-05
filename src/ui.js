@@ -175,3 +175,80 @@ export function renderItemsOverview (contentArea) {
 		`;
 	}).join('');
 }
+
+/**
+ * NEW: Renders the dropdown menu for accessing each hero's shop.
+ */
+export function renderShopDropdown () {
+	const list = getEl('shop-dropdown-list');
+	if (!list) return;
+	
+	const stateKey = gameState.heroes.map(h => h.id + h.name).join(',');
+	if (list.getAttribute('data-prev-state') === stateKey) return;
+	
+	list.innerHTML = gameState.heroes.map(hero => `
+		<li><a data-open-shop-for-hero="${hero.id}">${hero.name}'s Shop</a></li>
+	`).join('');
+	
+	list.setAttribute('data-prev-state', stateKey);
+}
+
+/**
+ * NEW: Renders the shared combat panel for the party.
+ */
+export function renderPartyCombat () {
+	const container = getEl('party-combat-area');
+	if (!container) return;
+	
+	// Find the first monster being targeted by any hero.
+	// This simplifies the UI to one monster at a time.
+	const primaryTargetMonster = gameState.activeMonsters.find(m =>
+		gameState.heroes.some(h => h.targetMonsterId === m.id)
+	);
+	
+	const stateKey = primaryTargetMonster
+		? `${primaryTargetMonster.id}-${primaryTargetMonster.currentHp}-${JSON.stringify(primaryTargetMonster.agro)}`
+		: 'no-combat';
+	
+	if (container.getAttribute('data-prev-state') === stateKey) return;
+	
+	if (primaryTargetMonster) {
+		const monster = primaryTargetMonster;
+		const agroEntries = Object.entries(monster.agro)
+			.map(([heroId, value]) => ({ heroId: parseInt(heroId, 10), value }))
+			.sort((a, b) => b.value - a.value);
+		
+		let agroHtml = '<div class="text-xs text-gray-500 italic">No threat</div>';
+		if (agroEntries.length > 0) {
+			agroHtml = agroEntries.map((entry, index) => {
+				const threatHero = gameState.heroes.find(h => h.id === entry.heroId);
+				if (!threatHero) return '';
+				const isTarget = index === 0;
+				return `
+					<div class="badge ${isTarget ? 'badge-error' : 'badge-neutral'} gap-1">
+						${threatHero.name}
+						<div class="badge badge-sm badge-circle ${isTarget ? 'badge-ghost' : 'badge-secondary'}">${Math.floor(entry.value)}</div>
+					</div>
+				`;
+			}).join(' ');
+		}
+		
+		container.innerHTML = `
+			<div class="card bg-base-200 shadow-md p-4">
+				<div class="flex justify-between items-center mb-2">
+					<h3 class="font-bold text-lg text-error">Party is Fighting: Lv.${monster.level} ${monster.name} (#${monster.id})</h3>
+				</div>
+				<progress class="progress progress-error w-full" value="${monster.currentHp}" max="${monster.maxHp}"></progress>
+				<p class="text-xs text-right mt-1">${Math.floor(monster.currentHp)}/${monster.maxHp} HP</p>
+				<div class="mt-2 border-t border-base-100 pt-1">
+					<h4 class="font-semibold text-xs mb-1 text-center">Threat List</h4>
+					<div class="flex flex-wrap gap-1 justify-center">${agroHtml}</div>
+				</div>
+			</div>
+		`;
+	} else {
+		container.innerHTML = '';
+	}
+	
+	container.setAttribute('data-prev-state', stateKey);
+}
