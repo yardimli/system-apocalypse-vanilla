@@ -114,7 +114,7 @@ export function handleSellItem(heroId, itemId) {
 }
 
 /**
- * MODIFIED: Handles a hero buying an upgrade for a car or building.
+ * Handles a hero buying an upgrade for a car or building.
  * @param {number} heroId - The ID of the hero buying the upgrade.
  * @param {string} upgradeId - The ID of the upgrade to buy.
  */
@@ -134,7 +134,7 @@ export function handleBuyUpgrade(heroId, upgradeId) {
 
 	const isCarUpgrade = upgrade.id.startsWith('CAR_');
 	const targetType = isCarUpgrade ? 'car' : 'building';
-	// MODIFIED: For car upgrades, only show cars owned by the hero. For building upgrades, show all player buildings.
+	// For car upgrades, only show cars owned by the hero. For building upgrades, show all player buildings.
 	const ownedAssets = isCarUpgrade
 		? gameState.city.cars.filter(c => c.ownerId === heroId)
 		: gameState.city.buildings.filter(b => b.owner === 'player');
@@ -145,7 +145,6 @@ export function handleBuyUpgrade(heroId, upgradeId) {
 	}
 
 	const validIds = ownedAssets.map(a => a.id).join(', ');
-	// MODIFIED: Prompt text is more specific now.
 	const targetIdStr = prompt(`Enter the ID of the ${targetType} to apply "${upgrade.name}" to.\nYour valid ${targetType} IDs: ${validIds}`);
 	if (!targetIdStr) {
 		addToLog('Upgrade purchase cancelled.', hero.id);
@@ -165,7 +164,6 @@ export function handleBuyUpgrade(heroId, upgradeId) {
 		return;
 	}
 
-	// MODIFIED: Deduct cost from the individual hero.
 	hero.tokens -= upgrade.cost;
 
 	// Apply upgrade
@@ -187,7 +185,7 @@ export function handleBuyUpgrade(heroId, upgradeId) {
 }
 
 /**
- * MODIFIED: Handles a hero buying a car, making them the sole owner and occupant.
+ * Handles a hero buying a car, making them the sole owner and occupant.
  * @param {number} heroId - The ID of the hero buying the car.
  * @param {string} carId - The ID of the car to buy.
  */
@@ -201,7 +199,7 @@ export function handleBuyCar(heroId, carId) {
 		return;
 	}
 
-	// NEW: Check if the hero already owns a car.
+	// Check if the hero already owns a car.
 	const alreadyOwnsCar = gameState.city.cars.some(c => c.ownerId === heroId);
 	if (alreadyOwnsCar) {
 		addToLog(`${hero.name} already owns a car and cannot buy another.`, hero.id);
@@ -220,7 +218,6 @@ export function handleBuyCar(heroId, carId) {
 
 	// Process transaction
 	hero.tokens -= carData.price;
-	// NEW: Assign the hero as the owner and set their current carId.
 	carState.ownerId = hero.id;
 	hero.carId = carState.id;
 

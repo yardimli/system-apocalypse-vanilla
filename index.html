@@ -22,25 +22,21 @@
 
 </div>
 
-<!-- MODIFIED: System Shop Modal with fixed height -->
+<!-- System Shop Modal with fixed height -->
 <dialog id="system-shop-modal" class="modal">
-	<!-- MODIFIED: Added h-[80vh] for fixed height and flex properties for layout -->
 	<div class="modal-box w-11/12 max-w-5xl h-[80vh] flex flex-col">
 		<div id="shop-modal-header">
 			<!-- Hero name and tokens will be injected here by JS -->
 		</div>
 		
-		<!-- MODIFIED: Tab container now grows to fill available space -->
 		<div role="tablist" class="tabs tabs-lifted mt-4 flex-grow overflow-hidden flex flex-col">
 			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Items" checked />
-			<!-- MODIFIED: Tab panels now grow and scroll, ensuring consistent height -->
 			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 flex-grow overflow-y-auto">
 				<div id="shop-modal-items-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Items for sale will be injected here -->
 				</div>
 			</div>
 			
-			<!-- MODIFIED: "Inventory" tab is now the second tab -->
 			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Inventory" />
 			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 flex-grow overflow-y-auto">
 				<div id="shop-modal-inventory-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -99,7 +95,7 @@
 	</div>
 </dialog>
 
-<!-- NEW: Car Purchase Modal -->
+<!-- Car Purchase Modal -->
 <dialog id="car-purchase-modal" class="modal">
 	<div class="modal-box w-11/12 max-w-md">
 		<div id="car-purchase-modal-header" class="flex justify-between items-center">
@@ -119,7 +115,6 @@
 
 
 <!-- TEMPLATES -->
-<!-- MODIFIED: Header template updated to remove stats and add the shop dropdown. -->
 <template id="header-template">
 	<div class="navbar-start"><div class="font-bold text-xl p-2">System Apocalypse: Idle Defender</div></div>
 	<div class="navbar-center hidden lg:flex">
@@ -139,17 +134,16 @@
 	</div>
 </template>
 
-<!-- MODIFIED: Hero card template updated for new layout -->
 <template id="hero-card-template">
 	<div class="card bg-base-200 shadow-xl">
 		<div class="card-body p-4">
 			<div class="flex justify-between items-start">
 				<div>
 					<h2 class="card-title text-lg" data-name></h2>
-					<!-- NEW: Hero status line -->
+					<!-- Hero status line -->
 					<p class="text-sm text-gray-400 min-h-5" data-hero-status></p>
 				</div>
-				<!-- MODIFIED: Container for class and token badges -->
+				<!-- Container for class and token badges -->
 				<div class="flex flex-col items-end gap-1">
 					<div class="badge" data-class></div>
 					<div class="badge badge-warning" data-tokens></div>

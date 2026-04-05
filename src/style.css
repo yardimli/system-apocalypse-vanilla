@@ -16,7 +16,7 @@ progress::-moz-progress-bar {
 	transition: width 0.3s ease-in-out;
 }
 
-/* NEW: Keyframes and class for skill cast visual feedback */
+/* Keyframes and class for skill cast visual feedback */
 @keyframes flash {
 	0% {
 		box-shadow: 0 0 0 0 rgba(255, 255, 100, 0.7);

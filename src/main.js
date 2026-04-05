@@ -1,6 +1,5 @@
 import { gameState, gameData } from './state.js';
-import { handleAegisAction } from './aegis.js';
-import { handleCombatAction } from './combat.js';
+import { handleCombatAction, handleAegisAction } from './hero-actions.js';
 import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { handleUseConsumable } from './inventory.js';
@@ -8,7 +7,6 @@ import { handleBuyItem, handleSellItem, handleBuySkill, handleBuyUpgrade, handle
 import { renderHeroes, autoEquipBestGear, renderShopModal } from './heroes.js';
 import { renderMonsters } from './monsters.js';
 import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding } from './buildings.js';
-// MODIFIED: Removed renderShopDropdown as it's now handled within renderHeader
 import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview, renderPartyCombat } from './ui.js';
 import { renderCars, initiateCarPurchase } from './cars.js';
 import { renderMissionControl, handleStartMission, handleFlee, processMissionTick } from './missions.js';
@@ -24,7 +22,6 @@ const contentArea = getEl('content-area');
 function renderContent () {
 	switch (activeTab) {
 		case 'Heroes':
-			// MODIFIED: The HTML structure for the Heroes tab is updated to a 4-column grid layout on large screens.
 			if (!getEl('heroes-tab-content')) {
 				contentArea.innerHTML = `
                     <div id="heroes-tab-content" class="grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -526,7 +523,7 @@ async function init () {
 	renderContent();
 	
 	document.body.addEventListener('click', (e) => {
-		// NEW: Added event listener for tab switching.
+		// Added event listener for tab switching.
 		const tabBtn = e.target.closest('[data-tab]');
 		if (tabBtn) {
 			const newTab = tabBtn.dataset.tab;

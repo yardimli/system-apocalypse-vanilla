@@ -35,10 +35,7 @@ export function renderHeader () {
 	
 	const totalPop = gameState.city.buildings.reduce((sum, b) => sum + b.population, 0);
 	
-	// MODIFIED: Simplified header stats.
 	updateTextIfChanged(headerContainer.querySelector('[data-stat="population"]'), totalPop);
-	
-	// NEW: The shop dropdown is now part of the header.
 	renderShopDropdown();
 }
 
@@ -52,8 +49,6 @@ export function renderTabs (activeTab, TABS) {
         <a role="tab" class="tab ${tab === activeTab ? 'tab-active' : ''}" data-tab="${tab}">${tab}</a>
     `).join('');
 }
-
-// MODIFIED: renderCars has been moved to the new src/cars.js file.
 
 /**
  * Renders the main city status overview.
@@ -76,7 +71,6 @@ export function renderCity (contentArea) {
 	const functional = gameState.city.buildings.filter(b => b.state === 'functional').length;
 	const shielded = gameState.city.buildings.filter(b => b.owner === 'player' && b.shieldHp > 0).length;
 	const broken = gameState.city.buildings.filter(b => b.state !== 'functional').length;
-	// MODIFIED: Car count is now based on player-owned cars.
 	const activeCars = gameState.city.cars.filter(c => c.owner === 'player').length;
 	
 	getEl('city-func-stat').textContent = functional;
@@ -166,10 +160,9 @@ export function renderItemsOverview (contentArea) {
 }
 
 /**
- * NEW: Renders the dropdown menu for accessing each hero's shop.
+ * Renders the dropdown menu for accessing each hero's shop.
  */
 export function renderShopDropdown () {
-	// MODIFIED: Target the new dropdown list in the header.
 	const list = getEl('header-shop-dropdown-list');
 	if (!list) return;
 	
@@ -184,7 +177,7 @@ export function renderShopDropdown () {
 }
 
 /**
- * NEW: Renders the shared combat panel for the party.
+ * Renders the shared combat panel for the party.
  */
 export function renderPartyCombat () {
 	const container = getEl('party-combat-area');

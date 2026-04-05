@@ -69,7 +69,6 @@ export function renderHeroes () {
 		const nameText = `${hero.name} | Lv. ${hero.level}`;
 		updateTextIfChanged(card.querySelector('[data-name]'), nameText);
 		
-		// MODIFIED: Update token badge instead of text line.
 		const tokensText = `${hero.tokens} T`;
 		updateTextIfChanged(card.querySelector('[data-tokens]'), tokensText);
 		
@@ -135,7 +134,6 @@ export function renderHeroes () {
 			rageContainer.style.display = 'none';
 		}
 		
-		// MODIFIED: Logic for the dynamic area is now a single status line under the hero's name.
 		const statusArea = card.querySelector('[data-hero-status]');
 		let statusHtml = '';
 		let statusStateKey = '';
@@ -315,13 +313,11 @@ export function renderShopModal (heroId) {
 	const itemsContent = getEl('shop-modal-items-content');
 	const skillsContent = getEl('shop-modal-skills-content');
 	const inventoryContent = getEl('shop-modal-inventory-content');
-	// NEW: Get new, separate upgrade tab content elements.
 	const buildingUpgradesContent = getEl('shop-modal-building-upgrades-content');
 	const carUpgradesContent = getEl('shop-modal-car-upgrades-content');
 	
 	if (!modal || !header || !itemsContent || !skillsContent || !inventoryContent || !buildingUpgradesContent || !carUpgradesContent) return;
 	
-	// MODIFIED: Shop is now hero-based, showing the individual hero's tokens.
 	header.innerHTML = `
         <div class="flex justify-between items-center">
             <h3 class="font-bold text-lg">System Shop (${hero.name})</h3>
@@ -343,7 +339,7 @@ export function renderShopModal (heroId) {
 			details = `Effect: ${type === 'heal_hp' ? `+${value} HP` : `+${value} MP`}`;
 		}
 		
-		// MODIFIED: Check hero's tokens for buying items.
+		// Check hero's tokens for buying items.
 		const canAfford = hero.tokens >= shopItem.price;
 		
 		return `
@@ -370,7 +366,7 @@ export function renderShopModal (heroId) {
 		if (!entity) return '';
 		
 		const details = `Req: Lvl ${entity.levelRequirement} | Cost: ${entity.mpCost || entity.rageCost || 0} ${entity.rageCost ? 'Rage' : 'MP'}`;
-		// MODIFIED: Check hero's tokens for buying skills.
+		// Check hero's tokens for buying skills.
 		const canAfford = hero.tokens >= shopItem.price;
 		const hasSkill = hero.skills.some(s => s.id === shopItem.skillId);
 		
@@ -392,7 +388,7 @@ export function renderShopModal (heroId) {
 		`;
 	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No skills for sale.</p>';
 	
-	// NEW: Render the Building Upgrades tab.
+	// Render the Building Upgrades tab.
 	buildingUpgradesContent.innerHTML = gameData.building_upgrades.map(upgrade => {
 		const canAfford = hero.tokens >= upgrade.cost;
 		return `
@@ -407,7 +403,7 @@ export function renderShopModal (heroId) {
 		`;
 	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No building upgrades for sale.</p>';
 	
-	// NEW: Render the Car Upgrades tab.
+	// Render the Car Upgrades tab.
 	carUpgradesContent.innerHTML = gameData.car_upgrades.map(upgrade => {
 		const canAfford = hero.tokens >= upgrade.cost;
 		return `

@@ -5,7 +5,7 @@ import { addToLog } from './utils.js';
 const getEl = (id) => document.getElementById(id);
 
 /**
- * MODIFIED: Opens and populates the car purchase modal instead of using a prompt.
+ * Opens and populates the car purchase modal instead of using a prompt.
  * @param {string} carId - The ID of the car to be purchased.
  */
 export function initiateCarPurchase(carId) {
@@ -26,7 +26,7 @@ export function initiateCarPurchase(carId) {
 		<span class="badge badge-warning">${carData.price} Tokens</span>
 	`;
 
-	// NEW: Check which heroes already own a car.
+	// Check which heroes already own a car.
 	const heroesWithCars = gameState.city.cars.filter(c => c.ownerId !== null).map(c => c.ownerId);
 
 	// Generate a button for each hero, indicating if they can afford the car or already own one.
@@ -42,10 +42,10 @@ export function initiateCarPurchase(carId) {
 		}
 
 		return `
-			<button class="btn ${canAfford && !ownsCar ? 'btn-primary' : ''}" 
-					data-confirm-buy-car="true" 
-					data-hero-id="${hero.id}" 
-					data-car-id="${carId}" 
+			<button class="btn ${canAfford && !ownsCar ? 'btn-primary' : ''}"
+					data-confirm-buy-car="true"
+					data-hero-id="${hero.id}"
+					data-car-id="${carId}"
 					${isDisabled ? 'disabled' : ''}>
 				${hero.name} <span class="badge badge-ghost">${hero.tokens} T</span>${disabledText}
 			</button>

@@ -23,7 +23,6 @@ export function renderMonsters (contentArea) {
 	if (!grid) return;
 	
 	if (gameState.activeMonsters.length === 0) {
-		// Modified to use data attribute to avoid flickering
 		if (grid.getAttribute('data-prev-state') !== 'empty') {
 			grid.innerHTML = '<p class="text-gray-500 italic col-span-full">No active monsters.</p>';
 			grid.setAttribute('data-prev-state', 'empty');
@@ -49,7 +48,7 @@ export function renderMonsters (contentArea) {
 			targetText = `Attacking Bldg #${monster.targetBuilding}`;
 		}
 		
-		// NEW: Generate the agro list display
+		// Generate the agro list display
 		const agroEntries = Object.entries(monster.agro)
 			.map(([heroId, value]) => ({ heroId: parseInt(heroId, 10), value }))
 			.sort((a, b) => b.value - a.value);
@@ -77,7 +76,7 @@ export function renderMonsters (contentArea) {
                     <progress class="progress progress-error w-full" value="${monster.currentHp}" max="${monster.maxHp}"></progress>
                     <p class="text-xs text-right mt-1">${Math.floor(monster.currentHp)} / ${monster.maxHp} HP</p>
                 </div>
-                <!-- NEW: Agro list display -->
+                <!-- Agro list display -->
                 <div class="mt-2 border-t border-base-300 pt-2">
                     <h4 class="font-semibold text-sm mb-1">Threat List</h4>
                     ${agroHtml}

@@ -13,14 +13,14 @@ export function renderMissionControl () {
 	const missionControlArea = getEl('mission-control-area');
 	if (!missionControlArea) return;
 	
-	// MODIFIED: State data is now calculated first to build a state key.
+	// State data is now calculated first to build a state key.
 	const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
 	const maxPopulation = playerBases.length * 10;
 	const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
 	const isFull = currentPopulation >= maxPopulation;
 	const isFighting = gameState.activeMonsters.length > 0;
 	
-	// NEW: Generate a state key to prevent unnecessary DOM updates, which can cause missed clicks.
+	// Generate a state key to prevent unnecessary DOM updates, which can cause missed clicks.
 	const stateKey = JSON.stringify(gameState.party) + isFighting + isFull;
 	if (missionControlArea.getAttribute('data-prev-state') === stateKey) {
 		return;
@@ -63,7 +63,6 @@ export function renderMissionControl () {
     `;
 	
 	missionControlArea.innerHTML = html;
-	// NEW: Save the current state to prevent re-rendering if nothing has changed.
 	missionControlArea.setAttribute('data-prev-state', stateKey);
 }
 
@@ -254,7 +253,7 @@ export function processMissionTick () {
 			if (totalSurvivors > 0) {
 				addToLog(`The party successfully returned with ${totalSurvivors} survivors!`);
 				let survivorsToHouse = totalSurvivors;
-				// MODIFIED: Logic to distribute survivors among available player buildings.
+				// Logic to distribute survivors among available player buildings.
 				const playerBasesWithSpace = gameState.city.buildings.filter(b => b.owner === 'player' && b.population < 10);
 				
 				if (playerBasesWithSpace.length > 0) {
@@ -273,7 +272,7 @@ export function processMissionTick () {
 					}
 				}
 				
-				// NEW: Add a log message if any survivors could not be housed.
+				// Add a log message if any survivors could not be housed.
 				if (survivorsToHouse > 0) {
 					addToLog(`Could not house ${survivorsToHouse} survivors because all safezones are full! They have departed.`);
 				}

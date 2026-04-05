@@ -29,7 +29,6 @@ export function handleEnterBuilding(heroId, buildingId) {
 	
 	if (!hero || !building || building.owner !== 'player') return;
 	
-	// MODIFIED: Remove from car if they are in one. The logic is simplified.
 	if (hero.carId) {
 		hero.carId = null;
 	}
@@ -69,7 +68,7 @@ export function handleExitBuilding(heroId) {
 	
 	hero.location = 'field';
 	
-	// NEW: Automatically re-enter the hero's owned car upon exiting a building.
+	// Automatically re-enter the hero's owned car upon exiting a building.
 	const ownedCar = gameState.city.cars.find(c => c.ownerId === hero.id);
 	if (ownedCar) {
 		hero.carId = ownedCar.id;
@@ -136,7 +135,6 @@ export function handleBuyBuilding(buildingId) {
 		contributionLog.push(`${hero.name}: ${contributions[heroId]}`);
 	}
 	
-	// MODIFIED: Update building state with new HP and Shield values
 	building.owner = 'player';
 	building.name = buildingName;
 	building.state = 'functional';

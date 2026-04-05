@@ -32,11 +32,10 @@ export const gameState = {
 	time: 0,
 	threatLevel: 10,
 	nextMonsterId: 1,
-	// MODIFIED: Add party state for the new gameplay loop
 	party: {
 		missionState: 'idle', // 'idle', 'driving_out', 'driving_back', 'in_combat'
 		missionTimer: 0,
-		missionProgress: 0, // NEW: Tracks mission travel progress (0-100)
+		missionProgress: 0, // Tracks mission travel progress (0-100)
 		survivorsAwaitingRescue: 0,
 		pausedMission: null
 	},
