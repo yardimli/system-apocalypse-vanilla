@@ -487,13 +487,38 @@ function processGameTick () {
 		
 		gameState.activeMonsters = gameState.activeMonsters.filter(m => m.currentHp > 0);
 		
-		if (gameState.activeMonsters.length === 0 && gameState.party.pausedMission) {
-			addToLog('Combat finished. Resuming mission...');
-			gameState.party.missionState = gameState.party.pausedMission.state;
-			gameState.party.missionTimer = gameState.party.pausedMission.timer;
-			gameState.party.missionProgress = gameState.party.pausedMission.progress;
-			gameState.party.pausedMission = null;
+		// MODIFIED SECTION START
+		// After-combat logic.
+		const paused = gameState.party.pausedMission;
+		if (paused) {
+			// Check if a specific attack mission target was defeated this tick.
+			if (paused.attackTargetId && defeatedMonsters.some(m => m.id === paused.attackTargetId)) {
+				const defeatedMonsterData = defeatedMonsters.find(m => m.id === paused.attackTargetId);
+				// Use the defeated monster's distance to calculate the return trip.
+				const distance = defeatedMonsterData ? defeatedMonsterData.distanceFromCity : 1500; // Fallback
+				
+				addToLog('Target monster defeated! The party is returning to base.');
+				// Unassign all heroes to prevent them from engaging other monsters.
+				gameState.heroes.forEach(h => { h.targetMonsterId = null; });
+				
+				// Set the party state to return to base.
+				gameState.party.missionState = 'driving_back';
+				// Progress is based on distance, assuming 3000m is 100%
+				gameState.party.missionProgress = (distance / 3000) * 100;
+				// Timer is based on progress (10 ticks for a full 100% trip)
+				gameState.party.missionTimer = Math.ceil(gameState.party.missionProgress / 10);
+				gameState.party.pausedMission = null; // The mission is now resolved.
+			}
+			// Original logic for when all monsters from a random ambush are cleared.
+			else if (!paused.attackTargetId && gameState.activeMonsters.length === 0) {
+				addToLog('Combat finished. Resuming mission...');
+				gameState.party.missionState = paused.state;
+				gameState.party.missionTimer = paused.timer;
+				gameState.party.missionProgress = paused.progress;
+				gameState.party.pausedMission = null;
+			}
 		}
+		// MODIFIED SECTION END
 	}
 }
 

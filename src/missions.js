@@ -141,10 +141,25 @@ export function handleFlee () {
 	
 	gameState.heroes.forEach(h => { h.targetMonsterId = null; });
 	
-	if (gameState.party.pausedMission) {
-		gameState.party.missionState = 'driving_back';
-		gameState.party.missionProgress = gameState.party.pausedMission.progress;
-		gameState.party.missionTimer = Math.ceil(gameState.party.missionProgress / 10);
+	// MODIFIED SECTION START
+	const paused = gameState.party.pausedMission;
+	if (paused) {
+		// If it was a specific attack mission, calculate the return trip based on the monster's distance.
+		if (paused.attackTargetId) {
+			const targetMonster = gameState.activeMonsters.find(m => m.id === paused.attackTargetId);
+			const distance = targetMonster ? targetMonster.distanceFromCity : 1500; // Fallback distance
+			
+			gameState.party.missionState = 'driving_back';
+			// Progress is based on distance, assuming 3000m is 100%
+			gameState.party.missionProgress = (distance / 3000) * 100;
+			// Timer is based on progress (10 ticks for a full 100% trip)
+			gameState.party.missionTimer = Math.ceil(gameState.party.missionProgress / 10);
+		} else {
+			// Original logic for ambushes on regular missions.
+			gameState.party.missionState = 'driving_back';
+			gameState.party.missionProgress = paused.progress;
+			gameState.party.missionTimer = Math.ceil(paused.progress / 10);
+		}
 		
 		gameState.party.pausedMission = null;
 	} else {
@@ -154,6 +169,7 @@ export function handleFlee () {
 		gameState.party.missionProgress = 0;
 		gameState.party.missionTimer = 0;
 	}
+	// MODIFIED SECTION END
 }
 
 /**
@@ -334,7 +350,8 @@ export function processMissionTick () {
 			gameState.party.missionState = 'idle';
 			gameState.party.missionTimer = 0;
 			gameState.party.missionProgress = 0;
-		} else if (gameState.party.missionState === 'driving_to_attack') { // NEW
+			// MODIFIED SECTION START
+		} else if (gameState.party.missionState === 'driving_to_attack') {
 			const monster = gameState.activeMonsters.find(m => m.id === gameState.party.targetMonsterId);
 			if (monster) {
 				addToLog(`The party has reached ${monster.name} and is engaging in combat!`);
@@ -346,11 +363,13 @@ export function processMissionTick () {
 				});
 				gameState.party.missionState = 'in_combat';
 				// The mission is effectively over, it just becomes a combat encounter.
-				// We can pause a "null" mission to indicate we should go idle after combat.
+				// We pause a mission and add the target ID to know it was a specific hunt.
+				// This allows the main game loop to handle the "return to base" logic upon victory.
 				gameState.party.pausedMission = {
-					state: 'idle', // State to return to after combat
+					state: 'idle', // This state is a placeholder; the main loop will override it.
 					timer: 0,
-					progress: 0
+					progress: 0,
+					attackTargetId: gameState.party.targetMonsterId // Flag this as a specific attack mission.
 				};
 			} else {
 				addToLog(`The target monster is gone! Returning to base.`);
@@ -359,6 +378,7 @@ export function processMissionTick () {
 			gameState.party.targetMonsterId = null;
 			gameState.party.missionProgress = 0;
 		}
+		// MODIFIED SECTION END
 	}
 }
 
