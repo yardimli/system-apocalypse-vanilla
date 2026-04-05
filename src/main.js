@@ -133,7 +133,17 @@ function manageCombatAssignments () {
 
 
 // --- GAME LOOP ---
-function gameLoop () {
+
+// MODIFIED: Decouple game logic from rendering loop.
+// These variables manage the timing of game logic ticks.
+let lastTickTime = 0;
+const tickDuration = 1000; // A game tick is 1 second in real time.
+
+/**
+ * NEW: This function contains all the logic that advances the game state by one tick.
+ * It was previously the body of gameLoop().
+ */
+function processGameTick () {
 	gameState.time++;
 	
 	processMissionTick();
@@ -435,23 +445,37 @@ function gameLoop () {
 			gameState.party.pausedMission = null;
 		}
 	}
-	
-	// 6. Daily Updates
-	
-	renderHeader();
-	if (activeTab === 'Heroes') {
-		renderMissionControl();
-		renderPartyCombat();
-		renderPartyLog(); // Added call to render the new party log
-		renderHeroes();
+}
+
+/**
+ * MODIFIED: The main game loop, now running multiple times per second.
+ * It's responsible for triggering game logic ticks based on real time passed
+ * and for calling the render functions on every frame.
+ */
+function gameLoop () {
+	const currentTime = performance.now();
+	if (!lastTickTime) {
+		lastTickTime = currentTime;
 	}
-	if (activeTab === 'Buildings') renderBuildings(contentArea);
-	if (activeTab === 'Monsters') renderMonsters(contentArea);
-	if (activeTab === 'Cars') renderCars(contentArea);
-	if (activeTab === 'City') renderCity(contentArea);
-	if (activeTab === 'Items') renderItemsOverview(contentArea);
-	if (activeTab === 'Log') renderLog(contentArea);
-	if (activeTab === 'Sandbox') renderSandbox(contentArea);
+	
+	const elapsed = currentTime - lastTickTime;
+	// Calculate how many milliseconds should pass for one tick at the current speed.
+	const timePerTick = tickDuration / gameState.gameSettings.speedMultiplier;
+	
+	// If enough real time has passed, process one or more game ticks.
+	if (elapsed >= timePerTick) {
+		const ticksToProcess = Math.floor(elapsed / timePerTick);
+		for (let i = 0; i < ticksToProcess; i++) {
+			processGameTick();
+		}
+		// Update lastTickTime, carrying over any remainder time.
+		lastTickTime += ticksToProcess * timePerTick;
+	}
+	
+	// --- RENDER LOGIC (runs every interval) ---
+	// This was previously at the end of the logic processing block.
+	renderHeader();
+	renderContent();
 }
 
 // --- INITIALIZATION ---
@@ -528,6 +552,18 @@ async function init () {
 	renderContent();
 	
 	document.body.addEventListener('click', (e) => {
+		// NEW: Handle game speed controls.
+		const speedBtn = e.target.closest('[data-speed]');
+		if (speedBtn) {
+			const newSpeed = parseFloat(speedBtn.dataset.speed);
+			if (gameState.gameSettings.speedMultiplier !== newSpeed) {
+				gameState.gameSettings.speedMultiplier = newSpeed;
+				// The header will be updated on the next render cycle, no need to call it here.
+				addToLog(`[SYSTEM]: Game speed set to ${newSpeed}x.`);
+			}
+			return;
+		}
+		
 		// Added event listener for tab switching.
 		const tabBtn = e.target.closest('[data-tab]');
 		if (tabBtn) {
@@ -716,7 +752,8 @@ async function init () {
 		}
 	});
 	
-	setInterval(gameLoop, 1000);
+	// MODIFIED: The interval is now faster for a more responsive UI.
+	setInterval(gameLoop, 200);
 }
 
 document.addEventListener('DOMContentLoaded', init);

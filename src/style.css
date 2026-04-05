@@ -7,13 +7,13 @@
 
 /* smooth transitions for progress bars */
 progress {
-	transition: value 0.3s ease-in-out;
+	transition: value 0.5s ease-in-out;
 }
 progress::-webkit-progress-value {
-	transition: width 0.3s ease-in-out;
+	transition: width 0.5s ease-in-out;
 }
 progress::-moz-progress-bar {
-	transition: width 0.3s ease-in-out;
+	transition: width 0.5s ease-in-out;
 }
 
 /* Keyframes and class for skill cast visual feedback */

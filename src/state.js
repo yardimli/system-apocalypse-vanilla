@@ -30,6 +30,10 @@ const initialCars = [];
 
 export const gameState = {
 	time: 0,
+	// NEW: Add gameSettings object for speed control.
+	gameSettings: {
+		speedMultiplier: 1 // Can be 0.5, 1, 2, 4
+	},
 	threatLevel: 10,
 	nextMonsterId: 1,
 	party: {

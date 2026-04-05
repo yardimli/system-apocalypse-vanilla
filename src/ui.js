@@ -48,6 +48,24 @@ export function renderHeader () {
 	const totalPop = gameState.city.buildings.reduce((sum, b) => sum + b.population, 0);
 	
 	updateTextIfChanged(headerContainer.querySelector('[data-stat="population"]'), totalPop);
+	
+	// MODIFIED: Update the active state of speed control buttons.
+	const speed = gameState.gameSettings.speedMultiplier;
+	const speedControls = headerContainer.querySelector('#speed-controls');
+	if (speedControls) {
+		const stateKey = String(speed);
+		if (speedControls.getAttribute('data-prev-state') !== stateKey) {
+			speedControls.querySelectorAll('button').forEach(btn => {
+				if (parseFloat(btn.dataset.speed) === speed) {
+					btn.classList.add('btn-primary');
+				} else {
+					btn.classList.remove('btn-primary');
+				}
+			});
+			speedControls.setAttribute('data-prev-state', stateKey);
+		}
+	}
+	
 	renderShopDropdown();
 }
 

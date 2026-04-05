@@ -1,5 +1,3 @@
-index.html:
-
 <!DOCTYPE html>
 <html lang="en" data-theme="night">
 <head>
@@ -127,6 +125,13 @@ index.html:
 		</div>
 	</div>
 	<div class="navbar-end flex items-center gap-4">
+		<!-- MODIFIED: Added game speed controls -->
+		<div class="btn-group" id="speed-controls">
+			<button class="btn btn-sm" data-speed="0.5">1/2x</button>
+			<button class="btn btn-sm" data-speed="1">1x</button>
+			<button class="btn btn-sm" data-speed="2">2x</button>
+			<button class="btn btn-sm" data-speed="4">4x</button>
+		</div>
 		<div class="dropdown dropdown-end">
 			<div tabindex="0" role="button" class="btn btn-accent">System Shop</div>
 			<ul tabindex="0" id="header-shop-dropdown-list" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
