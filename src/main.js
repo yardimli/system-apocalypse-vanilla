@@ -167,7 +167,7 @@ function gameLoop () {
 		}
 		
 		if (hero.class === 'Vanguard' && !hero.targetMonsterId && hero.rage.current > 0) {
-			hero.rage.current = Math.max(0, hero.rage.current - 1);
+			hero.rage.current = Math.max(0, hero.rage.current - 10);
 		}
 		
 		if (hero.hp.current < hero.hp.max) {

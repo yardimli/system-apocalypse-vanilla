@@ -1,3 +1,5 @@
+index.html:
+
 <!DOCTYPE html>
 <html lang="en" data-theme="night">
 <head>
@@ -24,42 +26,42 @@
 
 <!-- System Shop Modal with fixed height -->
 <dialog id="system-shop-modal" class="modal">
-	<div class="modal-box w-11/12 max-w-5xl h-[80vh] flex flex-col">
+	<div class="modal-box w-11/12 max-w-5xl h-[80vh] flex flex-col p-3">
 		<div id="shop-modal-header">
 			<!-- Hero name and tokens will be injected here by JS -->
 		</div>
 		
-		<div role="tablist" class="tabs tabs-lifted mt-4 flex-grow overflow-hidden flex flex-col">
+		<div role="tablist" class="tabs tabs-lifted mt-4 flex-grow min-h-0">
 			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Items" checked />
-			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 flex-grow overflow-y-auto">
+			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none">
 				<div id="shop-modal-items-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Items for sale will be injected here -->
 				</div>
 			</div>
 			
 			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Inventory" />
-			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 flex-grow overflow-y-auto">
+			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none">
 				<div id="shop-modal-inventory-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Hero inventory will be injected here -->
 				</div>
 			</div>
 			
 			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Skills" />
-			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 flex-grow overflow-y-auto">
+			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none">
 				<div id="shop-modal-skills-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Skills for sale will be injected here -->
 				</div>
 			</div>
 			
 			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Building Upgrades" />
-			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 flex-grow overflow-y-auto">
+			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none">
 				<div id="shop-modal-building-upgrades-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Building upgrades for sale will be injected here -->
 				</div>
 			</div>
 			
 			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Car Upgrades" />
-			<div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-2 flex-grow overflow-y-auto">
+			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none">
 				<div id="shop-modal-car-upgrades-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Car upgrades for sale will be injected here -->
 				</div>

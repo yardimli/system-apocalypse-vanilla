@@ -8,7 +8,7 @@
     "level": 1,
     "spawnDay": 1,
     "spawnRatio": 0.06,
-    "tokens": 5
+    "tokens": 15
   },
   {
     "id": "MON002",
@@ -19,7 +19,7 @@
     "level": 1,
     "spawnDay": 15,
     "spawnRatio": 0.05,
-    "tokens": 15
+    "tokens": 25
   },
   {
     "id": "MON003",
@@ -30,7 +30,7 @@
     "level": 1,
     "spawnDay": 80,
     "spawnRatio": 0.04,
-    "tokens": 12
+    "tokens": 20
   },
   {
     "id": "MON004",
@@ -41,7 +41,7 @@
     "level": 2,
     "spawnDay": 120,
     "spawnRatio": 0.04,
-    "tokens": 25
+    "tokens": 40
   },
   {
     "id": "MON005",
@@ -52,7 +52,7 @@
     "level": 2,
     "spawnDay": 150,
     "spawnRatio": 0.03,
-    "tokens": 50
+    "tokens": 100
   },
   {
     "id": "MON006",
@@ -63,7 +63,7 @@
     "level": 2,
     "spawnDay": 200,
     "spawnRatio": 0.03,
-    "tokens": 40
+    "tokens": 130
   },
   {
     "id": "MON007",
@@ -74,7 +74,7 @@
     "level": 3,
     "spawnDay": 300,
     "spawnRatio": 0.01,
-    "tokens": 100
+    "tokens": 200
   },
   {
     "id": "MON008",
@@ -85,6 +85,6 @@
     "level": 3,
     "spawnDay": 500,
     "spawnRatio": 0.01,
-    "tokens": 200
+    "tokens": 300
   }
 ]
