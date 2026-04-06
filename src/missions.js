@@ -227,7 +227,8 @@ export function processMissionTick () {
 					gameState.party.pausedMission = {
 						state: gameState.party.missionState,
 						timer: gameState.party.missionTimer,
-						progress: gameState.party.missionProgress
+						progress: gameState.party.missionProgress,
+						ambushMonsterId: newMonster.id // MODIFIED: Track the ambushing monster.
 					};
 					gameState.party.missionState = 'in_combat';
 					gameState.party.missionTimer = 0;
@@ -466,34 +467,21 @@ export function manageCombatAssignments () {
 		
 		// For random ambushes (not specific attack missions), auto-assign idle heroes to targets.
 		if (!isAttackMission) {
-			const vanguards = combatHeroes.filter(h => h.class === 'Vanguard');
-			const strikers = combatHeroes.filter(h => h.class === 'Striker');
-			
-			vanguards.forEach(vanguard => {
-				if (!vanguard.targetMonsterId) {
-					const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
-					if (target) {
-						vanguard.targetMonsterId = target.id;
-					}
+			// --- MODIFIED SECTION START ---
+			// When ambushed, assign all idle party members to the specific monster that appeared.
+			const ambushMonsterId = gameState.party.pausedMission ? gameState.party.pausedMission.ambushMonsterId : null;
+			if (ambushMonsterId) {
+				const targetMonster = gameState.activeMonsters.find(m => m.id === ambushMonsterId);
+				if (targetMonster) {
+					// Find all combat heroes who don't have a target yet.
+					const idleHeroes = combatHeroes.filter(h => !h.targetMonsterId);
+					// Assign them all to the ambush monster. This includes all classes.
+					idleHeroes.forEach(hero => {
+						hero.targetMonsterId = targetMonster.id;
+					});
 				}
-			});
-			
-			const vanguardTargets = vanguards
-				.map(v => gameState.activeMonsters.find(m => m.id === v.targetMonsterId))
-				.filter(Boolean);
-			
-			strikers.forEach(striker => {
-				const isTargetingVanguardMonster = vanguardTargets.some(m => m.id === striker.targetMonsterId);
-				
-				if (vanguardTargets.length > 0 && !isTargetingVanguardMonster) {
-					striker.targetMonsterId = vanguardTargets[0].id;
-				} else if (vanguardTargets.length === 0 && !striker.targetMonsterId) {
-					const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
-					if (target) {
-						striker.targetMonsterId = target.id;
-					}
-				}
-			});
+			}
+			// --- MODIFIED SECTION END ---
 		}
 	}
 	
@@ -578,14 +566,16 @@ export function handleMonsterDefeat () {
 				gameState.party.missionTimer = Math.ceil(gameState.party.missionProgress / 10);
 				gameState.party.pausedMission = null; // The mission is now resolved.
 			}
-			// Original logic for when all monsters from a random ambush are cleared.
-			else if (!paused.attackTargetId && gameState.activeMonsters.length === 0) {
-				addToLog('Combat finished. Resuming mission...');
+				// --- MODIFIED SECTION START ---
+			// If the defeated monster was from a random ambush, resume the mission.
+			else if (paused.ambushMonsterId && defeatedMonsters.some(m => m.id === paused.ambushMonsterId)) {
+				addToLog('Ambush monster defeated. Resuming mission...');
 				gameState.party.missionState = paused.state;
 				gameState.party.missionTimer = paused.timer;
 				gameState.party.missionProgress = paused.progress;
 				gameState.party.pausedMission = null;
 			}
+			// --- MODIFIED SECTION END ---
 		}
 	}
 }
