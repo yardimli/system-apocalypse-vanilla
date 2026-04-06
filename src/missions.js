@@ -193,7 +193,6 @@ export function processMissionTick () {
 	
 	// 1. Handle Monster Spawning (Ambush)
 	let wasAmbushed = false;
-	// --- MODIFIED SECTION START ---
 	// Ambushes should only happen during general exploration ('driving_out','driving_back'), not on the way to a specific target or on any return trip.
 	if (['driving_out', 'driving_back'].includes(gameState.party.missionState)) {
 		const heroesInCars = gameState.heroes.filter(h => h.carId && h.hp.current > 0).length;
@@ -238,7 +237,6 @@ export function processMissionTick () {
 			}
 		}
 	}
-	// --- MODIFIED SECTION END ---
 	
 	// If ambushed, stop mission processing for this tick
 	if (wasAmbushed) return;
@@ -275,7 +273,7 @@ export function processMissionTick () {
 			while (survivorsToDistribute > 0) {
 				let distributedThisLoop = false;
 				for (const hero of heroesOnMission) {
-					const car = gameState.city.cars.find(c => c.id === hero.carId);
+					const car = gameState.city.cars.find(c => c.id === h.carId);
 					if (survivorsToDistribute > 0 && car && hero.survivorsCarried < car.survivorCapacity) {
 						hero.survivorsCarried++;
 						survivorsToDistribute--;
@@ -323,7 +321,6 @@ export function processMissionTick () {
 	
 	if (gameState.party.missionTimer <= 0) {
 		if (gameState.party.missionState === 'driving_out') {
-			// The party no longer waits at the destination. They immediately start the return trip.
 			addToLog('The party has reached the furthest point and is returning to base.');
 			gameState.party.missionState = 'driving_back';
 			gameState.party.missionTimer = 10; // 10-second trip back
@@ -400,9 +397,6 @@ export function processMissionTick () {
 				gameState.party.missionState = 'idle';
 			}
 			gameState.party.targetMonsterId = null;
-			// --- REMOVED ---
-			// gameState.party.missionProgress = 0; // Do not reset progress, so the bar stays full during combat.
-			// --- END REMOVED ---
 			// Clean up attack mission state variables.
 			gameState.party.missionTargetDistance = 0;
 			gameState.party.missionTotalTime = 0;
@@ -447,4 +441,151 @@ export function handleStartAttackMission (monsterId) {
 	// Store the total distance and time for progress calculation.
 	gameState.party.missionTargetDistance = distanceToTravel;
 	gameState.party.missionTotalTime = travelTime;
+}
+
+/**
+ * Manages hero combat assignments, clearing dead targets and assigning idle heroes.
+ */
+export function manageCombatAssignments () {
+	const combatHeroes = gameState.heroes.filter(h =>
+		h.location === 'field' &&
+		h.hp.current > 0 &&
+		h.carId
+	);
+	
+	combatHeroes.forEach(hero => {
+		if (hero.targetMonsterId && !gameState.activeMonsters.some(m => m.id === hero.targetMonsterId)) {
+			hero.targetMonsterId = null;
+		}
+	});
+	
+	// Only perform auto-assignment of new targets if the party is in an active combat state.
+	// This prevents heroes from automatically re-engaging a monster after fleeing.
+	if (gameState.party.missionState === 'in_combat') {
+		const isAttackMission = gameState.party.pausedMission && gameState.party.pausedMission.attackTargetId;
+		
+		// For random ambushes (not specific attack missions), auto-assign idle heroes to targets.
+		if (!isAttackMission) {
+			const vanguards = combatHeroes.filter(h => h.class === 'Vanguard');
+			const strikers = combatHeroes.filter(h => h.class === 'Striker');
+			
+			vanguards.forEach(vanguard => {
+				if (!vanguard.targetMonsterId) {
+					const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
+					if (target) {
+						vanguard.targetMonsterId = target.id;
+					}
+				}
+			});
+			
+			const vanguardTargets = vanguards
+				.map(v => gameState.activeMonsters.find(m => m.id === v.targetMonsterId))
+				.filter(Boolean);
+			
+			strikers.forEach(striker => {
+				const isTargetingVanguardMonster = vanguardTargets.some(m => m.id === striker.targetMonsterId);
+				
+				if (vanguardTargets.length > 0 && !isTargetingVanguardMonster) {
+					striker.targetMonsterId = vanguardTargets[0].id;
+				} else if (vanguardTargets.length === 0 && !striker.targetMonsterId) {
+					const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
+					if (target) {
+						striker.targetMonsterId = target.id;
+					}
+				}
+			});
+		}
+	}
+	
+	gameState.activeMonsters.forEach(m => {
+		m.assignedTo = gameState.heroes
+			.filter(h => h.targetMonsterId === m.id)
+			.map(h => h.id);
+	});
+}
+
+/**
+ * Handles monster defeat, distributing rewards and managing after-combat mission state.
+ */
+export function handleMonsterDefeat () {
+	const defeatedMonsters = gameState.activeMonsters.filter(m => m.currentHp <= 0);
+	if (defeatedMonsters.length > 0) {
+		defeatedMonsters.forEach(monster => {
+			addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) was defeated!`);
+			
+			const attackers = monster.assignedTo
+				.map(id => gameState.heroes.find(h => h.id === id))
+				.filter(Boolean);
+			
+			if (attackers.length > 0) {
+				const xpPerHero = Math.ceil(monster.xp / attackers.length);
+				const tokensPerHero = Math.ceil((monster.tokens || 0) / attackers.length);
+				
+				attackers.forEach(hero => {
+					if (hero.targetMonsterId === monster.id) {
+						hero.targetMonsterId = null;
+					}
+					
+					hero.xp.current += xpPerHero;
+					hero.tokens += tokensPerHero;
+					addToLog(`gained ${xpPerHero} XP and ${tokensPerHero} Tokens.`, hero.id);
+					
+					const lootChance = hero.class === 'Vanguard' ? 0.4 : 0.25;
+					if (Math.random() < lootChance) {
+						const possibleDrops = gameData.items.filter(item => item.level === monster.level && item.type !== 'Junk');
+						if (possibleDrops.length > 0) {
+							const dropped = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
+							hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;
+							addToLog(`found an item: ${dropped.name}!`, hero.id);
+						}
+					}
+					
+					if (hero.xp.current >= hero.xp.max) {
+						hero.level++;
+						hero.xp.current -= hero.xp.max;
+						hero.xp.max = Math.ceil(hero.xp.max * 1.5);
+						hero.hp.max += hero.hpMaxPerLevel;
+						hero.mp.max += hero.mpMaxPerLevel;
+						hero.hpRegen += hero.hpRegenPerLevel;
+						hero.mpRegen += hero.mpRegenPerLevel;
+						hero.hp.current = hero.hp.max;
+						addToLog(`reached Level ${hero.level}!`, hero.id);
+					}
+				});
+			}
+		});
+		
+		gameState.activeMonsters = gameState.activeMonsters.filter(m => m.currentHp > 0);
+		
+		// After-combat logic.
+		const paused = gameState.party.pausedMission;
+		if (paused) {
+			// Check if a specific attack mission target was defeated this tick.
+			if (paused.attackTargetId && defeatedMonsters.some(m => m.id === paused.attackTargetId)) {
+				const defeatedMonsterData = defeatedMonsters.find(m => m.id === paused.attackTargetId);
+				// Use the defeated monster's distance to calculate the return trip.
+				const distance = defeatedMonsterData ? defeatedMonsterData.distanceFromCity : 1500; // Fallback
+				
+				addToLog('Target monster defeated! The party is returning to base.');
+				// Unassign all heroes to prevent them from engaging other monsters.
+				gameState.heroes.forEach(h => { h.targetMonsterId = null; });
+				
+				// Set the party state to return to base.
+				gameState.party.missionState = 'driving_back';
+				// Progress is based on distance, assuming 3000m is 100%
+				gameState.party.missionProgress = (distance / 3000) * 100;
+				// Timer is based on progress (10 ticks for a full 100% trip)
+				gameState.party.missionTimer = Math.ceil(gameState.party.missionProgress / 10);
+				gameState.party.pausedMission = null; // The mission is now resolved.
+			}
+			// Original logic for when all monsters from a random ambush are cleared.
+			else if (!paused.attackTargetId && gameState.activeMonsters.length === 0) {
+				addToLog('Combat finished. Resuming mission...');
+				gameState.party.missionState = paused.state;
+				gameState.party.missionTimer = paused.timer;
+				gameState.party.missionProgress = paused.progress;
+				gameState.party.pausedMission = null;
+			}
+		}
+	}
 }

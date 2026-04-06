@@ -5,11 +5,13 @@ import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { handleUseConsumable } from './inventory.js';
 import { handleShopAndPurchaseClicks } from './shop.js';
 import { renderHeroes, autoEquipBestGear, renderShopModal } from './heroes.js';
-import { renderMonsters } from './monsters.js';
+// MODIFIED: Import new monster logic handler
+import { renderMonsters, processMonsterActions } from './monsters.js';
 import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding } from './buildings.js';
 import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview, renderPartyCombat, renderPartyLog } from './ui.js';
 import { renderCars, initiateCarPurchase } from './cars.js';
-import { renderMissionControl, handleStartMission, handleFlee, processMissionTick, handleStartAttackMission } from './missions.js';
+// MODIFIED: Import new mission and combat logic handlers
+import { renderMissionControl, handleStartMission, handleFlee, processMissionTick, handleStartAttackMission, manageCombatAssignments, handleMonsterDefeat } from './missions.js';
 
 const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'City', 'Items', 'Log', 'Sandbox'];
 let activeTab = 'Heroes';
@@ -80,65 +82,7 @@ function renderContent () {
 	}
 }
 
-function manageCombatAssignments () {
-	const combatHeroes = gameState.heroes.filter(h =>
-		h.location === 'field' &&
-		(h.class === 'Striker' || h.class === 'Vanguard') &&
-		h.hp.current > 0 &&
-		h.carId
-	);
-	
-	combatHeroes.forEach(hero => {
-		if (hero.targetMonsterId && !gameState.activeMonsters.some(m => m.id === hero.targetMonsterId)) {
-			hero.targetMonsterId = null;
-		}
-	});
-	
-	// Only perform auto-assignment of new targets if the party is in an active combat state.
-	// This prevents heroes from automatically re-engaging a monster after fleeing.
-	if (gameState.party.missionState === 'in_combat') {
-		const isAttackMission = gameState.party.pausedMission && gameState.party.pausedMission.attackTargetId;
-		
-		// For random ambushes (not specific attack missions), auto-assign idle heroes to targets.
-		if (!isAttackMission) {
-			const vanguards = combatHeroes.filter(h => h.class === 'Vanguard');
-			const strikers = combatHeroes.filter(h => h.class === 'Striker');
-			
-			vanguards.forEach(vanguard => {
-				if (!vanguard.targetMonsterId) {
-					const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
-					if (target) {
-						vanguard.targetMonsterId = target.id;
-					}
-				}
-			});
-			
-			const vanguardTargets = vanguards
-				.map(v => gameState.activeMonsters.find(m => m.id === v.targetMonsterId))
-				.filter(Boolean);
-			
-			strikers.forEach(striker => {
-				const isTargetingVanguardMonster = vanguardTargets.some(m => m.id === striker.targetMonsterId);
-				
-				if (vanguardTargets.length > 0 && !isTargetingVanguardMonster) {
-					striker.targetMonsterId = vanguardTargets[0].id;
-				} else if (vanguardTargets.length === 0 && !striker.targetMonsterId) {
-					const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
-					if (target) {
-						striker.targetMonsterId = target.id;
-					}
-				}
-			});
-		}
-	}
-	
-	gameState.activeMonsters.forEach(m => {
-		m.assignedTo = gameState.heroes
-			.filter(h => h.targetMonsterId === m.id)
-			.map(h => h.id);
-	});
-}
-
+// REMOVED: manageCombatAssignments function was moved to missions.js
 
 // --- GAME LOOP ---
 
@@ -182,6 +126,7 @@ function processGameTick () {
 	}
 	
 	// 2. Process Heroes
+	// NEW: Call the combat assignment logic, now managed in missions.js
 	manageCombatAssignments();
 	
 	gameState.heroes.forEach(hero => {
@@ -313,216 +258,11 @@ function processGameTick () {
 		}
 	});
 	
-	// Unassigned Monster Movement
-	gameState.activeMonsters.forEach(monster => {
-		if (monster.assignedTo.length === 0 && monster.distanceFromCity > 0) {
-			monster.distanceFromCity -= monster.speed;
-			if (monster.distanceFromCity <= 0) {
-				monster.distanceFromCity = 0;
-				addToLog(`${monster.name} (#${monster.id}) has reached the city!`);
-			}
-		}
-	});
+	// NEW: Call the centralized monster action handler from monsters.js
+	processMonsterActions();
 	
-	// 3. Monsters Attack Heroes based on Agro
-	gameState.activeMonsters.forEach(monster => {
-		if (monster.assignedTo.length > 0) {
-			let targetHeroId = null;
-			let maxAgro = -1;
-			
-			for (const heroId in monster.agro) {
-				const hero = gameState.heroes.find(h => h.id === parseInt(heroId, 10));
-				if (hero && hero.hp.current > 0 && monster.assignedTo.includes(hero.id)) {
-					if (monster.agro[heroId] > maxAgro) {
-						maxAgro = monster.agro[heroId];
-						targetHeroId = parseInt(heroId, 10);
-					}
-				}
-			}
-			
-			if (targetHeroId) {
-				const targetHero = gameState.heroes.find(h => h.id === targetHeroId);
-				const armor = gameData.items.find(a => a.id === targetHero.equipment.body);
-				const shield = gameData.items.find(s => s.id === targetHero.equipment.offHand);
-				const armorMitigation = armor ? parseRange(armor.damageMitigation) : 0;
-				const shieldMitigation = shield ? parseRange(shield.damageMitigation) : 0;
-				const totalMitigation = armorMitigation + shieldMitigation;
-				
-				const monsterDamage = parseRange(monster.damage);
-				let damageTaken = Math.max(1, monsterDamage - totalMitigation);
-				
-				const car = targetHero.carId ? gameState.city.cars.find(c => c.id === targetHero.carId) : null;
-				if (car) {
-					const mitigationBonus = car.upgrades
-						.map(upgId => gameData.car_upgrades.find(u => u.id === upgId))
-						.filter(upg => upg && upg.effect.type === 'increase_occupant_mitigation_bonus')
-						.reduce((sum, upg) => sum + upg.effect.value, 0);
-					
-					if (mitigationBonus > 0) {
-						const mitigatedAmount = Math.floor(damageTaken * mitigationBonus);
-						damageTaken -= mitigatedAmount;
-						addToLog(`${targetHero.name}'s car mitigated ${mitigatedAmount} damage!`, targetHero.id);
-					}
-				}
-				damageTaken = Math.max(1, damageTaken);
-				
-				targetHero.hp.current -= damageTaken;
-				addToLog(`${monster.name} (#${monster.id}) attacked ${targetHero.name}, dealing ${damageTaken} damage!`, targetHero.id);
-				
-				if (targetHero.hp.current <= 0) {
-					targetHero.hp.current = 0;
-					handleExitBuilding(targetHero.id);
-					if (targetHero.carId) {
-						targetHero.carId = null;
-					}
-					if (targetHero.survivorsCarried > 0) {
-						addToLog(`The ${targetHero.survivorsCarried} survivors with ${targetHero.name} were killed when they were incapacitated!`, targetHero.id);
-						targetHero.survivorsCarried = 0;
-					}
-					targetHero.targetMonsterId = null;
-					addToLog(`${targetHero.name} was incapacitated by ${monster.name} (#${monster.id})!`, targetHero.id);
-					
-					// Check if the monster should become unassigned.
-					const remainingAttackers = monster.assignedTo
-						.map(id => gameState.heroes.find(h => h.id === id))
-						.filter(h => h && h.hp.current > 0);
-					
-					if (remainingAttackers.length === 0) {
-						monster.assignedTo = [];
-						addToLog(`${monster.name} (#${monster.id}) is no longer being fought and will advance on the city.`, null);
-					}
-				}
-			}
-		}
-	});
-	
-	// 4. Unassigned Monsters Attack City
-	gameState.activeMonsters.forEach(monster => {
-		// Added check for distance from city.
-		if (monster.assignedTo.length === 0 && monster.distanceFromCity <= 0) {
-			if (!monster.targetBuilding) {
-				const validTargets = gameState.city.buildings.filter(b => b.state !== 'ruined');
-				if (validTargets.length > 0) {
-					monster.targetBuilding = validTargets[Math.floor(Math.random() * validTargets.length)].id;
-				}
-			}
-			
-			if (monster.targetBuilding) {
-				const bldg = gameState.city.buildings.find(b => b.id === monster.targetBuilding);
-				if (bldg && bldg.state !== 'ruined') {
-					const monsterDamage = parseRange(monster.damage);
-					if (bldg.shieldHp > 0) {
-						const damageToShield = Math.min(bldg.shieldHp, monsterDamage);
-						bldg.shieldHp -= damageToShield;
-						if (bldg.owner === 'player' && bldg.shieldHp < 1) bldg.shieldHp = 1;
-						addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToShield} damage to the shield on ${bldg.name || `Building #${bldg.id}`}.`);
-						if (bldg.shieldHp === 0 || (bldg.owner === 'player' && bldg.shieldHp === 1)) {
-							addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) effectively destroyed the shield on ${bldg.name || `Building #${bldg.id}`}!`);
-						}
-					} else {
-						const damageToHp = Math.min(bldg.hp, monsterDamage);
-						bldg.hp -= damageToHp;
-						if (bldg.owner === 'player' && bldg.hp < 1) bldg.hp = 1;
-						addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToHp} damage to ${bldg.name || `Building #${bldg.id}`}.`);
-						if (bldg.hp <= 0 && bldg.owner !== 'player') {
-							bldg.hp = 0;
-							bldg.state = 'ruined';
-							bldg.population = 0;
-							monster.targetBuilding = null;
-							addToLog(`${bldg.name || `Building #${bldg.id}`} was ruined by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
-						} else if (bldg.hp <= 5 && bldg.state === 'functional') {
-							bldg.state = 'damaged';
-							addToLog(`${bldg.name || `Building #${bldg.id}`} was damaged by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
-						}
-					}
-				} else {
-					monster.targetBuilding = null;
-				}
-			}
-		}
-	});
-	
-	// 5. Centralized monster defeat and reward logic
-	const defeatedMonsters = gameState.activeMonsters.filter(m => m.currentHp <= 0);
-	if (defeatedMonsters.length > 0) {
-		defeatedMonsters.forEach(monster => {
-			addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) was defeated!`);
-			
-			const attackers = monster.assignedTo
-				.map(id => gameState.heroes.find(h => h.id === id))
-				.filter(Boolean);
-			
-			if (attackers.length > 0) {
-				const xpPerHero = Math.ceil(monster.xp / attackers.length);
-				const tokensPerHero = Math.ceil((monster.tokens || 0) / attackers.length);
-				
-				attackers.forEach(hero => {
-					if (hero.targetMonsterId === monster.id) {
-						hero.targetMonsterId = null;
-					}
-					
-					hero.xp.current += xpPerHero;
-					hero.tokens += tokensPerHero;
-					addToLog(`gained ${xpPerHero} XP and ${tokensPerHero} Tokens.`, hero.id);
-					
-					const lootChance = hero.class === 'Vanguard' ? 0.4 : 0.25;
-					if (Math.random() < lootChance) {
-						const possibleDrops = gameData.items.filter(item => item.level === monster.level && item.type !== 'Junk');
-						if (possibleDrops.length > 0) {
-							const dropped = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
-							hero.inventory[dropped.id] = (hero.inventory[dropped.id] || 0) + 1;
-							addToLog(`found an item: ${dropped.name}!`, hero.id);
-						}
-					}
-					
-					if (hero.xp.current >= hero.xp.max) {
-						hero.level++;
-						hero.xp.current -= hero.xp.max;
-						hero.xp.max = Math.ceil(hero.xp.max * 1.5);
-						hero.hp.max += hero.hpMaxPerLevel;
-						hero.mp.max += hero.mpMaxPerLevel;
-						hero.hpRegen += hero.hpRegenPerLevel;
-						hero.mpRegen += hero.mpRegenPerLevel;
-						hero.hp.current = hero.hp.max;
-						addToLog(`reached Level ${hero.level}!`, hero.id);
-					}
-				});
-			}
-		});
-		
-		gameState.activeMonsters = gameState.activeMonsters.filter(m => m.currentHp > 0);
-		
-		// After-combat logic.
-		const paused = gameState.party.pausedMission;
-		if (paused) {
-			// Check if a specific attack mission target was defeated this tick.
-			if (paused.attackTargetId && defeatedMonsters.some(m => m.id === paused.attackTargetId)) {
-				const defeatedMonsterData = defeatedMonsters.find(m => m.id === paused.attackTargetId);
-				// Use the defeated monster's distance to calculate the return trip.
-				const distance = defeatedMonsterData ? defeatedMonsterData.distanceFromCity : 1500; // Fallback
-				
-				addToLog('Target monster defeated! The party is returning to base.');
-				// Unassign all heroes to prevent them from engaging other monsters.
-				gameState.heroes.forEach(h => { h.targetMonsterId = null; });
-				
-				// Set the party state to return to base.
-				gameState.party.missionState = 'driving_back';
-				// Progress is based on distance, assuming 3000m is 100%
-				gameState.party.missionProgress = (distance / 3000) * 100;
-				// Timer is based on progress (10 ticks for a full 100% trip)
-				gameState.party.missionTimer = Math.ceil(gameState.party.missionProgress / 10);
-				gameState.party.pausedMission = null; // The mission is now resolved.
-			}
-			// Original logic for when all monsters from a random ambush are cleared.
-			else if (!paused.attackTargetId && gameState.activeMonsters.length === 0) {
-				addToLog('Combat finished. Resuming mission...');
-				gameState.party.missionState = paused.state;
-				gameState.party.missionTimer = paused.timer;
-				gameState.party.missionProgress = paused.progress;
-				gameState.party.pausedMission = null;
-			}
-		}
-	}
+	// NEW: Call the centralized monster defeat handler from missions.js
+	handleMonsterDefeat();
 }
 
 /**
