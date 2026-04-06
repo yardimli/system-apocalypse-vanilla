@@ -49,7 +49,16 @@ export function renderMissionControl () {
 		if (allIncapacitated) {
 			statusText = 'Party incapacitated! Waiting for heroes to be healed to continue...';
 		} else {
-			statusText = 'Ambushed! Fighting for survival!';
+			// --- MODIFIED SECTION START ---
+			// Check if this combat is from a specific attack mission to show a different message.
+			if (partyState.pausedMission && partyState.pausedMission.attackTargetId) {
+				const monster = gameState.activeMonsters.find(m => m.id === partyState.pausedMission.attackTargetId);
+				const monsterName = monster ? monster.name : 'the target';
+				statusText = `Attacking ${monsterName}!`;
+			} else {
+				statusText = 'Ambushed! Fighting for survival!';
+			}
+			// --- MODIFIED SECTION END ---
 		}
 	} else if (partyState.missionState === 'driving_out') {
 		const distance = Math.floor(3000 * (partyState.missionProgress / 100));
@@ -60,7 +69,9 @@ export function renderMissionControl () {
 	} else if (partyState.missionState === 'driving_to_attack') {
 		const monster = gameState.activeMonsters.find(m => m.id === partyState.targetMonsterId);
 		const monsterName = monster ? monster.name : 'a monster';
-		statusText = `Driving to intercept ${monsterName}...`;
+		const totalDistance = gameState.party.missionTargetDistance;
+		const distanceTraveled = Math.floor(totalDistance * (partyState.missionProgress / 100));
+		statusText = `Driving to intercept ${monsterName}... (${distanceTraveled}/${totalDistance}m)`;
 	} else { // 'idle'
 		statusText = 'The party is idle at the base.';
 	}
@@ -135,6 +146,8 @@ export function handleFlee () {
 			}
 			// The monster is now unassigned and will act independently.
 			monster.assignedTo = [];
+			// MODIFIED: Clear the monster's threat list so it doesn't re-engage immediately.
+			monster.agro = {};
 		}
 	});
 	
@@ -179,48 +192,53 @@ export function processMissionTick () {
 	}
 	
 	// 1. Handle Monster Spawning (Ambush)
-	const heroesInCars = gameState.heroes.filter(h => h.carId && h.hp.current > 0).length;
 	let wasAmbushed = false;
-	if (heroesInCars > 0) {
-		const currentDay = Math.floor(gameState.time / 10) + 1;
-		const availableMonsters = gameData.monsters.filter(m => m.spawnDay <= currentDay);
-		
-		for (const monsterData of availableMonsters) {
-			if (Math.random() < monsterData.spawnRatio) {
-				const newMonster = {
-					id: gameState.nextMonsterId++,
-					spawnTime: gameState.time,
-					name: monsterData.name,
-					level: monsterData.level,
-					maxHp: monsterData.hp,
-					currentHp: monsterData.hp,
-					damage: monsterData.damage,
-					xp: monsterData.xp,
-					tokens: monsterData.tokens,
-					assignedTo: [],
-					targetBuilding: null,
-					agro: {},
-					speed: monsterData.speed || 50
-				};
-				// Set the monster's distance from the city based on mission progress.
-				newMonster.distanceFromCity = 3000 * (gameState.party.missionProgress / 100);
-				
-				gameState.activeMonsters.push(newMonster);
-				addToLog(`AMBUSH! A Lv.${monsterData.level} ${monsterData.name} (#${newMonster.id}) appeared!`);
-				
-				// Pause the mission for combat
-				gameState.party.pausedMission = {
-					state: gameState.party.missionState,
-					timer: gameState.party.missionTimer,
-					progress: gameState.party.missionProgress
-				};
-				gameState.party.missionState = 'in_combat';
-				gameState.party.missionTimer = 0;
-				wasAmbushed = true;
-				break; // Only one ambush per tick
+	// --- MODIFIED SECTION START ---
+	// Ambushes should only happen during general exploration ('driving_out','driving_back'), not on the way to a specific target or on any return trip.
+	if (['driving_out', 'driving_back'].includes(gameState.party.missionState)) {
+		const heroesInCars = gameState.heroes.filter(h => h.carId && h.hp.current > 0).length;
+		if (heroesInCars > 0) {
+			const currentDay = Math.floor(gameState.time / 10) + 1;
+			const availableMonsters = gameData.monsters.filter(m => m.spawnDay <= currentDay);
+			
+			for (const monsterData of availableMonsters) {
+				if (Math.random() < monsterData.spawnRatio) {
+					const newMonster = {
+						id: gameState.nextMonsterId++,
+						spawnTime: gameState.time,
+						name: monsterData.name,
+						level: monsterData.level,
+						maxHp: monsterData.hp,
+						currentHp: monsterData.hp,
+						damage: monsterData.damage,
+						xp: monsterData.xp,
+						tokens: monsterData.tokens,
+						assignedTo: [],
+						targetBuilding: null,
+						agro: {},
+						speed: monsterData.speed || 50
+					};
+					// Set the monster's distance from the city based on mission progress.
+					newMonster.distanceFromCity = 3000 * (gameState.party.missionProgress / 100);
+					
+					gameState.activeMonsters.push(newMonster);
+					addToLog(`AMBUSH! A Lv.${monsterData.level} ${monsterData.name} (#${newMonster.id}) appeared!`);
+					
+					// Pause the mission for combat
+					gameState.party.pausedMission = {
+						state: gameState.party.missionState,
+						timer: gameState.party.missionTimer,
+						progress: gameState.party.missionProgress
+					};
+					gameState.party.missionState = 'in_combat';
+					gameState.party.missionTimer = 0;
+					wasAmbushed = true;
+					break; // Only one ambush per tick
+				}
 			}
 		}
 	}
+	// --- MODIFIED SECTION END ---
 	
 	// If ambushed, stop mission processing for this tick
 	if (wasAmbushed) return;
@@ -295,8 +313,12 @@ export function processMissionTick () {
 		const totalTime = 10;
 		gameState.party.missionProgress = (gameState.party.missionTimer / totalTime) * 100;
 	} else if (gameState.party.missionState === 'driving_to_attack') {
-		// Progress for attack missions is not visually important in the same way.
-		gameState.party.missionProgress = 0;
+		// Calculate progress based on time elapsed towards the target.
+		const totalTime = gameState.party.missionTotalTime;
+		if (totalTime > 0) {
+			const timeElapsed = totalTime - gameState.party.missionTimer;
+			gameState.party.missionProgress = Math.min(100, (timeElapsed / totalTime) * 100);
+		}
 	}
 	
 	if (gameState.party.missionTimer <= 0) {
@@ -347,7 +369,10 @@ export function processMissionTick () {
 			gameState.party.missionState = 'idle';
 			gameState.party.missionTimer = 0;
 			gameState.party.missionProgress = 0;
-		} else if (gameState.party.missionState === 'driving_to_attack') { // NEW
+			// Clean up attack mission state variables.
+			gameState.party.missionTargetDistance = 0;
+			gameState.party.missionTotalTime = 0;
+		} else if (gameState.party.missionState === 'driving_to_attack') {
 			const monster = gameState.activeMonsters.find(m => m.id === gameState.party.targetMonsterId);
 			if (monster) {
 				addToLog(`The party has reached ${monster.name} and is engaging in combat!`);
@@ -364,7 +389,10 @@ export function processMissionTick () {
 				gameState.party.pausedMission = {
 					state: 'idle', // This state is a placeholder; the main loop will override it.
 					timer: 0,
-					progress: 0,
+					// --- MODIFIED SECTION START ---
+					// Set progress to 100 as the party has arrived at the target.
+					progress: 100,
+					// --- MODIFIED SECTION END ---
 					attackTargetId: gameState.party.targetMonsterId // Flag this as a specific attack mission.
 				};
 			} else {
@@ -372,7 +400,12 @@ export function processMissionTick () {
 				gameState.party.missionState = 'idle';
 			}
 			gameState.party.targetMonsterId = null;
-			gameState.party.missionProgress = 0;
+			// --- REMOVED ---
+			// gameState.party.missionProgress = 0; // Do not reset progress, so the bar stays full during combat.
+			// --- END REMOVED ---
+			// Clean up attack mission state variables.
+			gameState.party.missionTargetDistance = 0;
+			gameState.party.missionTotalTime = 0;
 		}
 	}
 }
@@ -411,4 +444,7 @@ export function handleStartAttackMission (monsterId) {
 	gameState.party.missionTimer = travelTime;
 	gameState.party.missionProgress = 0;
 	gameState.party.targetMonsterId = monsterId;
+	// Store the total distance and time for progress calculation.
+	gameState.party.missionTargetDistance = distanceToTravel;
+	gameState.party.missionTotalTime = travelTime;
 }

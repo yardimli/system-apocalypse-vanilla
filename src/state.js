@@ -39,6 +39,10 @@ export const gameState = {
 		missionState: 'idle', // 'idle', 'driving_out', 'driving_back', 'in_combat', 'driving_to_attack'
 		missionTimer: 0,
 		missionProgress: 0, // Tracks mission travel progress (0-100)
+		// --- NEW ---
+		missionTargetDistance: 0, // Stores the total distance for an attack mission.
+		missionTotalTime: 0, // Stores the total travel time for an attack mission.
+		// --- END NEW ---
 		survivorsAwaitingRescue: 0,
 		pausedMission: null,
 		targetMonsterId: null // For specific attack missions
