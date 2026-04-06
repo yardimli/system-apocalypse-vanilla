@@ -68,14 +68,29 @@ export function renderHeader () {
 }
 
 /**
- * Renders the navigation tabs.
+ * Renders the navigation tabs, including a badge for active monsters.
  * @param {string} activeTab - The currently active tab.
  * @param {Array<string>} TABS - An array of all available tab names.
  */
 export function renderTabs (activeTab, TABS) {
-	tabsContainer.innerHTML = TABS.map(tab => `
-        <a role="tab" class="tab ${tab === activeTab ? 'tab-active' : ''}" data-tab="${tab}">${tab}</a>
-    `).join('');
+	const monsterCount = gameState.activeMonsters.length;
+	// A state key prevents re-rendering if the active tab and monster count haven't changed.
+	const stateKey = `${activeTab}-${monsterCount}`;
+	
+	const newHtml = TABS.map(tab => {
+		let badgeHtml = '';
+		// Add a badge to the "Monsters" tab if there are any active monsters.
+		if (tab === 'Monsters' && monsterCount > 0) {
+			badgeHtml = `<span class="badge badge-sm badge-error ml-2">${monsterCount}</span>`;
+		}
+		
+		return `
+			<a role="tab" class="tab ${tab === activeTab ? 'tab-active' : ''}" data-tab="${tab}">${tab}${badgeHtml}</a>
+		`;
+	}).join('');
+	
+	// Use the helper function to efficiently update the DOM only when needed.
+	updateHtmlIfChanged(tabsContainer, newHtml, stateKey);
 }
 
 /**

@@ -44,8 +44,6 @@ export function getSkillEffect (hero, effectType) {
 		.reduce((sum, s) => sum + parseRange(s.value), 0);
 }
 
-// --- New/Moved Helper Functions ---
-
 /**
  * Updates an element's text content only if it has changed.
  * @param {HTMLElement} el The DOM element.

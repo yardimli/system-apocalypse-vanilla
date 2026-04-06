@@ -34,36 +34,35 @@ export function renderMissionControl () {
 	const progressEl = missionControlArea.querySelector('[data-mission-progress]');
 	const buttonsEl = missionControlArea.querySelector('[data-mission-buttons]');
 	
-	// --- Logic from the old function ---
 	const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
 	const maxPopulation = playerBases.length * 10;
 	const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
 	const isFull = currentPopulation >= maxPopulation;
-	const isFighting = gameState.activeMonsters.length > 0;
 	const partyState = gameState.party;
 	
 	// Determine status text
-	let statusText = 'The party is idle at the base.';
-	// Check if party is incapacitated and waiting to heal.
+	let statusText;
 	const heroesInField = gameState.heroes.filter(h => h.location === 'field');
 	const allIncapacitated = heroesInField.length > 0 && heroesInField.every(h => h.hp.current <= 0);
 	
-	if (isFighting) {
-		statusText = 'Ambushed! Fighting for survival!';
-	} else if (partyState.missionState === 'in_combat' && allIncapacitated) { // NEW
-		statusText = 'Party incapacitated! Waiting for heroes to be healed to continue...';
+	if (partyState.missionState === 'in_combat') {
+		if (allIncapacitated) {
+			statusText = 'Party incapacitated! Waiting for heroes to be healed to continue...';
+		} else {
+			statusText = 'Ambushed! Fighting for survival!';
+		}
 	} else if (partyState.missionState === 'driving_out') {
 		const distance = Math.floor(3000 * (partyState.missionProgress / 100));
 		statusText = `Driving out... Distance: ${distance}m.`;
 	} else if (partyState.missionState === 'driving_back') {
 		const distance = Math.floor(3000 * (partyState.missionProgress / 100));
 		statusText = `Driving back... Distance: ${distance}m.`;
-	} else if (partyState.missionState === 'driving_to_attack') { // NEW
+	} else if (partyState.missionState === 'driving_to_attack') {
 		const monster = gameState.activeMonsters.find(m => m.id === partyState.targetMonsterId);
 		const monsterName = monster ? monster.name : 'a monster';
 		statusText = `Driving to intercept ${monsterName}...`;
-	} else if (partyState.missionState === 'in_combat') {
-		statusText = 'Ambushed! Mission paused.';
+	} else { // 'idle'
+		statusText = 'The party is idle at the base.';
 	}
 	
 	// Update the elements if their content has changed.
@@ -73,11 +72,11 @@ export function renderMissionControl () {
 	// Determine button state and update HTML only if necessary.
 	const buttonText = isFull ? 'Look for Monsters' : 'Look for Survivors';
 	const buttonDisabled = partyState.missionState !== 'idle';
-	const buttonsStateKey = `${isFighting}-${buttonDisabled}`;
+	const buttonsStateKey = `${partyState.missionState}-${buttonDisabled}`;
 	
 	if (buttonsEl.getAttribute('data-prev-state') !== buttonsStateKey) {
 		let buttonsHtml = '';
-		if (isFighting) {
+		if (partyState.missionState === 'in_combat') {
 			buttonsHtml += '<button id="flee-btn" class="btn btn-warning">Flee</button>';
 		}
 		buttonsHtml += `
@@ -141,7 +140,6 @@ export function handleFlee () {
 	
 	gameState.heroes.forEach(h => { h.targetMonsterId = null; });
 	
-	// MODIFIED SECTION START
 	const paused = gameState.party.pausedMission;
 	if (paused) {
 		// If it was a specific attack mission, calculate the return trip based on the monster's distance.
@@ -169,7 +167,6 @@ export function handleFlee () {
 		gameState.party.missionProgress = 0;
 		gameState.party.missionTimer = 0;
 	}
-	// MODIFIED SECTION END
 }
 
 /**
@@ -350,8 +347,7 @@ export function processMissionTick () {
 			gameState.party.missionState = 'idle';
 			gameState.party.missionTimer = 0;
 			gameState.party.missionProgress = 0;
-			// MODIFIED SECTION START
-		} else if (gameState.party.missionState === 'driving_to_attack') {
+		} else if (gameState.party.missionState === 'driving_to_attack') { // NEW
 			const monster = gameState.activeMonsters.find(m => m.id === gameState.party.targetMonsterId);
 			if (monster) {
 				addToLog(`The party has reached ${monster.name} and is engaging in combat!`);
@@ -378,7 +374,6 @@ export function processMissionTick () {
 			gameState.party.targetMonsterId = null;
 			gameState.party.missionProgress = 0;
 		}
-		// MODIFIED SECTION END
 	}
 }
 

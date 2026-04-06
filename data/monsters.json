@@ -9,7 +9,7 @@
     "spawnDay": 1,
     "spawnRatio": 0.06,
     "tokens": 15,
-    "speed": 100,
+    "speed": 10,
     "worldSpawnRatio": 0.005
   },
   {
@@ -22,7 +22,7 @@
     "spawnDay": 15,
     "spawnRatio": 0.05,
     "tokens": 25,
-    "speed": 60,
+    "speed": 6,
     "worldSpawnRatio": 0.004
   },
   {
@@ -35,7 +35,7 @@
     "spawnDay": 80,
     "spawnRatio": 0.04,
     "tokens": 20,
-    "speed": 150,
+    "speed": 15,
     "worldSpawnRatio": 0.003
   },
   {
@@ -48,7 +48,7 @@
     "spawnDay": 120,
     "spawnRatio": 0.04,
     "tokens": 40,
-    "speed": 120,
+    "speed": 12,
     "worldSpawnRatio": 0.003
   },
   {
@@ -58,10 +58,10 @@
     "damage": "35-50",
     "xp": 150,
     "level": 2,
-    "spawnDay": 150,
+    "spawnDay": 350,
     "spawnRatio": 0.03,
     "tokens": 100,
-    "speed": 50,
+    "speed": 5,
     "worldSpawnRatio": 0.002
   },
   {
@@ -71,10 +71,10 @@
     "damage": "50-70",
     "xp": 120,
     "level": 2,
-    "spawnDay": 200,
+    "spawnDay": 500,
     "spawnRatio": 0.03,
     "tokens": 130,
-    "speed": 80,
+    "speed": 8,
     "worldSpawnRatio": 0.002
   },
   {
@@ -84,10 +84,10 @@
     "damage": "70-90",
     "xp": 300,
     "level": 3,
-    "spawnDay": 300,
+    "spawnDay": 800,
     "spawnRatio": 0.01,
     "tokens": 200,
-    "speed": 100,
+    "speed": 10,
     "worldSpawnRatio": 0.001
   },
   {
@@ -97,10 +97,10 @@
     "damage": "100-140",
     "xp": 500,
     "level": 3,
-    "spawnDay": 500,
+    "spawnDay": 1500,
     "spawnRatio": 0.01,
     "tokens": 300,
-    "speed": 40,
+    "speed": 4,
     "worldSpawnRatio": 0.001
   }
 ]

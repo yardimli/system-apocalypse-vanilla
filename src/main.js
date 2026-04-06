@@ -487,7 +487,6 @@ function processGameTick () {
 		
 		gameState.activeMonsters = gameState.activeMonsters.filter(m => m.currentHp > 0);
 		
-		// MODIFIED SECTION START
 		// After-combat logic.
 		const paused = gameState.party.pausedMission;
 		if (paused) {
@@ -518,7 +517,6 @@ function processGameTick () {
 				gameState.party.pausedMission = null;
 			}
 		}
-		// MODIFIED SECTION END
 	}
 }
 
@@ -548,8 +546,8 @@ function gameLoop () {
 	}
 	
 	// --- RENDER LOGIC (runs every interval) ---
-	// This was previously at the end of the logic processing block.
 	renderHeader();
+	renderTabs(activeTab, TABS);
 	renderContent();
 }
 
