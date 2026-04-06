@@ -97,49 +97,39 @@ function manageCombatAssignments () {
 	// Only perform auto-assignment of new targets if the party is in an active combat state.
 	// This prevents heroes from automatically re-engaging a monster after fleeing.
 	if (gameState.party.missionState === 'in_combat') {
-		// --- MODIFIED SECTION START ---
-		// If this is a specific attack mission, do not auto-assign new targets.
-		// Heroes are assigned once when they arrive and should not switch to other roaming monsters.
-		if (gameState.party.pausedMission && gameState.party.pausedMission.attackTargetId) {
-			// Check if the target monster is still alive. If not, do nothing.
-			// The defeat logic in the main loop will handle the party's next action (returning to base).
-			const targetIsAlive = gameState.activeMonsters.some(m => m.id === gameState.party.pausedMission.attackTargetId);
-			if (!targetIsAlive) {
-				return; // Do not re-assign anyone; wait for the mission state to change.
-			}
-			// If the target is alive, we can exit early as no re-assignment is needed for ambushes.
-			return;
-		}
-		// --- MODIFIED SECTION END ---
+		const isAttackMission = gameState.party.pausedMission && gameState.party.pausedMission.attackTargetId;
 		
-		const vanguards = combatHeroes.filter(h => h.class === 'Vanguard');
-		const strikers = combatHeroes.filter(h => h.class === 'Striker');
-		
-		vanguards.forEach(vanguard => {
-			if (!vanguard.targetMonsterId) {
-				const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
-				if (target) {
-					vanguard.targetMonsterId = target.id;
-				}
-			}
-		});
-		
-		const vanguardTargets = vanguards
-			.map(v => gameState.activeMonsters.find(m => m.id === v.targetMonsterId))
-			.filter(Boolean);
-		
-		strikers.forEach(striker => {
-			const isTargetingVanguardMonster = vanguardTargets.some(m => m.id === striker.targetMonsterId);
+		// For random ambushes (not specific attack missions), auto-assign idle heroes to targets.
+		if (!isAttackMission) {
+			const vanguards = combatHeroes.filter(h => h.class === 'Vanguard');
+			const strikers = combatHeroes.filter(h => h.class === 'Striker');
 			
-			if (vanguardTargets.length > 0 && !isTargetingVanguardMonster) {
-				striker.targetMonsterId = vanguardTargets[0].id;
-			} else if (vanguardTargets.length === 0 && !striker.targetMonsterId) {
-				const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
-				if (target) {
-					striker.targetMonsterId = target.id;
+			vanguards.forEach(vanguard => {
+				if (!vanguard.targetMonsterId) {
+					const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
+					if (target) {
+						vanguard.targetMonsterId = target.id;
+					}
 				}
-			}
-		});
+			});
+			
+			const vanguardTargets = vanguards
+				.map(v => gameState.activeMonsters.find(m => m.id === v.targetMonsterId))
+				.filter(Boolean);
+			
+			strikers.forEach(striker => {
+				const isTargetingVanguardMonster = vanguardTargets.some(m => m.id === striker.targetMonsterId);
+				
+				if (vanguardTargets.length > 0 && !isTargetingVanguardMonster) {
+					striker.targetMonsterId = vanguardTargets[0].id;
+				} else if (vanguardTargets.length === 0 && !striker.targetMonsterId) {
+					const target = gameState.activeMonsters.find(m => !gameState.heroes.some(h => h.targetMonsterId === m.id));
+					if (target) {
+						striker.targetMonsterId = target.id;
+					}
+				}
+			});
+		}
 	}
 	
 	gameState.activeMonsters.forEach(m => {
