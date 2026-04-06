@@ -119,7 +119,7 @@
     "class": "Vanguard",
     "type": "Manual",
     "actionType": "attack",
-    "rageGen": 15,
+    "rageGen": 5,
     "damage": "5-8",
     "agroMultiplier": 2.0,
     "levelRequirement": 1,

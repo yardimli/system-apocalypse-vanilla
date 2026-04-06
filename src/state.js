@@ -1,11 +1,11 @@
 // Initialize 100 buildings with their respective states, HP, and population
 const initialBuildings =[];
-for (let i = 1; i <= 100; i++) {
+for (let i = 1; i <= 20; i++) {
 	const newBuilding = {
 		id: i,
 		state: 'ruined',
 		hp: 0,
-		maxHp: 10,
+		maxHp: 100,
 		population: 0,
 		owner: null,
 		name: null,
@@ -16,12 +16,12 @@ for (let i = 1; i <= 100; i++) {
 	
 	if (i <= 3) {
 		newBuilding.state = 'functional';
-		newBuilding.hp = 10;
+		newBuilding.hp = 100;
 		newBuilding.population = 10;
 	} else if (i <= 15) {
 		newBuilding.state = 'damaged';
-		newBuilding.hp = 5;
-		newBuilding.population = 5;
+		newBuilding.hp = 50;
+		newBuilding.population = 4;
 	}
 	initialBuildings.push(newBuilding);
 }
@@ -30,6 +30,7 @@ const initialCars = [];
 
 export const gameState = {
 	time: 0,
+	lastTickTime: 0, // MODIFIED: For render interpolation
 	gameSettings: {
 		speedMultiplier: 1 // Can be 0.5, 1, 2, 4
 	},
@@ -39,6 +40,7 @@ export const gameState = {
 		missionState: 'idle', // 'idle', 'driving_out', 'driving_back', 'in_combat', 'driving_to_attack'
 		missionTimer: 0,
 		missionProgress: 0, // Tracks mission travel progress (0-100)
+		previousMissionProgress: 0, // MODIFIED: For render interpolation
 		// --- NEW ---
 		missionTargetDistance: 0, // Stores the total distance for an attack mission.
 		missionTotalTime: 0, // Stores the total travel time for an attack mission.

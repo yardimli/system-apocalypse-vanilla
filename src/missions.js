@@ -7,7 +7,7 @@ const getEl = (id) => document.getElementById(id);
 
 /**
  * Renders the mission control panel using a granular update strategy.
- * This includes mission status, progress, survivor counts, and action buttons.
+ * This includes mission status, survivor counts, and action buttons.
  */
 export function renderMissionControl () {
 	const missionControlArea = getEl('mission-control-area');
@@ -21,7 +21,7 @@ export function renderMissionControl () {
 					<h3 class="font-bold text-lg">Party Mission</h3>
 					<p class="text-sm text-gray-400" data-mission-status></p>
 				</div>
-				<progress class="progress progress-primary w-full" value="0" max="100" data-mission-progress></progress>
+				<div data-mission-progress-container class="h-4"></div>
 			</div>
 			<div class="flex gap-4" data-mission-buttons>
 				<!-- Buttons will be injected here -->
@@ -31,7 +31,7 @@ export function renderMissionControl () {
 	
 	// Get references to the dynamic elements.
 	const statusEl = missionControlArea.querySelector('[data-mission-status]');
-	const progressEl = missionControlArea.querySelector('[data-mission-progress]');
+	const progressContainerEl = missionControlArea.querySelector('[data-mission-progress-container]');
 	const buttonsEl = missionControlArea.querySelector('[data-mission-buttons]');
 	
 	const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
@@ -39,6 +39,20 @@ export function renderMissionControl () {
 	const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
 	const isFull = currentPopulation >= maxPopulation;
 	const partyState = gameState.party;
+	
+	// --- NEW SECTION START ---
+	// Calculate an interpolation factor (alpha) based on the time elapsed since the last game tick.
+	// This allows for a smooth visual counter effect for distance, even though the game logic only updates once per tick.
+	const tickDuration = 1000; // Base duration of a tick in ms.
+	const timePerTick = tickDuration / gameState.gameSettings.speedMultiplier;
+	const timeSinceLastTick = performance.now() - gameState.lastTickTime;
+	const alpha = Math.min(1.0, timeSinceLastTick / timePerTick);
+	
+	// Interpolate progress between the start of the tick and the current target.
+	const startProgress = partyState.previousMissionProgress || 0;
+	const endProgress = partyState.missionProgress;
+	const interpolatedProgress = startProgress + (endProgress - startProgress) * alpha;
+	// --- NEW SECTION END ---
 	
 	// Determine status text
 	let statusText;
@@ -49,7 +63,6 @@ export function renderMissionControl () {
 		if (allIncapacitated) {
 			statusText = 'Party incapacitated! Waiting for heroes to be healed to continue...';
 		} else {
-			// --- MODIFIED SECTION START ---
 			// Check if this combat is from a specific attack mission to show a different message.
 			if (partyState.pausedMission && partyState.pausedMission.attackTargetId) {
 				const monster = gameState.activeMonsters.find(m => m.id === partyState.pausedMission.attackTargetId);
@@ -58,19 +71,21 @@ export function renderMissionControl () {
 			} else {
 				statusText = 'Ambushed! Fighting for survival!';
 			}
-			// --- MODIFIED SECTION END ---
 		}
 	} else if (partyState.missionState === 'driving_out') {
-		const distance = Math.floor(3000 * (partyState.missionProgress / 100));
+		// MODIFIED: Use interpolated progress to calculate distance.
+		const distance = Math.floor(3000 * (interpolatedProgress / 100));
 		statusText = `Driving out... Distance: ${distance}m.`;
 	} else if (partyState.missionState === 'driving_back') {
-		const distance = Math.floor(3000 * (partyState.missionProgress / 100));
+		// MODIFIED: Use interpolated progress to calculate distance.
+		const distance = Math.floor(3000 * (interpolatedProgress / 100));
 		statusText = `Driving back... Distance: ${distance}m.`;
 	} else if (partyState.missionState === 'driving_to_attack') {
 		const monster = gameState.activeMonsters.find(m => m.id === partyState.targetMonsterId);
 		const monsterName = monster ? monster.name : 'a monster';
 		const totalDistance = gameState.party.missionTargetDistance;
-		const distanceTraveled = Math.floor(totalDistance * (partyState.missionProgress / 100));
+		// MODIFIED: Use interpolated progress to calculate distance traveled.
+		const distanceTraveled = Math.floor(totalDistance * (interpolatedProgress / 100));
 		statusText = `Driving to intercept ${monsterName}... (${distanceTraveled}/${totalDistance}m)`;
 	} else { // 'idle'
 		statusText = 'The party is idle at the base.';
@@ -78,23 +93,61 @@ export function renderMissionControl () {
 	
 	// Update the elements if their content has changed.
 	updateTextIfChanged(statusEl, statusText);
-	updateProgressIfChanged(progressEl, partyState.missionProgress, 100);
 	
-	// Determine button state and update HTML only if necessary.
+	const isMissionActive = partyState.missionState !== 'idle';
+	const progressBarStateKey = String(isMissionActive);
+	
+	if (progressContainerEl.getAttribute('data-prev-state') !== progressBarStateKey) {
+		if (isMissionActive) {
+			progressContainerEl.innerHTML = '<progress class="progress progress-primary w-full"></progress>';
+		} else {
+			progressContainerEl.innerHTML = '';
+		}
+		progressContainerEl.setAttribute('data-prev-state', progressBarStateKey);
+	}
+	
+	// MODIFIED: Update button rendering logic to include the new "Fight" dropdown.
 	const buttonText = isFull ? 'Look for Monsters' : 'Look for Survivors';
 	const buttonDisabled = partyState.missionState !== 'idle';
-	const buttonsStateKey = `${partyState.missionState}-${buttonDisabled}`;
+	const activeMonsters = gameState.activeMonsters; // Get active monsters.
+	const canFight = activeMonsters.length > 0 && partyState.missionState === 'idle'; // Condition for fight button.
+	
+	// State key now includes monster count to update the dropdown list.
+	const buttonsStateKey = `${partyState.missionState}-${buttonDisabled}-${activeMonsters.length}`;
 	
 	if (buttonsEl.getAttribute('data-prev-state') !== buttonsStateKey) {
 		let buttonsHtml = '';
 		if (partyState.missionState === 'in_combat') {
 			buttonsHtml += '<button id="flee-btn" class="btn btn-warning">Flee</button>';
 		}
+		
+		// "Look for Survivors/Monsters" button
 		buttonsHtml += `
             <button id="mission-btn" class="btn btn-primary" ${buttonDisabled ? 'disabled' : ''}>
                 ${buttonText}
             </button>
         `;
+		
+		// NEW: "Fight" dropdown button with list of active monsters.
+		buttonsHtml += `
+			<div class="dropdown dropdown-top">
+				<div tabindex="0" role="button" class="btn btn-error" ${!canFight ? 'disabled' : ''}>Fight</div>
+				<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-72 max-h-60 overflow-y-auto">
+					${activeMonsters.map(monster => `
+						<li>
+							<a data-attack-monster-id="${monster.id}" class="justify-between">
+								<div>
+									<div>Lv.${monster.level} ${monster.name}</div>
+									<div class="text-xs opacity-60">${Math.floor(monster.currentHp)}/${monster.maxHp} HP</div>
+								</div>
+								<div class="badge badge-ghost">${Math.floor(monster.distanceFromCity)}m</div>
+							</a>
+						</li>
+					`).join('')}
+				</ul>
+			</div>
+		`;
+		
 		buttonsEl.innerHTML = buttonsHtml;
 		buttonsEl.setAttribute('data-prev-state', buttonsStateKey);
 	}
@@ -146,7 +199,7 @@ export function handleFlee () {
 			}
 			// The monster is now unassigned and will act independently.
 			monster.assignedTo = [];
-			// MODIFIED: Clear the monster's threat list so it doesn't re-engage immediately.
+			// Clear the monster's threat list so it doesn't re-engage immediately.
 			monster.agro = {};
 		}
 	});
@@ -187,6 +240,9 @@ export function handleFlee () {
  * This includes movement, monster spawning, and survivor searching.
  */
 export function processMissionTick () {
+	// MODIFIED: Store the progress from the start of the tick for smooth UI interpolation.
+	gameState.party.previousMissionProgress = gameState.party.missionProgress;
+	
 	if (!['driving_out', 'driving_back', 'driving_to_attack'].includes(gameState.party.missionState)) {
 		return;
 	}
@@ -228,7 +284,7 @@ export function processMissionTick () {
 						state: gameState.party.missionState,
 						timer: gameState.party.missionTimer,
 						progress: gameState.party.missionProgress,
-						ambushMonsterId: newMonster.id // MODIFIED: Track the ambushing monster.
+						ambushMonsterId: newMonster.id // Track the ambushing monster.
 					};
 					gameState.party.missionState = 'in_combat';
 					gameState.party.missionTimer = 0;
@@ -387,10 +443,8 @@ export function processMissionTick () {
 				gameState.party.pausedMission = {
 					state: 'idle', // This state is a placeholder; the main loop will override it.
 					timer: 0,
-					// --- MODIFIED SECTION START ---
 					// Set progress to 100 as the party has arrived at the target.
 					progress: 100,
-					// --- MODIFIED SECTION END ---
 					attackTargetId: gameState.party.targetMonsterId // Flag this as a specific attack mission.
 				};
 			} else {
@@ -467,7 +521,6 @@ export function manageCombatAssignments () {
 		
 		// For random ambushes (not specific attack missions), auto-assign idle heroes to targets.
 		if (!isAttackMission) {
-			// --- MODIFIED SECTION START ---
 			// When ambushed, assign all idle party members to the specific monster that appeared.
 			const ambushMonsterId = gameState.party.pausedMission ? gameState.party.pausedMission.ambushMonsterId : null;
 			if (ambushMonsterId) {
@@ -481,7 +534,6 @@ export function manageCombatAssignments () {
 					});
 				}
 			}
-			// --- MODIFIED SECTION END ---
 		}
 	}
 	
@@ -566,7 +618,6 @@ export function handleMonsterDefeat () {
 				gameState.party.missionTimer = Math.ceil(gameState.party.missionProgress / 10);
 				gameState.party.pausedMission = null; // The mission is now resolved.
 			}
-				// --- MODIFIED SECTION START ---
 			// If the defeated monster was from a random ambush, resume the mission.
 			else if (paused.ambushMonsterId && defeatedMonsters.some(m => m.id === paused.ambushMonsterId)) {
 				addToLog('Ambush monster defeated. Resuming mission...');
@@ -575,7 +626,6 @@ export function handleMonsterDefeat () {
 				gameState.party.missionProgress = paused.progress;
 				gameState.party.pausedMission = null;
 			}
-			// --- MODIFIED SECTION END ---
 		}
 	}
 }

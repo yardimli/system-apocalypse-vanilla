@@ -274,6 +274,7 @@ function gameLoop () {
 	const currentTime = performance.now();
 	if (!lastTickTime) {
 		lastTickTime = currentTime;
+		gameState.lastTickTime = lastTickTime; // MODIFIED: Set initial tick time in global state
 	}
 	
 	const elapsed = currentTime - lastTickTime;
@@ -288,6 +289,7 @@ function gameLoop () {
 		}
 		// Update lastTickTime, carrying over any remainder time.
 		lastTickTime += ticksToProcess * timePerTick;
+		gameState.lastTickTime = lastTickTime; // MODIFIED: Update tick time in global state
 	}
 	
 	// --- RENDER LOGIC (runs every interval) ---
@@ -477,11 +479,17 @@ async function init () {
 			return;
 		}
 		
-		// Handle attacking a specific monster.
+		// MODIFIED: Handle attacking a specific monster and switch tabs if needed.
 		const attackMonsterBtn = e.target.closest('[data-attack-monster-id]');
 		if (attackMonsterBtn) {
 			const monsterId = parseInt(attackMonsterBtn.dataset.attackMonsterId, 10);
 			handleStartAttackMission(monsterId);
+			
+			// If the attack was initiated from the Monsters tab, switch back to the Heroes tab.
+			if (activeTab === 'Monsters') {
+				activeTab = 'Heroes';
+				// The main game loop will handle re-rendering the content and tabs.
+			}
 			return;
 		}
 		
