@@ -144,8 +144,8 @@ prompts:
     ${user_prompt}
 
     Format the output.
-    For PHP use psr-12 standards.
     For javascript use StandardJS but include semicolumns.
+    The game uses tailwindcss 4, daisyui 5, is run with vite 8
     For html use W3C standards.
     Skip files that dont need to be changed and are provided for reference.
     Don't refactor code that is not needed to be changed.

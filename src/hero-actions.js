@@ -1,23 +1,17 @@
 import { gameState, gameData } from './state.js';
 import { addToLog, parseRange } from './utils.js';
 
-export function handleCombatAction(heroId, skillId) {
-	const hero = gameState.heroes.find(h => h.id === heroId);
-	const skill = gameData.skills.find(s => s.id === skillId);
-	
-	const isOnCooldown = (hero.skillCooldowns[skillId] || 0) > gameState.time;
-	if (!hero || !skill || !hero.targetMonsterId || (skill.levelRequirement && hero.level < skill.levelRequirement) || isOnCooldown) return;
-	
-	const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
-	if (!monster) return;
+/**
+ * Executes the effect of a combat skill after its cast time is complete.
+ * This function handles damage, resource consumption, cooldowns, and visual feedback.
+ * @param {object} hero - The hero object performing the action.
+ * @param {object} skill - The skill data object.
+ * @param {object} monster - The target monster object.
+ */
+export function executeCombatEffect (hero, skill, monster) {
+	if (!monster || monster.currentHp <= 0) return; // Stop if monster is already dead
 	
 	let success = false;
-	
-	const mpCost = skill.mpCost || 0;
-	if (hero.class !== 'Vanguard' && hero.mp.current < mpCost) {
-		return;
-	}
-	
 	const rageCost = skill.rageCost || 0;
 	const hasEnoughRage = hero.rage && hero.rage.current >= rageCost;
 	
@@ -35,7 +29,7 @@ export function handleCombatAction(heroId, skillId) {
 				if (rageCost > 0) {
 					if (hasEnoughRage) {
 						hero.rage.current -= rageCost;
-						addToLog(`uses ${skill.name} with Rage!`, hero.id);
+						addToLog(`unleashes ${skill.name} with Rage!`, hero.id);
 					} else {
 						finalDamage = Math.ceil(finalDamage / 2);
 						finalAgroMultiplier /= 4;
@@ -53,7 +47,6 @@ export function handleCombatAction(heroId, skillId) {
 				agroGenerated = damageDealt * (skill.agroMultiplier || 1.0);
 			}
 			
-			// Apply damage bonus from car upgrades if the hero is in a car.
 			const car = hero.carId ? gameState.city.cars.find(c => c.id === hero.carId) : null;
 			if (car) {
 				const damageBonus = car.upgrades
@@ -100,37 +93,65 @@ export function handleCombatAction(heroId, skillId) {
 	
 	if (success) {
 		if (hero.class !== 'Vanguard') {
-			hero.mp.current -= mpCost;
+			hero.mp.current -= skill.mpCost || 0;
 		}
 		
-		hero.skillCooldowns[skillId] = gameState.time + skill.cooldown;
-		hero.skillFlash = { id: skillId, clearAtTime: gameState.time + 1 };
+		hero.skillCooldowns[skill.id] = gameState.time + skill.cooldown;
+		hero.skillFlash = { id: skill.id, clearAtTime: gameState.time + 1 };
 	}
 }
 
-export function handleAegisAction(heroId, skillId, options = {}) {
+/**
+ * Initiates a combat action, checking for cast time.
+ * If the skill is instant, its effect is executed immediately.
+ * If it has a cast time, the hero's 'casting' state is set.
+ * @param {number} heroId - The ID of the hero performing the action.
+ * @param {string} skillId - The ID of the skill being used.
+ */
+export function startCombatAction (heroId, skillId) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
 	const skill = gameData.skills.find(s => s.id === skillId);
 	
 	const isOnCooldown = (hero.skillCooldowns[skillId] || 0) > gameState.time;
-	if (!hero || !skill || hero.mp.current < skill.mpCost || (skill.levelRequirement && hero.level < skill.levelRequirement) || isOnCooldown) return;
+	if (!hero || !skill || hero.casting || !hero.targetMonsterId || (skill.levelRequirement && hero.level < skill.levelRequirement) || isOnCooldown) return;
 	
+	const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
+	if (!monster) return;
+	
+	const mpCost = skill.mpCost || 0;
+	if (hero.class !== 'Vanguard' && hero.mp.current < mpCost) {
+		return;
+	}
+	
+	// For instant-cast skills, execute the effect immediately.
+	if (skill.castTime === 0) {
+		executeCombatEffect(hero, skill, monster);
+	} else {
+		// For skills with a cast time, set the hero's casting state.
+		hero.casting = {
+			skillId: skill.id,
+			castEndTime: gameState.time + skill.castTime,
+			options: {} // Store any relevant options for when the cast completes
+		};
+		addToLog(`begins casting ${skill.name}.`, hero.id);
+	}
+}
+
+/**
+ * Executes the effect of an Aegis skill after its cast time is complete.
+ * @param {object} hero - The hero object performing the action.
+ * @param {object} skill - The skill data object.
+ * @param {object} options - Options for the skill, e.g., { targetHeroId }.
+ */
+export function executeAegisEffect (hero, skill, options = {}) {
 	let success = false;
-	
 	const levelBoost = 1 + (hero.level * 0.1);
 	
 	switch (skill.actionType) {
 		case 'heal':
 			const targetHero = gameState.heroes.find(h => h.id === options.targetHeroId);
-			const injured = targetHero || gameState.heroes.filter(h => h.hp.current < h.hp.max).sort((a, b) => a.hp.current - b.hp.current)[0];
-			
-			if (injured && injured.hp.current <= 0 && injured.location !== 'field') {
-				addToLog(`cannot heal ${injured.name} while they are incapacitated at base.`, hero.id);
-				return;
-			}
-			
-			if (injured && injured.hp.current < injured.hp.max) {
-				const wasIncapacitated = injured.hp.current <= 0;
+			if (targetHero && targetHero.hp.current < targetHero.hp.max) {
+				const wasIncapacitated = targetHero.hp.current <= 0;
 				
 				const wand = gameData.items.find(i => i.id === hero.equipment.mainHand);
 				const spellPower = wand && wand.spellPower ? wand.spellPower : 1;
@@ -138,39 +159,32 @@ export function handleAegisAction(heroId, skillId, options = {}) {
 				const baseHealAmount = skill.id.includes('III') ? 500 : skill.id.includes('II') ? 250 : 100;
 				const healAmount = Math.ceil((baseHealAmount * spellPower) * levelBoost);
 				
-				injured.hp.current = Math.min(injured.hp.max, injured.hp.current + healAmount);
-				addToLog(`healed ${injured.name} for ${healAmount} HP.`, hero.id);
+				targetHero.hp.current = Math.min(targetHero.hp.max, targetHero.hp.current + healAmount);
+				addToLog(`healed ${targetHero.name} for ${healAmount} HP.`, hero.id);
 				success = true;
 				
-				// Logic to handle hero revival in the field
-				if (wasIncapacitated && injured.hp.current > 0 && injured.location === 'field') {
-					addToLog(`${injured.name} has recovered and is returning to their vehicle.`, injured.id);
-					const ownedCar = gameState.city.cars.find(c => c.ownerId === injured.id);
+				if (wasIncapacitated && targetHero.hp.current > 0 && targetHero.location === 'field') {
+					addToLog(`${targetHero.name} has recovered and is returning to their vehicle.`, targetHero.id);
+					const ownedCar = gameState.city.cars.find(c => c.ownerId === targetHero.id);
 					if (ownedCar) {
-						injured.carId = ownedCar.id;
-						
-						// Immediately assign a combat target to the revived hero to prevent a lost turn.
-						if (gameState.activeMonsters.length > 0 && (injured.class === 'Striker' || injured.class === 'Vanguard')) {
-							// A simple assignment logic: target the first available monster.
-							// manageCombatAssignments() will refine this on the next tick if needed.
+						targetHero.carId = ownedCar.id;
+						if (gameState.activeMonsters.length > 0 && (targetHero.class === 'Striker' || targetHero.class === 'Vanguard')) {
 							const targetMonster = gameState.activeMonsters[0];
-							injured.targetMonsterId = targetMonster.id;
-							addToLog(`${injured.name} has re-entered the fight, targeting ${targetMonster.name} (#${targetMonster.id})!`, injured.id);
+							targetHero.targetMonsterId = targetMonster.id;
+							addToLog(`${targetHero.name} has re-entered the fight, targeting ${targetMonster.name} (#${targetMonster.id})!`, targetHero.id);
 						}
 					}
 				}
 				
-				if (injured.targetMonsterId) {
-					const monster = gameState.activeMonsters.find(m => m.id === injured.targetMonsterId);
+				if (targetHero.targetMonsterId) {
+					const monster = gameState.activeMonsters.find(m => m.id === targetHero.targetMonsterId);
 					if (monster) {
 						const agroAmount = skill.agroValue || 0;
 						monster.agro[hero.id] = (monster.agro[hero.id] || 0) + agroAmount;
-						
 						if (!monster.assignedTo.includes(hero.id)) {
 							monster.assignedTo.push(hero.id);
 						}
 						hero.targetMonsterId = monster.id;
-						
 						addToLog(`drew the attention of ${monster.name} (#${monster.id}) by healing!`, hero.id);
 					}
 				}
@@ -182,10 +196,8 @@ export function handleAegisAction(heroId, skillId, options = {}) {
 		hero.mp.current -= skill.mpCost;
 		hero.xp.current += 25;
 		
-		hero.skillCooldowns[skillId] = gameState.time + skill.cooldown;
-		// MODIFIED: Store the targetHeroId in the skillFlash object.
-		// This tells the UI which specific button to apply the flash effect to.
-		hero.skillFlash = { id: skillId, clearAtTime: gameState.time + 1, targetHeroId: options.targetHeroId };
+		hero.skillCooldowns[skill.id] = gameState.time + skill.cooldown;
+		hero.skillFlash = { id: skill.id, clearAtTime: gameState.time + 1, targetHeroId: options.targetHeroId };
 		
 		if (hero.xp.current >= hero.xp.max) {
 			hero.level++;
@@ -199,5 +211,38 @@ export function handleAegisAction(heroId, skillId, options = {}) {
 			hero.mp.current = hero.mp.max;
 			addToLog(`reached Level ${hero.level}! Stats increased.`, hero.id);
 		}
+	}
+}
+
+/**
+ * Initiates an Aegis action, checking for cast time.
+ * @param {number} heroId - The ID of the hero performing the action.
+ * @param {string} skillId - The ID of the skill being used.
+ * @param {object} options - Options for the skill, e.g., { targetHeroId }.
+ */
+export function startAegisAction (heroId, skillId, options = {}) {
+	const hero = gameState.heroes.find(h => h.id === heroId);
+	const skill = gameData.skills.find(s => s.id === skillId);
+	
+	const isOnCooldown = (hero.skillCooldowns[skillId] || 0) > gameState.time;
+	if (!hero || !skill || hero.casting || hero.mp.current < skill.mpCost || (skill.levelRequirement && hero.level < skill.levelRequirement) || isOnCooldown) return;
+	
+	if (skill.actionType === 'heal') {
+		const targetHero = gameState.heroes.find(h => h.id === options.targetHeroId);
+		if (!targetHero || targetHero.hp.current >= targetHero.hp.max) {
+			if (targetHero) addToLog(`cannot heal ${targetHero.name}, they are already at full health.`, hero.id);
+			return; // Don't start cast if target is full health
+		}
+	}
+	
+	if (skill.castTime === 0) {
+		executeAegisEffect(hero, skill, options);
+	} else {
+		hero.casting = {
+			skillId: skill.id,
+			castEndTime: gameState.time + skill.castTime,
+			options: options
+		};
+		addToLog(`begins casting ${skill.name}.`, hero.id);
 	}
 }

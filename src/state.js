@@ -30,24 +30,22 @@ const initialCars = [];
 
 export const gameState = {
 	time: 0,
-	lastTickTime: 0, // MODIFIED: For render interpolation
+	lastTickTime: 0,
 	gameSettings: {
-		speedMultiplier: 1 // Can be 0.5, 1, 2, 4
+		speedMultiplier: 1
 	},
 	threatLevel: 10,
 	nextMonsterId: 1,
 	party: {
-		missionState: 'idle', // 'idle', 'driving_out', 'driving_back', 'in_combat', 'driving_to_attack'
+		missionState: 'idle',
 		missionTimer: 0,
-		missionProgress: 0, // Tracks mission travel progress (0-100)
-		previousMissionProgress: 0, // MODIFIED: For render interpolation
-		// --- NEW ---
-		missionTargetDistance: 0, // Stores the total distance for an attack mission.
-		missionTotalTime: 0, // Stores the total travel time for an attack mission.
-		// --- END NEW ---
+		missionProgress: 0,
+		previousMissionProgress: 0,
+		missionTargetDistance: 0,
+		missionTotalTime: 0,
 		survivorsAwaitingRescue: 0,
 		pausedMission: null,
-		targetMonsterId: null // For specific attack missions
+		targetMonsterId: null
 	},
 	city: {
 		buildings: initialBuildings,
@@ -82,6 +80,7 @@ export const gameState = {
 			skillTargets: { 'AEG004': 1 },
 			skillCooldowns: {},
 			skillFlash: null,
+			casting: null, // NEW: To track current skill cast
 			inventory: {
 				'ARM001': 1,
 				'WAND001': 1,
@@ -116,6 +115,7 @@ export const gameState = {
 			skillTargets: {},
 			skillCooldowns: {},
 			skillFlash: null,
+			casting: null, // NEW: To track current skill cast
 			inventory: {
 				'ARM001': 1,
 				'WAND001': 1,
@@ -145,6 +145,7 @@ export const gameState = {
 			skillTargets: {},
 			skillCooldowns: {},
 			skillFlash: null,
+			casting: null, // NEW: To track current skill cast
 			inventory: {
 				'ARM001': 1,
 				'SWD001': 1,

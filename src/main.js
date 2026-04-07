@@ -1,5 +1,6 @@
 import { gameState, gameData } from './state.js';
-import { handleCombatAction, handleAegisAction } from './hero-actions.js';
+// MODIFIED: Renamed function imports to reflect the new casting logic.
+import { startCombatAction, startAegisAction, executeCombatEffect, executeAegisEffect } from './hero-actions.js';
 import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { handleUseConsumable } from './inventory.js';
@@ -23,34 +24,17 @@ function renderContent () {
 	switch (activeTab) {
 		case 'Heroes':
 			if (!getEl('heroes-tab-content')) {
-				// MODIFIED: Replaced the complex CSS Grid layout with a more stable two-column Flexbox layout.
-				// This isolates the sidebar's height changes, preventing the main content from "jumping" when combat starts/ends.
 				contentArea.innerHTML = `
                     <div id="heroes-tab-content" class="flex flex-col lg:flex-row gap-4">
-
-                        <!-- Main Content Column (Heroes and Skills) -->
                         <div class="w-full lg:w-3/4 flex flex-col gap-4">
-                            <div id="heroes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <!-- Hero cards will be injected here -->
-                            </div>
-                            <div id="skills-panel-container" class="w-full">
-                                <!-- The shared skills panel will be injected here -->
-                            </div>
+                            <div id="heroes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                            <div id="skills-panel-container" class="w-full"></div>
                         </div>
-
-                        <!-- Sidebar Column -->
                         <div id="heroes-sidebar" class="w-full lg:w-1/4 flex flex-col gap-4">
-                            <div id="mission-control-area" class="card bg-base-200 shadow-md p-4 flex flex-col gap-4">
-                                <!-- Mission control content will be dynamically rendered here -->
-                            </div>
-                            <div id="party-log-area" class="flex flex-col gap-1 bg-base-100 rounded p-2 h-60 overflow-y-auto text-xs font-mono">
-                                <!-- Party log content will be injected by renderPartyLog -->
-                            </div>
-                            <div id="party-combat-area" class="w-full">
-                                <!-- Shared combat info will be injected here -->
-                            </div>
+                            <div id="mission-control-area" class="card bg-base-200 shadow-md p-4 flex flex-col gap-4"></div>
+                            <div id="party-log-area" class="flex flex-col gap-1 bg-base-100 rounded p-2 h-60 overflow-y-auto text-xs font-mono"></div>
+                            <div id="party-combat-area" class="w-full"></div>
                         </div>
-
                     </div>
                 `;
 			}
@@ -84,18 +68,9 @@ function renderContent () {
 	}
 }
 
-// REMOVED: manageCombatAssignments function was moved to missions.js
-
-// --- GAME LOOP ---
-
-// These variables manage the timing of game logic ticks.
 let lastTickTime = 0;
-const tickDuration = 1000; // A game tick is 1 second in real time.
+const tickDuration = 1000;
 
-/**
- * This function contains all the logic that advances the game state by one tick.
- * It was previously the body of gameLoop().
- */
 function processGameTick () {
 	gameState.time++;
 	
@@ -117,7 +92,7 @@ function processGameTick () {
 				xp: monsterData.xp,
 				tokens: monsterData.tokens,
 				speed: monsterData.speed || 50,
-				distanceFromCity: Math.floor(Math.random() * 2001) + 1000, // 1000-3000m
+				distanceFromCity: Math.floor(Math.random() * 2001) + 1000,
 				assignedTo: [],
 				targetBuilding: null,
 				agro: {}
@@ -127,9 +102,26 @@ function processGameTick () {
 		}
 	}
 	
-	// 2. Process Heroes
-	// NEW: Call the combat assignment logic, now managed in missions.js
 	manageCombatAssignments();
+	
+	// NEW: Process completed skill casts at the beginning of the hero loop.
+	gameState.heroes.forEach(hero => {
+		if (hero.casting && gameState.time >= hero.casting.castEndTime) {
+			const skill = gameData.skills.find(s => s.id === hero.casting.skillId);
+			if (skill) {
+				if (skill.class === 'Aegis') {
+					// The options (like targetHeroId) were stored in the casting object.
+					executeAegisEffect(hero, skill, hero.casting.options);
+				} else {
+					const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
+					if (monster) {
+						executeCombatEffect(hero, skill, monster);
+					}
+				}
+			}
+			hero.casting = null; // Clear casting state after execution.
+		}
+	});
 	
 	gameState.heroes.forEach(hero => {
 		autoEquipBestGear(hero);
@@ -208,7 +200,8 @@ function processGameTick () {
 			}
 		}
 		
-		if (hero.autoCastSkillId && hero.hp.current > 0) {
+		// MODIFIED: Auto-cast logic now checks if the hero is already casting.
+		if (hero.autoCastSkillId && hero.hp.current > 0 && !hero.casting) {
 			const skillId = hero.autoCastSkillId;
 			const skill = gameData.skills.find(s => s.id === skillId);
 			
@@ -248,11 +241,11 @@ function processGameTick () {
 						}
 						
 						if (shouldCast) {
-							handleAegisAction(hero.id, skill.id, options);
+							startAegisAction(hero.id, skill.id, options);
 						}
 					} else { // For Striker and Vanguard
 						if (hero.targetMonsterId) {
-							handleCombatAction(hero.id, skill.id);
+							startCombatAction(hero.id, skill.id);
 						}
 					}
 				}
@@ -260,47 +253,35 @@ function processGameTick () {
 		}
 	});
 	
-	// NEW: Call the centralized monster action handler from monsters.js
 	processMonsterActions();
 	
-	// NEW: Call the centralized monster defeat handler from missions.js
 	handleMonsterDefeat();
 }
 
-/**
- * The main game loop, now running multiple times per second.
- * It's responsible for triggering game logic ticks based on real time passed
- * and for calling the render functions on every frame.
- */
 function gameLoop () {
 	const currentTime = performance.now();
 	if (!lastTickTime) {
 		lastTickTime = currentTime;
-		gameState.lastTickTime = lastTickTime; // MODIFIED: Set initial tick time in global state
+		gameState.lastTickTime = lastTickTime;
 	}
 	
 	const elapsed = currentTime - lastTickTime;
-	// Calculate how many milliseconds should pass for one tick at the current speed.
 	const timePerTick = tickDuration / gameState.gameSettings.speedMultiplier;
 	
-	// If enough real time has passed, process one or more game ticks.
 	if (elapsed >= timePerTick) {
 		const ticksToProcess = Math.floor(elapsed / timePerTick);
 		for (let i = 0; i < ticksToProcess; i++) {
 			processGameTick();
 		}
-		// Update lastTickTime, carrying over any remainder time.
 		lastTickTime += ticksToProcess * timePerTick;
-		gameState.lastTickTime = lastTickTime; // MODIFIED: Update tick time in global state
+		gameState.lastTickTime = lastTickTime;
 	}
 	
-	// --- RENDER LOGIC (runs every interval) ---
 	renderHeader();
 	renderTabs(activeTab, TABS);
 	renderContent();
 }
 
-// --- INITIALIZATION ---
 async function init () {
 	try {
 		const [items, skills, monsters, systemShop, buildingUpgrades, carUpgrades, cars] = await Promise.all([
@@ -379,13 +360,11 @@ async function init () {
 			const newSpeed = parseFloat(speedBtn.dataset.speed);
 			if (gameState.gameSettings.speedMultiplier !== newSpeed) {
 				gameState.gameSettings.speedMultiplier = newSpeed;
-				// The header will be updated on the next render cycle, no need to call it here.
 				addToLog(`[SYSTEM]: Game speed set to ${newSpeed}x.`);
 			}
 			return;
 		}
 		
-		// Added event listener for tab switching.
 		const tabBtn = e.target.closest('[data-tab]');
 		if (tabBtn) {
 			const newTab = tabBtn.dataset.tab;
@@ -394,11 +373,9 @@ async function init () {
 				renderTabs(activeTab, TABS);
 				renderContent();
 			}
-			return; // Stop further processing to prevent other listeners from firing.
+			return;
 		}
 		
-		// Centralized shop and purchase click handling.
-		// The new handler returns true if it processed an event that requires a re-render.
 		if (handleShopAndPurchaseClicks(e)) {
 			renderContent();
 			return;
@@ -448,6 +425,7 @@ async function init () {
 			const skillData = gameData.skills.find(s => s.id === skillId);
 			const targetHeroId = castSkillBtn.dataset.targetHeroId ? parseInt(castSkillBtn.dataset.targetHeroId, 10) : null;
 			
+			// MODIFIED: Call the new start...Action functions
 			if (skillData.class === 'Aegis') {
 				const options = {};
 				if (skillData.actionType === 'heal') {
@@ -456,9 +434,9 @@ async function init () {
 					}
 					options.targetHeroId = hero.skillTargets[skillId];
 				}
-				handleAegisAction(heroId, skillId, options);
+				startAegisAction(heroId, skillId, options);
 			} else {
-				handleCombatAction(heroId, skillId);
+				startCombatAction(heroId, skillId);
 			}
 			renderContent();
 			return;
@@ -481,16 +459,13 @@ async function init () {
 			return;
 		}
 		
-		// MODIFIED: Handle attacking a specific monster and switch tabs if needed.
 		const attackMonsterBtn = e.target.closest('[data-attack-monster-id]');
 		if (attackMonsterBtn) {
 			const monsterId = parseInt(attackMonsterBtn.dataset.attackMonsterId, 10);
 			handleStartAttackMission(monsterId);
 			
-			// If the attack was initiated from the Monsters tab, switch back to the Heroes tab.
 			if (activeTab === 'Monsters') {
 				activeTab = 'Heroes';
-				// The main game loop will handle re-rendering the content and tabs.
 			}
 			return;
 		}

@@ -8,6 +8,7 @@
     "mpCost": 160,
     "levelRequirement": 15,
     "cooldown": 5,
+    "castTime": 4,
     "description": "Repairs up to 3 broken buildings."
   },
   {
@@ -19,6 +20,7 @@
     "mpCost": 240,
     "levelRequirement": 18,
     "cooldown": 5,
+    "castTime": 4,
     "description": "Adds a shield to up to 3 functional buildings."
   },
   {
@@ -31,7 +33,8 @@
     "agroValue": 50,
     "levelRequirement": 1,
     "autoCastUnlockLevel": 5,
-    "cooldown": 2,
+    "cooldown": 3,
+    "castTime": 3,
     "description": "Restores 100 HP to a hero, generating threat."
   },
   {
@@ -44,6 +47,7 @@
     "agroValue": 125,
     "levelRequirement": 6,
     "cooldown": 2,
+    "castTime": 2,
     "description": "Restores 250 HP to a hero, generating threat."
   },
   {
@@ -56,6 +60,7 @@
     "agroValue": 250,
     "levelRequirement": 12,
     "cooldown": 2,
+    "castTime": 2,
     "description": "Restores 500 HP to a hero, generating threat."
   },
   {
@@ -69,7 +74,8 @@
     "agroMultiplier": 1.0,
     "levelRequirement": 1,
     "autoCastUnlockLevel": 1,
-    "cooldown": 1,
+    "cooldown": 3,
+    "castTime": 3,
     "description": "A basic bolt of mana energy."
   },
   {
@@ -84,6 +90,7 @@
     "levelRequirement": 3,
     "autoCastUnlockLevel": 3,
     "cooldown": 2,
+    "castTime": 3,
     "description": "A shard of magical ice that pierces armor."
   },
   {
@@ -98,6 +105,7 @@
     "levelRequirement": 6,
     "autoCastUnlockLevel": 5,
     "cooldown": 3,
+    "castTime": 4,
     "description": "An explosive ball of fire."
   },
   {
@@ -111,6 +119,7 @@
     "levelRequirement": 1,
     "autoCastUnlockLevel": 1,
     "cooldown": 20,
+    "castTime": 0,
     "description": "A challenging shout that generates a small amount of threat."
   },
   {
@@ -125,6 +134,7 @@
     "levelRequirement": 1,
     "autoCastUnlockLevel": 1,
     "cooldown": 1,
+    "castTime": 2,
     "description": "A powerful strike that generates Rage and high threat."
   },
   {
@@ -138,6 +148,7 @@
     "levelRequirement": 2,
     "autoCastUnlockLevel": 2,
     "cooldown": 3,
+    "castTime": 3,
     "description": "Consume a large amount of Rage to force a monster to focus on you. Can be used without Rage for a minor effect."
   },
   {
@@ -151,7 +162,8 @@
     "agroMultiplier": 1.5,
     "levelRequirement": 4,
     "autoCastUnlockLevel": 4,
-    "cooldown": 2,
+    "cooldown": 3,
+    "castTime": 3,
     "description": "Slam your shield into the enemy, consuming Rage to deal damage and generate threat. Can be used without Rage for a minor effect."
   }
 ]

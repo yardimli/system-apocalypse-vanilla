@@ -36,12 +36,11 @@ progress::-moz-progress-bar {
 	animation: flash 0.2s ease-out;
 }
 
-/* NEW: Styles for the skill cooldown progress bar inside buttons */
+/* Styles for the skill cooldown progress bar inside buttons */
 .cooldown-progress {
 	position: relative;
-	/* Ensure text is readable over the dark progress bar */
 	color: white !important;
-	overflow: hidden; /* Hide the progress bar overflow */
+	overflow: hidden;
 }
 
 .cooldown-progress::before {
@@ -50,10 +49,8 @@ progress::-moz-progress-bar {
 	top: 0;
 	left: 0;
 	height: 100%;
-	/* The width is controlled by the --cooldown-percent inline style variable */
 	width: var(--cooldown-percent, 0%);
-	/* Use a dark, semi-transparent color for the progress bar */
-	background-color: oklch(0.3786 0.034 265.754);
-	opacity: 0.3;
-	transition: width 0.5s linear;
+	background-color: red;
+	opacity: 0.7;
+	transition: width 0.2s linear;
 }
