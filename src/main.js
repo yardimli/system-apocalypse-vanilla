@@ -1,4 +1,5 @@
 import { gameState, gameData } from './state.js';
+// MODIFIED: Renamed function imports to reflect the new casting logic.
 import { startCombatAction, startAegisAction, executeCombatEffect, executeAegisEffect } from './hero-actions.js';
 import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
@@ -19,7 +20,8 @@ const getEl = (id) => document.getElementById(id);
 const tabsContainer = getEl('tabs-container');
 const contentArea = getEl('content-area');
 
-function renderContent () {
+// MODIFIED: Function now accepts an alpha value for smooth rendering.
+function renderContent (alpha) {
 	switch (activeTab) {
 		case 'Heroes':
 			if (!getEl('heroes-tab-content')) {
@@ -41,7 +43,8 @@ function renderContent () {
 			renderPartyCombat();
 			renderPartyLog();
 			renderHeroes();
-			renderSkillsPanel();
+			// MODIFIED: Pass alpha to the skills panel for smooth progress bars.
+			renderSkillsPanel(alpha);
 			break;
 		case 'Buildings':
 			renderBuildings(contentArea);
@@ -103,7 +106,7 @@ function processGameTick () {
 	
 	manageCombatAssignments();
 	
-	// Process completed skill casts at the beginning of the hero loop.
+	// NEW: Process completed skill casts at the beginning of the hero loop.
 	gameState.heroes.forEach(hero => {
 		if (hero.casting && gameState.time >= hero.casting.castEndTime) {
 			const skill = gameData.skills.find(s => s.id === hero.casting.skillId);
@@ -199,7 +202,7 @@ function processGameTick () {
 			}
 		}
 		
-		// Auto-cast logic now checks if the hero is already casting.
+		// MODIFIED: Auto-cast logic now checks if the hero is already casting.
 		if (hero.autoCastSkillId && hero.hp.current > 0 && !hero.casting) {
 			const skillId = hero.autoCastSkillId;
 			const skill = gameData.skills.find(s => s.id === skillId);
@@ -257,28 +260,39 @@ function processGameTick () {
 	handleMonsterDefeat();
 }
 
-function gameLoop () {
-	const currentTime = performance.now();
+// MODIFIED: Game loop now uses requestAnimationFrame for smooth rendering.
+function gameLoop (currentTime) {
+	// Initialize lastTickTime on the first frame.
 	if (!lastTickTime) {
 		lastTickTime = currentTime;
-		gameState.lastTickTime = lastTickTime;
 	}
 	
+	// Calculate the time elapsed since the last logic tick.
 	const elapsed = currentTime - lastTickTime;
 	const timePerTick = tickDuration / gameState.gameSettings.speedMultiplier;
 	
+	// Process game logic ticks if enough time has passed.
 	if (elapsed >= timePerTick) {
 		const ticksToProcess = Math.floor(elapsed / timePerTick);
 		for (let i = 0; i < ticksToProcess; i++) {
 			processGameTick();
 		}
+		// Update lastTickTime, ensuring it stays aligned with the tick grid.
 		lastTickTime += ticksToProcess * timePerTick;
-		gameState.lastTickTime = lastTickTime;
 	}
 	
+	// Calculate alpha: the progress (0.0 to 1.0) towards the next game tick.
+	// This is the key to smooth animations.
+	const frameElapsed = currentTime - lastTickTime;
+	const alpha = Math.min(1.0, frameElapsed / timePerTick);
+	
+	// Render the game state on every frame, passing alpha for interpolation.
 	renderHeader();
 	renderTabs(activeTab, TABS);
-	renderContent();
+	renderContent(alpha);
+	
+	// Request the next frame to continue the loop.
+	requestAnimationFrame(gameLoop);
 }
 
 async function init () {
@@ -349,9 +363,10 @@ async function init () {
 		return;
 	}
 	
+	// Initial render before the loop starts.
 	renderHeader();
 	renderTabs(activeTab, TABS);
-	renderContent();
+	renderContent(0);
 	
 	document.body.addEventListener('click', (e) => {
 		const speedBtn = e.target.closest('[data-speed]');
@@ -369,14 +384,15 @@ async function init () {
 			const newTab = tabBtn.dataset.tab;
 			if (newTab !== activeTab) {
 				activeTab = newTab;
-				renderTabs(activeTab, TABS);
-				renderContent();
+				// Re-render content immediately on tab switch.
+				renderContent(0);
 			}
 			return;
 		}
 		
 		if (handleShopAndPurchaseClicks(e)) {
-			renderContent();
+			// Re-render content immediately after a shop action.
+			renderContent(0);
 			return;
 		}
 		
@@ -387,7 +403,7 @@ async function init () {
 			const itemData = gameData.items.find(i => i.id === itemId);
 			if (itemData && itemData.type === 'Consumable') {
 				if (handleUseConsumable(heroId, itemId)) {
-					renderContent();
+					renderContent(0);
 				}
 			}
 			return;
@@ -411,7 +427,7 @@ async function init () {
 				const skillName = gameData.skills.find(s => s.id === skillId).name;
 				const action = hero.autoCastSkillId ? `set auto-cast to: ${skillName}` : 'disabled auto-cast';
 				addToLog(`${action}.`, hero.id);
-				renderContent();
+				renderContent(0);
 			}
 			return;
 		}
@@ -424,7 +440,6 @@ async function init () {
 			const skillData = gameData.skills.find(s => s.id === skillId);
 			const targetHeroId = castSkillBtn.dataset.targetHeroId ? parseInt(castSkillBtn.dataset.targetHeroId, 10) : null;
 			
-			// Call the new start...Action functions
 			if (skillData.class === 'Aegis') {
 				const options = {};
 				if (skillData.actionType === 'heal') {
@@ -437,7 +452,7 @@ async function init () {
 			} else {
 				startCombatAction(heroId, skillId);
 			}
-			renderContent();
+			renderContent(0);
 			return;
 		}
 		
@@ -446,7 +461,7 @@ async function init () {
 			const heroId = parseInt(enterBuildingBtn.dataset.enterBuildingHero, 10);
 			const buildingId = parseInt(enterBuildingBtn.dataset.enterBuildingBldg, 10);
 			handleEnterBuilding(heroId, buildingId);
-			renderContent();
+			renderContent(0);
 			return;
 		}
 		
@@ -454,7 +469,7 @@ async function init () {
 		if (exitBuildingBtn) {
 			const heroId = parseInt(exitBuildingBtn.dataset.exitBuildingHero, 10);
 			handleExitBuilding(heroId);
-			renderContent();
+			renderContent(0);
 			return;
 		}
 		
@@ -483,7 +498,7 @@ async function init () {
 		
 		const extraLogToggle = e.target.closest('[data-toggle-extra-log]');
 		if (extraLogToggle) {
-			if (activeTab === 'Heroes') renderContent();
+			if (activeTab === 'Heroes') renderContent(0);
 			return;
 		}
 		
@@ -496,11 +511,12 @@ async function init () {
 		
 		if (e.target.id === 'sandbox-apply') {
 			applySandboxChanges();
-			renderContent();
+			renderContent(0);
 		}
 	});
 	
-	setInterval(gameLoop, 200);
+	// MODIFIED: Start the new requestAnimationFrame game loop instead of setInterval.
+	requestAnimationFrame(gameLoop);
 }
 
 document.addEventListener('DOMContentLoaded', init);

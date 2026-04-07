@@ -45,7 +45,10 @@ export function autoEquipBestGear (hero) {
 	}
 };
 
-// MOVED: findEntityById function moved to src/shop.js as it's only used by the shop modal.
+function findEntityById (id) {
+	if (!id) return null;
+	return gameData.items.find(i => i.id === id);
+}
 
 export function renderHeroes () {
 	const grid = getEl('heroes-grid');
@@ -77,7 +80,7 @@ export function renderHeroes () {
 		
 		const equipmentContainer = card.querySelector('[data-equipment-container]');
 		const equippedItems = Object.entries(hero.equipment)
-			.map(([slot, itemId]) => ({ slot, item: gameData.items.find(i => i.id === itemId) }))
+			.map(([slot, itemId]) => ({ slot, item: findEntityById(itemId) }))
 			.filter(e => e.item);
 		
 		let equipHtml = '';
@@ -186,14 +189,15 @@ export function renderHeroes () {
 				statusStateKey = `driving-back-${hero.carId}-${hero.survivorsCarried}-${carCapacity}`;
 			} else if (gameState.party.missionState === 'in_combat') {
 				statusHtml = `<span class="text-error">Ambushed!</span>`;
-				statusStateKey = `in-combat-${hero.carId}`;
+				statusStateKey = `in-combat-${hero.carid}`;
 			}
 		}
 		updateHtmlIfChanged(statusArea, statusHtml, statusStateKey);
 	});
 };
 
-export function renderSkillsPanel () {
+// MODIFIED: Function now accepts an `alpha` parameter for smooth interpolation.
+export function renderSkillsPanel (alpha = 0) {
 	const container = getEl('skills-panel-container');
 	if (!container) return;
 	
@@ -297,17 +301,21 @@ export function renderSkillsPanel () {
 					let progressPercent = 0;
 					let inProgress = false;
 					
+					// MODIFIED: Smooth progress calculation
 					if (isCastingThisSkill) {
 						const castTime = skillData.castTime;
 						const castEndTime = hero.casting.castEndTime;
-						// Calculate elapsed time for a "filling" progress bar during cast (0% -> 100%).
-						const elapsedCastTime = castTime - (castEndTime - gameState.time);
-						progressPercent = (elapsedCastTime / castTime) * 100;
+						// Calculate remaining time at the start of the tick, then subtract alpha for smooth progress.
+						const remainingCastTime = castEndTime - gameState.time;
+						const smoothRemaining = Math.max(0, remainingCastTime - alpha);
+						const elapsedSmooth = castTime - smoothRemaining;
+						progressPercent = (elapsedSmooth / castTime) * 100;
 						inProgress = true;
 					} else if (isOnCooldown) {
 						// Cooldown bar depletes from 100% to 0%.
 						const remainingCd = cooldownEndTime - gameState.time;
-						progressPercent = (remainingCd / skillData.cooldown) * 100;
+						const smoothRemaining = Math.max(0, remainingCd - alpha);
+						progressPercent = (smoothRemaining / skillData.cooldown) * 100;
 						inProgress = true;
 					}
 					
@@ -329,17 +337,21 @@ export function renderSkillsPanel () {
 				let progressPercent = 0;
 				let inProgress = false;
 				
+				// MODIFIED: Smooth progress calculation
 				if (isCastingThisSkill) {
 					const castTime = skillData.castTime;
 					const castEndTime = hero.casting.castEndTime;
-					// Calculate elapsed time for a "filling" progress bar during cast (0% -> 100%).
-					const elapsedCastTime = castTime - (castEndTime - gameState.time);
-					progressPercent = (elapsedCastTime / castTime) * 100;
+					// Calculate remaining time at the start of the tick, then subtract alpha for smooth progress.
+					const remainingCastTime = castEndTime - gameState.time;
+					const smoothRemaining = Math.max(0, remainingCastTime - alpha);
+					const elapsedSmooth = castTime - smoothRemaining;
+					progressPercent = (elapsedSmooth / castTime) * 100;
 					inProgress = true;
 				} else if (isOnCooldown) {
 					// Cooldown bar depletes from 100% to 0%.
 					const remainingCd = cooldownEndTime - gameState.time;
-					progressPercent = (remainingCd / skillData.cooldown) * 100;
+					const smoothRemaining = Math.max(0, remainingCd - alpha);
+					progressPercent = (smoothRemaining / skillData.cooldown) * 100;
 					inProgress = true;
 				}
 				

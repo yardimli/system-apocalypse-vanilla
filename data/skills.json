@@ -34,7 +34,7 @@
     "levelRequirement": 1,
     "autoCastUnlockLevel": 5,
     "cooldown": 3,
-    "castTime": 3,
+    "castTime": 0,
     "description": "Restores 100 HP to a hero, generating threat."
   },
   {
@@ -46,8 +46,8 @@
     "mpCost": 35,
     "agroValue": 125,
     "levelRequirement": 6,
-    "cooldown": 2,
-    "castTime": 2,
+    "cooldown": 3,
+    "castTime": 1,
     "description": "Restores 250 HP to a hero, generating threat."
   },
   {
@@ -59,7 +59,7 @@
     "mpCost": 50,
     "agroValue": 250,
     "levelRequirement": 12,
-    "cooldown": 2,
+    "cooldown": 3,
     "castTime": 2,
     "description": "Restores 500 HP to a hero, generating threat."
   },
@@ -74,8 +74,8 @@
     "agroMultiplier": 1.0,
     "levelRequirement": 1,
     "autoCastUnlockLevel": 1,
-    "cooldown": 3,
-    "castTime": 3,
+    "cooldown": 2,
+    "castTime": 0,
     "description": "A basic bolt of mana energy."
   },
   {
@@ -90,7 +90,7 @@
     "levelRequirement": 3,
     "autoCastUnlockLevel": 3,
     "cooldown": 2,
-    "castTime": 3,
+    "castTime": 2,
     "description": "A shard of magical ice that pierces armor."
   },
   {
@@ -118,7 +118,7 @@
     "value": 250,
     "levelRequirement": 1,
     "autoCastUnlockLevel": 1,
-    "cooldown": 20,
+    "cooldown": 4,
     "castTime": 0,
     "description": "A challenging shout that generates a small amount of threat."
   },
@@ -133,8 +133,8 @@
     "agroMultiplier": 2.0,
     "levelRequirement": 1,
     "autoCastUnlockLevel": 1,
-    "cooldown": 1,
-    "castTime": 2,
+    "cooldown": 2,
+    "castTime": 1,
     "description": "A powerful strike that generates Rage and high threat."
   },
   {
