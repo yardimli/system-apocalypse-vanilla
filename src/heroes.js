@@ -92,7 +92,7 @@ export function renderHeroes () {
 				if (item.spellPower) details = `SP: x${item.spellPower}`;
 				return `
           <div class="tooltip" data-tip="${item.name} (${details}) | Slot: ${slot}">
-            <img src="${item.image}" alt="${item.name}" class="w-[50px] h-[50px] object-contain bg-base-300/50 rounded" />
+            <img src="${item.image}" alt="${item.name}" class="w-[32px] h-[32px] object-contain bg-base-300/50 rounded" />
           </div>
         `;
 			}).join(' ');
@@ -219,6 +219,8 @@ export function renderSkillsPanel (alpha = 0) {
 			.map(hs => gameData.skills.find(s => s.id === hs.id))
 			.filter(Boolean);
 		
+		const isHeroCasting = !!hero.casting; // NEW: Check if the hero is casting any skill to disable all other skill buttons.
+		
 		learnedSkills.forEach(skillData => {
 			const skillRowDomId = `skill-row-${hero.id}-${skillData.id}`;
 			activeSkillRowIds.add(skillRowDomId);
@@ -336,8 +338,8 @@ export function renderSkillsPanel (alpha = 0) {
 						inProgress = true;
 					}
 					
-					// MODIFIED: Added canUseInCurrentState and corrected hasResources checks.
-					button.disabled = isCastingThisSkill || isOnCooldown || !meetsLevelReq || !hasResources || !canUseInCurrentState;
+					// MODIFIED: Use isHeroCasting to disable all of the hero's skills while one is being cast.
+					button.disabled = isHeroCasting || isOnCooldown || !meetsLevelReq || !hasResources || !canUseInCurrentState;
 					button.style.width = '110px';
 					button.style.setProperty('--cooldown-percent', `${progressPercent}%`);
 					button.classList.toggle('btn-secondary', isActive && !inProgress);
@@ -373,8 +375,8 @@ export function renderSkillsPanel (alpha = 0) {
 					inProgress = true;
 				}
 				
-				// MODIFIED: Added canUseInCurrentState and corrected hasResources checks.
-				button.disabled = isCastingThisSkill || isOnCooldown || !meetsLevelReq || !hasResources || !canUseInCurrentState;
+				// MODIFIED: Use isHeroCasting to disable all of the hero's skills while one is being cast.
+				button.disabled = isHeroCasting || isOnCooldown || !meetsLevelReq || !hasResources || !canUseInCurrentState;
 				button.style.setProperty('--cooldown-percent', `${progressPercent}%`);
 				button.classList.toggle('cooldown-progress', inProgress);
 				button.classList.toggle('flash-effect', shouldFlash);
