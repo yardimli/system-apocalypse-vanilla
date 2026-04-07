@@ -2,7 +2,7 @@
   {
     "id": "ITM002",
     "name": "Medical Supplies",
-    "image": "public/images/ITM002.png",
+    "image": "/images/ITM002.png",
     "type": "Consumable",
     "description": "Used by Aegis heroes for powerful healing.",
     "effect": {
@@ -15,7 +15,7 @@
   {
     "id": "ITM003",
     "name": "Monster Core Shard",
-    "image": "public/images/ITM003.png",
+    "image": "/images/ITM003.png",
     "type": "Junk",
     "description": "A fragment of a monster's essence, valuable to the System.",
     "level": 1,
@@ -24,7 +24,7 @@
   {
     "id": "ITM005",
     "name": "Energy Bar",
-    "image": "public/images/ITM005.png",
+    "image": "/images/ITM005.png",
     "type": "Consumable",
     "description": "Can be used to restore a small amount of MP.",
     "effect": {
@@ -38,7 +38,7 @@
   {
     "id": "ITM006",
     "name": "Clean Water",
-    "image": "public/images/ITM006.png",
+    "image": "/images/ITM006.png",
     "type": "Consumable",
     "description": "Essential for survivor well-being. Restores a tiny amount of HP.",
     "effect": {
@@ -51,7 +51,7 @@
   {
     "id": "ITM008",
     "name": "System Shard",
-    "image": "public/images/ITM008.png",
+    "image": "/images/ITM008.png",
     "type": "Junk",
     "description": "A rare fragment of the System itself.",
     "level": 2,
@@ -60,7 +60,7 @@
   {
     "id": "ITM009",
     "name": "First Aid Kit",
-    "image": "public/images/ITM009.png",
+    "image": "/images/ITM009.png",
     "type": "Consumable",
     "description": "A better version of Medical Supplies.",
     "effect": {
@@ -73,7 +73,7 @@
   {
     "id": "ITM013",
     "name": "Mana Crystal",
-    "image": "public/images/ITM013.png",
+    "image": "/images/ITM013.png",
     "type": "Consumable",
     "description": "A crystal humming with energy. Restores MP.",
     "effect": {
@@ -87,7 +87,7 @@
   {
     "id": "ITM014",
     "name": "Corrupted Data Fragment",
-    "image": "public/images/ITM014.png",
+    "image": "/images/ITM014.png",
     "type": "Junk",
     "description": "An unstable piece of monster data.",
     "level": 2,
@@ -96,7 +96,7 @@
   {
     "id": "ITM015",
     "name": "Pure Energy Crystal",
-    "image": "public/images/ITM015.png",
+    "image": "/images/ITM015.png",
     "type": "Junk",
     "description": "A flawless crystal used in high-end items.",
     "level": 3,
@@ -105,7 +105,7 @@
   {
     "id": "ITM016",
     "name": "Lesser Healing Salve",
-    "image": "public/images/ITM016.png",
+    "image": "/images/ITM016.png",
     "type": "Consumable",
     "description": "A basic salve that restores a small amount of HP.",
     "effect": {
@@ -118,7 +118,7 @@
   {
     "id": "ITM017",
     "name": "Lesser Mana Vial",
-    "image": "public/images/ITM017.png",
+    "image": "/images/ITM017.png",
     "type": "Consumable",
     "description": "A small vial that restores a bit of MP.",
     "effect": {
@@ -132,7 +132,7 @@
   {
     "id": "ITM018",
     "name": "Standard Healing Potion",
-    "image": "public/images/ITM018.png",
+    "image": "/images/ITM018.png",
     "type": "Consumable",
     "description": "Restores a moderate amount of HP.",
     "effect": {
@@ -145,7 +145,7 @@
   {
     "id": "ITM019",
     "name": "Standard Mana Potion",
-    "image": "public/images/ITM019.png",
+    "image": "/images/ITM019.png",
     "type": "Consumable",
     "description": "Restores a moderate amount of MP.",
     "effect": {
@@ -159,7 +159,7 @@
   {
     "id": "ITM020",
     "name": "Greater Healing Potion",
-    "image": "public/images/ITM020.png",
+    "image": "/images/ITM020.png",
     "type": "Consumable",
     "description": "A potent elixir that restores a large amount of HP.",
     "effect": {
@@ -172,7 +172,7 @@
   {
     "id": "ITM021",
     "name": "Greater Mana Potion",
-    "image": "public/images/ITM021.png",
+    "image": "/images/ITM021.png",
     "type": "Consumable",
     "description": "A potent elixir that restores a large amount of MP.",
     "effect": {
@@ -186,7 +186,7 @@
   {
     "id": "ARM001",
     "name": "Cloth Armor",
-    "image": "public/images/ARM001.png",
+    "image": "/images/ARM001.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Cloth",
@@ -198,7 +198,7 @@
   {
     "id": "ARM002",
     "name": "Leather Armor",
-    "image": "public/images/ARM002.png",
+    "image": "/images/ARM002.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Leather",
@@ -210,7 +210,7 @@
   {
     "id": "ARM003",
     "name": "Chainmail Armor",
-    "image": "public/images/ARM003.png",
+    "image": "/images/ARM003.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Chainmail",
@@ -222,7 +222,7 @@
   {
     "id": "ARM004",
     "name": "Plate Armor",
-    "image": "public/images/ARM004.png",
+    "image": "/images/ARM004.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Plate",
@@ -234,7 +234,7 @@
   {
     "id": "ARM005",
     "name": "Aegis Power Armor",
-    "image": "public/images/ARM005.png",
+    "image": "/images/ARM005.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Plate",
@@ -246,7 +246,7 @@
   {
     "id": "ARM002_V",
     "name": "Reinforced Leather",
-    "image": "public/images/ARM002_V.png",
+    "image": "/images/ARM002_V.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Leather",
@@ -258,7 +258,7 @@
   {
     "id": "ARM003_V",
     "name": "Hardened Chainmail",
-    "image": "public/images/ARM003_V.png",
+    "image": "/images/ARM003_V.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Chainmail",
@@ -270,7 +270,7 @@
   {
     "id": "ARM004_V",
     "name": "Masterwork Plate",
-    "image": "public/images/ARM004_V.png",
+    "image": "/images/ARM004_V.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Plate",
@@ -282,7 +282,7 @@
   {
     "id": "WAND001",
     "name": "Apprentice's Wand",
-    "image": "public/images/WAND001.png",
+    "image": "/images/WAND001.png",
     "type": "Weapon",
     "weaponType": "Wand",
     "equipSlot": "mainHand",
@@ -296,7 +296,7 @@
   {
     "id": "WAND002",
     "name": "Adept's Wand",
-    "image": "public/images/WAND002.png",
+    "image": "/images/WAND002.png",
     "type": "Weapon",
     "weaponType": "Wand",
     "equipSlot": "mainHand",
@@ -310,7 +310,7 @@
   {
     "id": "WAND003",
     "name": "Mage's Scepter",
-    "image": "public/images/WAND003.png",
+    "image": "/images/WAND003.png",
     "type": "Weapon",
     "weaponType": "Wand",
     "equipSlot": "mainHand",
@@ -324,7 +324,7 @@
   {
     "id": "SWD001",
     "name": "Rusted Shortsword",
-    "image": "public/images/SWD001.png",
+    "image": "/images/SWD001.png",
     "type": "Weapon",
     "weaponType": "Sword",
     "equipSlot": "mainHand",
@@ -337,7 +337,7 @@
   {
     "id": "SWD002",
     "name": "Steel Longsword",
-    "image": "public/images/SWD002.png",
+    "image": "/images/SWD002.png",
     "type": "Weapon",
     "weaponType": "Sword",
     "equipSlot": "mainHand",
@@ -350,7 +350,7 @@
   {
     "id": "SWD003",
     "name": "Titanium Greatsword",
-    "image": "public/images/SWD003.png",
+    "image": "/images/SWD003.png",
     "type": "Weapon",
     "weaponType": "Sword",
     "equipSlot": "mainHand",
@@ -363,7 +363,7 @@
   {
     "id": "SHD001",
     "name": "Wooden Buckler",
-    "image": "public/images/SHD001.png",
+    "image": "/images/SHD001.png",
     "type": "Shield",
     "weaponType": "Shield",
     "equipSlot": "offHand",
@@ -376,7 +376,7 @@
   {
     "id": "SHD002",
     "name": "Iron Kite Shield",
-    "image": "public/images/SHD002.png",
+    "image": "/images/SHD002.png",
     "type": "Shield",
     "weaponType": "Shield",
     "equipSlot": "offHand",
@@ -389,7 +389,7 @@
   {
     "id": "SHD003",
     "name": "Aegis Barrier",
-    "image": "public/images/SHD003.png",
+    "image": "/images/SHD003.png",
     "type": "Shield",
     "weaponType": "Shield",
     "equipSlot": "offHand",
@@ -402,7 +402,7 @@
   {
     "id": "BOW001",
     "name": "Simple Bow",
-    "image": "public/images/BOW001.png",
+    "image": "/images/BOW001.png",
     "type": "Weapon",
     "weaponType": "Bow",
     "equipSlot": "mainHand",
@@ -415,7 +415,7 @@
   {
     "id": "BOW002",
     "name": "Advanced Bow",
-    "image": "public/images/BOW002.png",
+    "image": "/images/BOW002.png",
     "type": "Weapon",
     "weaponType": "Bow",
     "equipSlot": "mainHand",
@@ -428,7 +428,7 @@
   {
     "id": "AMMO001",
     "name": "Arrows (100)",
-    "image": "public/images/AMMO001.png",
+    "image": "/images/AMMO001.png",
     "class": ["Striker", "Aegis"],
     "type": "Consumable",
     "description": "A bundle of 100 simple arrows. Can be sold.",
