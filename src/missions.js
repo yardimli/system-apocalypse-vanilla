@@ -8,8 +8,9 @@ const getEl = (id) => document.getElementById(id);
 /**
  * Renders the mission control panel using a granular update strategy.
  * This includes mission status, survivor counts, and action buttons.
+ * @param {number} alpha - The interpolation factor (0.0 to 1.0) for smooth rendering between ticks.
  */
-export function renderMissionControl () {
+export function renderMissionControl (alpha = 0) {
 	const missionControlArea = getEl('mission-control-area');
 	if (!missionControlArea) return;
 	
@@ -40,19 +41,10 @@ export function renderMissionControl () {
 	const isFull = currentPopulation >= maxPopulation;
 	const partyState = gameState.party;
 	
-	// --- NEW SECTION START ---
-	// Calculate an interpolation factor (alpha) based on the time elapsed since the last game tick.
-	// This allows for a smooth visual counter effect for distance, even though the game logic only updates once per tick.
-	const tickDuration = 1000; // Base duration of a tick in ms.
-	const timePerTick = tickDuration / gameState.gameSettings.speedMultiplier;
-	const timeSinceLastTick = performance.now() - gameState.lastTickTime;
-	const alpha = Math.min(1.0, timeSinceLastTick / timePerTick);
-	
-	// Interpolate progress between the start of the tick and the current target.
+	// Interpolate progress between the start of the tick and the current target using the passed-in alpha.
 	const startProgress = partyState.previousMissionProgress || 0;
 	const endProgress = partyState.missionProgress;
 	const interpolatedProgress = startProgress + (endProgress - startProgress) * alpha;
-	// --- NEW SECTION END ---
 	
 	// Determine status text
 	let statusText;
@@ -105,10 +97,9 @@ export function renderMissionControl () {
 	
 	const buttonText = isFull ? 'Look for Monsters' : 'Look for Survivors';
 	const buttonDisabled = partyState.missionState !== 'idle';
-	const activeMonsters = gameState.activeMonsters; // Get active monsters.
-	const canFight = activeMonsters.length > 0 && partyState.missionState === 'idle'; // Condition for fight button.
+	const activeMonsters = gameState.activeMonsters;
+	const canFight = activeMonsters.length > 0 && partyState.missionState === 'idle';
 	
-	// State key now includes monster count to update the dropdown list.
 	const buttonsStateKey = `${partyState.missionState}-${buttonDisabled}-${activeMonsters.length}`;
 	
 	if (buttonsEl.getAttribute('data-prev-state') !== buttonsStateKey) {
@@ -117,14 +108,12 @@ export function renderMissionControl () {
 			buttonsHtml += '<button id="flee-btn" class="btn btn-warning">Flee</button>';
 		}
 		
-		// "Look for Survivors/Monsters" button
 		buttonsHtml += `
             <button id="mission-btn" class="btn btn-primary" ${buttonDisabled ? 'disabled' : ''}>
                 ${buttonText}
             </button>
         `;
 		
-		// "Fight" dropdown button with list of active monsters.
 		buttonsHtml += `
 			<div class="dropdown dropdown-top">
 				<div tabindex="0" role="button" class="btn btn-error" ${!canFight ? 'disabled' : ''}>Fight</div>
@@ -173,6 +162,8 @@ export function handleStartMission () {
 	gameState.party.missionState = 'driving_out';
 	gameState.party.missionTimer = 10; // 10-second trip out
 	gameState.party.missionProgress = 0;
+	// NEW: Synchronize previous progress to prevent jumps on mission start.
+	gameState.party.previousMissionProgress = 0;
 }
 
 /**
@@ -188,14 +179,11 @@ export function handleFlee () {
 	monsterIdsFought.forEach(monsterId => {
 		const monster = gameState.activeMonsters.find(m => m.id === monsterId);
 		if (monster) {
-			// Set the monster's distance based on how far the party was on their mission.
 			if (gameState.party.pausedMission) {
 				const missionProgress = gameState.party.pausedMission.progress;
 				monster.distanceFromCity = 3000 * (missionProgress / 100);
 			}
-			// The monster is now unassigned and will act independently.
 			monster.assignedTo = [];
-			// Clear the monster's threat list so it doesn't re-engage immediately.
 			monster.agro = {};
 		}
 	});
@@ -204,28 +192,26 @@ export function handleFlee () {
 	
 	const paused = gameState.party.pausedMission;
 	if (paused) {
-		// If it was a specific attack mission, calculate the return trip based on the monster's distance.
 		if (paused.attackTargetId) {
 			const targetMonster = gameState.activeMonsters.find(m => m.id === paused.attackTargetId);
-			const distance = targetMonster ? targetMonster.distanceFromCity : 1500; // Fallback distance
+			const distance = targetMonster ? targetMonster.distanceFromCity : 1500;
 			
 			gameState.party.missionState = 'driving_back';
-			// Progress is based on distance, assuming 3000m is 100%
 			gameState.party.missionProgress = (distance / 3000) * 100;
-			// Timer is based on progress (10 ticks for a full 100% trip)
 			gameState.party.missionTimer = Math.ceil(gameState.party.missionProgress / 10);
+			// NEW: Synchronize previous progress to prevent a visual jump.
+			gameState.party.previousMissionProgress = gameState.party.missionProgress;
 		} else {
-			// Original logic for ambushes on regular missions.
 			gameState.party.missionState = 'driving_back';
 			gameState.party.missionProgress = paused.progress;
 			gameState.party.missionTimer = Math.ceil(paused.progress / 10);
+			// NEW: Synchronize previous progress to prevent a visual jump.
+			gameState.party.previousMissionProgress = gameState.party.missionProgress;
 		}
 		
 		gameState.party.pausedMission = null;
 	} else {
-		// Fallback if flee is somehow triggered outside of a mission ambush.
 		gameState.party.missionState = 'idle';
-		// Reset progress and timer for a clean state.
 		gameState.party.missionProgress = 0;
 		gameState.party.missionTimer = 0;
 	}
@@ -236,16 +222,15 @@ export function handleFlee () {
  * This includes movement, monster spawning, and survivor searching.
  */
 export function processMissionTick () {
-	// Store the progress from the start of the tick for smooth UI interpolation.
-	gameState.party.previousMissionProgress = gameState.party.missionProgress;
-	
 	if (!['driving_out', 'driving_back', 'driving_to_attack'].includes(gameState.party.missionState)) {
 		return;
 	}
 	
+	// NEW: Store the progress from the start of the tick for smooth interpolation.
+	gameState.party.previousMissionProgress = gameState.party.missionProgress;
+	
 	// 1. Handle Monster Spawning (Ambush)
 	let wasAmbushed = false;
-	// Ambushes should only happen during general exploration ('driving_out','driving_back'), not on the way to a specific target or on any return trip.
 	if (['driving_out', 'driving_back'].includes(gameState.party.missionState)) {
 		const heroesInCars = gameState.heroes.filter(h => h.carId && h.hp.current > 0).length;
 		if (heroesInCars > 0) {
@@ -269,29 +254,26 @@ export function processMissionTick () {
 						agro: {},
 						speed: monsterData.speed || 50
 					};
-					// Set the monster's distance from the city based on mission progress.
 					newMonster.distanceFromCity = 3000 * (gameState.party.missionProgress / 100);
 					
 					gameState.activeMonsters.push(newMonster);
 					addToLog(`AMBUSH! A Lv.${monsterData.level} ${monsterData.name} (#${newMonster.id}) appeared!`);
 					
-					// Pause the mission for combat
 					gameState.party.pausedMission = {
 						state: gameState.party.missionState,
 						timer: gameState.party.missionTimer,
 						progress: gameState.party.missionProgress,
-						ambushMonsterId: newMonster.id // Track the ambushing monster.
+						ambushMonsterId: newMonster.id
 					};
 					gameState.party.missionState = 'in_combat';
 					gameState.party.missionTimer = 0;
 					wasAmbushed = true;
-					break; // Only one ambush per tick
+					break;
 				}
 			}
 		}
 	}
 	
-	// If ambushed, stop mission processing for this tick
 	if (wasAmbushed) return;
 	
 	// 2. Handle Survivor Searching (while driving)
@@ -300,8 +282,7 @@ export function processMissionTick () {
 	const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
 	const isBaseFull = currentPopulation >= maxPopulation;
 	
-	// Only search for survivors if the base is not full.
-	if (!isBaseFull && Math.random() < 0.05) { // 5% chance per tick to find survivors
+	if (!isBaseFull && Math.random() < 0.05) {
 		const heroesOnMission = gameState.heroes.filter(h => h.carId && h.hp.current > 0);
 		const totalCapacity = heroesOnMission.reduce((sum, h) => {
 			const car = gameState.city.cars.find(c => c.id === h.carId);
@@ -311,22 +292,20 @@ export function processMissionTick () {
 		const availableSpace = totalCapacity - currentCarried;
 		
 		if (availableSpace > 0) {
-			const survivorsFound = Math.floor(Math.random() * 5) + 1; // Find 1-5 survivors
+			const survivorsFound = Math.floor(Math.random() * 5) + 1;
 			const survivorsToTake = Math.min(survivorsFound, availableSpace);
 			addToLog(`The party found ${survivorsFound} survivors while travelling and picked up ${survivorsToTake}!`);
 			
-			// Store initial survivor counts to log the distribution delta.
 			const initialCounts = new Map();
 			heroesOnMission.forEach(hero => {
 				initialCounts.set(hero.id, hero.survivorsCarried);
 			});
 			
 			let survivorsToDistribute = survivorsToTake;
-			// Distribute survivors among cars with available space.
 			while (survivorsToDistribute > 0) {
 				let distributedThisLoop = false;
 				for (const hero of heroesOnMission) {
-					const car = gameState.city.cars.find(c => c.id === h.carId);
+					const car = gameState.city.cars.find(c => c.id === hero.carId);
 					if (survivorsToDistribute > 0 && car && hero.survivorsCarried < car.survivorCapacity) {
 						hero.survivorsCarried++;
 						survivorsToDistribute--;
@@ -334,11 +313,10 @@ export function processMissionTick () {
 					}
 				}
 				if (!distributedThisLoop) {
-					break; // Safeguard against infinite loops if no space is available.
+					break;
 				}
 			}
 			
-			// Log the detailed distribution of survivors to each hero's log.
 			heroesOnMission.forEach(hero => {
 				const initialCount = initialCounts.get(hero.id);
 				const finalCount = hero.survivorsCarried;
@@ -346,7 +324,6 @@ export function processMissionTick () {
 				if (pickedUp > 0) {
 					const car = gameState.city.cars.find(c => c.id === hero.carId);
 					const carName = car ? car.name : 'their car';
-					// Add the log entry to the specific hero's log.
 					addToLog(`picked up ${pickedUp} survivor(s), bringing the total in ${carName} to ${finalCount}.`, hero.id);
 				}
 			});
@@ -356,7 +333,6 @@ export function processMissionTick () {
 	// 3. Process Mission Timer and State
 	gameState.party.missionTimer--;
 	
-	// Handle progress for different mission types.
 	if (gameState.party.missionState === 'driving_out') {
 		const totalTime = 10;
 		gameState.party.missionProgress = 100 - ((gameState.party.missionTimer / totalTime) * 100);
@@ -364,7 +340,6 @@ export function processMissionTick () {
 		const totalTime = 10;
 		gameState.party.missionProgress = (gameState.party.missionTimer / totalTime) * 100;
 	} else if (gameState.party.missionState === 'driving_to_attack') {
-		// Calculate progress based on time elapsed towards the target.
 		const totalTime = gameState.party.missionTotalTime;
 		if (totalTime > 0) {
 			const timeElapsed = totalTime - gameState.party.missionTimer;
@@ -376,14 +351,12 @@ export function processMissionTick () {
 		if (gameState.party.missionState === 'driving_out') {
 			addToLog('The party has reached the furthest point and is returning to base.');
 			gameState.party.missionState = 'driving_back';
-			gameState.party.missionTimer = 10; // 10-second trip back
+			gameState.party.missionTimer = 10;
 		} else if (gameState.party.missionState === 'driving_back') {
-			// Arrived back at base
 			const totalSurvivors = gameState.heroes.reduce((sum, h) => sum + h.survivorsCarried, 0);
 			if (totalSurvivors > 0) {
 				addToLog(`The party successfully returned with ${totalSurvivors} survivors!`);
 				let survivorsToHouse = totalSurvivors;
-				// Logic to distribute survivors among available player buildings.
 				const playerBasesWithSpace = gameState.city.buildings.filter(b => b.owner === 'player' && b.population < 10);
 				
 				if (playerBasesWithSpace.length > 0) {
@@ -397,12 +370,11 @@ export function processMissionTick () {
 							}
 						}
 						if (!housedThisLoop) {
-							break; // Break if a full loop occurs with no one housed (all bases are full).
+							break;
 						}
 					}
 				}
 				
-				// Add a log message if any survivors could not be housed.
 				if (survivorsToHouse > 0) {
 					addToLog(`Could not house ${survivorsToHouse} survivors because all safezones are full! They have departed.`);
 				}
@@ -410,7 +382,6 @@ export function processMissionTick () {
 				addToLog('The party has successfully returned to base.');
 			}
 			
-			// Move all heroes into a base building and reset mission state
 			const firstBase = gameState.city.buildings.find(b => b.owner === 'player');
 			if (firstBase) {
 				gameState.heroes.forEach(h => handleEnterBuilding(h.id, firstBase.id));
@@ -419,36 +390,33 @@ export function processMissionTick () {
 			gameState.party.missionState = 'idle';
 			gameState.party.missionTimer = 0;
 			gameState.party.missionProgress = 0;
-			// Clean up attack mission state variables.
 			gameState.party.missionTargetDistance = 0;
 			gameState.party.missionTotalTime = 0;
 		} else if (gameState.party.missionState === 'driving_to_attack') {
 			const monster = gameState.activeMonsters.find(m => m.id === gameState.party.targetMonsterId);
 			if (monster) {
 				addToLog(`The party has reached ${monster.name} and is engaging in combat!`);
-				// Assign all combat-capable heroes to the target monster.
+				// MODIFIED: Finalize progress to 100 before state change to ensure the bar fills completely.
+				gameState.party.missionProgress = 100;
+				
 				gameState.heroes.forEach(hero => {
 					if (hero.location === 'field' && (hero.class === 'Striker' || hero.class === 'Vanguard') && hero.hp.current > 0) {
 						hero.targetMonsterId = monster.id;
 					}
 				});
 				gameState.party.missionState = 'in_combat';
-				// The mission is effectively over, it just becomes a combat encounter.
-				// We pause a mission and add the target ID to know it was a specific hunt.
-				// This allows the main game loop to handle the "return to base" logic upon victory.
+				
 				gameState.party.pausedMission = {
-					state: 'idle', // This state is a placeholder; the main loop will override it.
+					state: 'idle',
 					timer: 0,
-					// Set progress to 100 as the party has arrived at the target.
 					progress: 100,
-					attackTargetId: gameState.party.targetMonsterId // Flag this as a specific attack mission.
+					attackTargetId: gameState.party.targetMonsterId
 				};
 			} else {
 				addToLog(`The target monster is gone! Returning to base.`);
 				gameState.party.missionState = 'idle';
 			}
 			gameState.party.targetMonsterId = null;
-			// Clean up attack mission state variables.
 			gameState.party.missionTargetDistance = 0;
 			gameState.party.missionTotalTime = 0;
 		}
@@ -480,16 +448,15 @@ export function handleStartAttackMission (monsterId) {
 	
 	addToLog(`The party is embarking on a mission to hunt ${monster.name}!`);
 	
-	// If monster is at the city, travel distance is short. Otherwise, it's their current distance.
 	const distanceToTravel = monster.distanceFromCity > 0 ? monster.distanceFromCity : 100;
-	// Travel time is 1 tick per 300 meters.
 	const travelTime = Math.ceil(distanceToTravel / 300);
 	
 	gameState.party.missionState = 'driving_to_attack';
 	gameState.party.missionTimer = travelTime;
 	gameState.party.missionProgress = 0;
+	// MODIFIED: Synchronize previous progress to prevent jumps on mission start.
+	gameState.party.previousMissionProgress = 0;
 	gameState.party.targetMonsterId = monsterId;
-	// Store the total distance and time for progress calculation.
 	gameState.party.missionTargetDistance = distanceToTravel;
 	gameState.party.missionTotalTime = travelTime;
 }
@@ -510,21 +477,15 @@ export function manageCombatAssignments () {
 		}
 	});
 	
-	// Only perform auto-assignment of new targets if the party is in an active combat state.
-	// This prevents heroes from automatically re-engaging a monster after fleeing.
 	if (gameState.party.missionState === 'in_combat') {
 		const isAttackMission = gameState.party.pausedMission && gameState.party.pausedMission.attackTargetId;
 		
-		// For random ambushes (not specific attack missions), auto-assign idle heroes to targets.
 		if (!isAttackMission) {
-			// When ambushed, assign all idle party members to the specific monster that appeared.
 			const ambushMonsterId = gameState.party.pausedMission ? gameState.party.pausedMission.ambushMonsterId : null;
 			if (ambushMonsterId) {
 				const targetMonster = gameState.activeMonsters.find(m => m.id === ambushMonsterId);
 				if (targetMonster) {
-					// Find all combat heroes who don't have a target yet.
 					const idleHeroes = combatHeroes.filter(h => !h.targetMonsterId);
-					// Assign them all to the ambush monster. This includes all classes.
 					idleHeroes.forEach(hero => {
 						hero.targetMonsterId = targetMonster.id;
 					});
@@ -593,33 +554,28 @@ export function handleMonsterDefeat () {
 		
 		gameState.activeMonsters = gameState.activeMonsters.filter(m => m.currentHp > 0);
 		
-		// After-combat logic.
 		const paused = gameState.party.pausedMission;
 		if (paused) {
-			// Check if a specific attack mission target was defeated this tick.
 			if (paused.attackTargetId && defeatedMonsters.some(m => m.id === paused.attackTargetId)) {
 				const defeatedMonsterData = defeatedMonsters.find(m => m.id === paused.attackTargetId);
-				// Use the defeated monster's distance to calculate the return trip.
-				const distance = defeatedMonsterData ? defeatedMonsterData.distanceFromCity : 1500; // Fallback
+				const distance = defeatedMonsterData ? defeatedMonsterData.distanceFromCity : 1500;
 				
 				addToLog('Target monster defeated! The party is returning to base.');
-				// Unassign all heroes to prevent them from engaging other monsters.
 				gameState.heroes.forEach(h => { h.targetMonsterId = null; });
 				
-				// Set the party state to return to base.
 				gameState.party.missionState = 'driving_back';
-				// Progress is based on distance, assuming 3000m is 100%
 				gameState.party.missionProgress = (distance / 3000) * 100;
-				// Timer is based on progress (10 ticks for a full 100% trip)
 				gameState.party.missionTimer = Math.ceil(gameState.party.missionProgress / 10);
-				gameState.party.pausedMission = null; // The mission is now resolved.
-			}
-			// If the defeated monster was from a random ambush, resume the mission.
-			else if (paused.ambushMonsterId && defeatedMonsters.some(m => m.id === paused.ambushMonsterId)) {
+				// MODIFIED: Synchronize previous progress to prevent jumps.
+				gameState.party.previousMissionProgress = gameState.party.missionProgress;
+				gameState.party.pausedMission = null;
+			} else if (paused.ambushMonsterId && defeatedMonsters.some(m => m.id === paused.ambushMonsterId)) {
 				addToLog('Ambush monster defeated. Resuming mission...');
 				gameState.party.missionState = paused.state;
 				gameState.party.missionTimer = paused.timer;
 				gameState.party.missionProgress = paused.progress;
+				// MODIFIED: Synchronize previous progress to prevent jumps.
+				gameState.party.previousMissionProgress = paused.progress;
 				gameState.party.pausedMission = null;
 			}
 		}

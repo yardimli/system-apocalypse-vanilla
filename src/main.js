@@ -20,7 +20,6 @@ const getEl = (id) => document.getElementById(id);
 const tabsContainer = getEl('tabs-container');
 const contentArea = getEl('content-area');
 
-// MODIFIED: Function now accepts an alpha value for smooth rendering.
 function renderContent (alpha) {
 	switch (activeTab) {
 		case 'Heroes':
@@ -39,11 +38,11 @@ function renderContent (alpha) {
                     </div>
                 `;
 			}
-			renderMissionControl();
+			// MODIFIED: Pass alpha to renderMissionControl for smooth progress rendering.
+			renderMissionControl(alpha);
 			renderPartyCombat();
 			renderPartyLog();
 			renderHeroes();
-			// MODIFIED: Pass alpha to the skills panel for smooth progress bars.
 			renderSkillsPanel(alpha);
 			break;
 		case 'Buildings':
@@ -260,11 +259,11 @@ function processGameTick () {
 	handleMonsterDefeat();
 }
 
-// MODIFIED: Game loop now uses requestAnimationFrame for smooth rendering.
 function gameLoop (currentTime) {
 	// Initialize lastTickTime on the first frame.
 	if (!lastTickTime) {
 		lastTickTime = currentTime;
+		gameState.lastTickTime = lastTickTime;
 	}
 	
 	// Calculate the time elapsed since the last logic tick.
@@ -279,6 +278,7 @@ function gameLoop (currentTime) {
 		}
 		// Update lastTickTime, ensuring it stays aligned with the tick grid.
 		lastTickTime += ticksToProcess * timePerTick;
+		gameState.lastTickTime = lastTickTime;
 	}
 	
 	// Calculate alpha: the progress (0.0 to 1.0) towards the next game tick.

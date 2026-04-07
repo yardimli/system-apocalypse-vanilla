@@ -189,7 +189,7 @@ export function renderHeroes () {
 				statusStateKey = `driving-back-${hero.carId}-${hero.survivorsCarried}-${carCapacity}`;
 			} else if (gameState.party.missionState === 'in_combat') {
 				statusHtml = `<span class="text-error">Ambushed!</span>`;
-				statusStateKey = `in-combat-${hero.carid}`;
+				statusStateKey = `in-combat-${hero.carId}`;
 			}
 		}
 		updateHtmlIfChanged(statusArea, statusHtml, statusStateKey);
