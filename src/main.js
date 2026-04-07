@@ -298,13 +298,13 @@ function gameLoop (currentTime) {
 async function init () {
 	try {
 		const [items, skills, monsters, systemShop, buildingUpgrades, carUpgrades, cars] = await Promise.all([
-			fetch('./data/items.json').then(res => res.json()),
-			fetch('./data/skills.json').then(res => res.json()),
-			fetch('./data/monsters.json').then(res => res.json()),
-			fetch('./data/system_shop.json').then(res => res.json()),
-			fetch('./data/building_upgrades.json').then(res => res.json()),
-			fetch('./data/car_upgrades.json').then(res => res.json()),
-			fetch('./data/cars.json').then(res => res.json())
+			fetch('/data/items.json').then(res => res.json()),
+			fetch('/data/skills.json').then(res => res.json()),
+			fetch('/data/monsters.json').then(res => res.json()),
+			fetch('/data/system_shop.json').then(res => res.json()),
+			fetch('/data/building_upgrades.json').then(res => res.json()),
+			fetch('/data/car_upgrades.json').then(res => res.json()),
+			fetch('/data/cars.json').then(res => res.json())
 		]);
 		gameData.items = items;
 		gameData.skills = skills;
