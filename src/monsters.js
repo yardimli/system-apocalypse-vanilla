@@ -1,6 +1,6 @@
-import { gameState, gameData } from './state.js'; // MODIFIED: Added gameData import
-import { updateTextIfChanged, updateHtmlIfChanged, updateProgressIfChanged, addToLog, parseRange } from './utils.js'; // MODIFIED: Added addToLog and parseRange
-import { handleExitBuilding } from './buildings.js'; // NEW: Import for hero incapacitation logic
+import { gameState, gameData } from './state.js';
+import { updateTextIfChanged, updateHtmlIfChanged, updateProgressIfChanged, addToLog, parseRange } from './utils.js';
+import { handleExitBuilding } from './buildings.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
@@ -133,7 +133,6 @@ export function renderMonsters (contentArea) {
 	});
 }
 
-// NEW: Function to handle all monster actions per tick.
 /**
  * Processes all active monster actions for a game tick, including movement and attacks.
  * This logic was moved from main.js for better organization.

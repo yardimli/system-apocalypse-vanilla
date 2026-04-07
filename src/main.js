@@ -1,11 +1,10 @@
 import { gameState, gameData } from './state.js';
-// MODIFIED: Renamed function imports to reflect the new casting logic.
 import { startCombatAction, startAegisAction, executeCombatEffect, executeAegisEffect } from './hero-actions.js';
 import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { handleUseConsumable } from './inventory.js';
-import { handleShopAndPurchaseClicks } from './shop.js';
-import { renderHeroes, autoEquipBestGear, renderShopModal, renderSkillsPanel } from './heroes.js';
+import { handleShopAndPurchaseClicks, renderShopModal } from './shop.js';
+import { renderHeroes, autoEquipBestGear, renderSkillsPanel } from './heroes.js';
 import { renderMonsters, processMonsterActions } from './monsters.js';
 import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding } from './buildings.js';
 import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview, renderPartyCombat, renderPartyLog } from './ui.js';
@@ -104,7 +103,7 @@ function processGameTick () {
 	
 	manageCombatAssignments();
 	
-	// NEW: Process completed skill casts at the beginning of the hero loop.
+	// Process completed skill casts at the beginning of the hero loop.
 	gameState.heroes.forEach(hero => {
 		if (hero.casting && gameState.time >= hero.casting.castEndTime) {
 			const skill = gameData.skills.find(s => s.id === hero.casting.skillId);
@@ -200,7 +199,7 @@ function processGameTick () {
 			}
 		}
 		
-		// MODIFIED: Auto-cast logic now checks if the hero is already casting.
+		// Auto-cast logic now checks if the hero is already casting.
 		if (hero.autoCastSkillId && hero.hp.current > 0 && !hero.casting) {
 			const skillId = hero.autoCastSkillId;
 			const skill = gameData.skills.find(s => s.id === skillId);
@@ -425,7 +424,7 @@ async function init () {
 			const skillData = gameData.skills.find(s => s.id === skillId);
 			const targetHeroId = castSkillBtn.dataset.targetHeroId ? parseInt(castSkillBtn.dataset.targetHeroId, 10) : null;
 			
-			// MODIFIED: Call the new start...Action functions
+			// Call the new start...Action functions
 			if (skillData.class === 'Aegis') {
 				const options = {};
 				if (skillData.actionType === 'heal') {

@@ -80,7 +80,7 @@ export const gameState = {
 			skillTargets: { 'AEG004': 1 },
 			skillCooldowns: {},
 			skillFlash: null,
-			casting: null, // NEW: To track current skill cast
+			casting: null,
 			inventory: {
 				'ARM001': 1,
 				'WAND001': 1,
@@ -115,7 +115,7 @@ export const gameState = {
 			skillTargets: {},
 			skillCooldowns: {},
 			skillFlash: null,
-			casting: null, // NEW: To track current skill cast
+			casting: null,
 			inventory: {
 				'ARM001': 1,
 				'WAND001': 1,
@@ -145,7 +145,7 @@ export const gameState = {
 			skillTargets: {},
 			skillCooldowns: {},
 			skillFlash: null,
-			casting: null, // NEW: To track current skill cast
+			casting: null,
 			inventory: {
 				'ARM001': 1,
 				'SWD001': 1,

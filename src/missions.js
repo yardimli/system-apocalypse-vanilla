@@ -73,18 +73,15 @@ export function renderMissionControl () {
 			}
 		}
 	} else if (partyState.missionState === 'driving_out') {
-		// MODIFIED: Use interpolated progress to calculate distance.
 		const distance = Math.floor(3000 * (interpolatedProgress / 100));
 		statusText = `Driving out... Distance: ${distance}m.`;
 	} else if (partyState.missionState === 'driving_back') {
-		// MODIFIED: Use interpolated progress to calculate distance.
 		const distance = Math.floor(3000 * (interpolatedProgress / 100));
 		statusText = `Driving back... Distance: ${distance}m.`;
 	} else if (partyState.missionState === 'driving_to_attack') {
 		const monster = gameState.activeMonsters.find(m => m.id === partyState.targetMonsterId);
 		const monsterName = monster ? monster.name : 'a monster';
 		const totalDistance = gameState.party.missionTargetDistance;
-		// MODIFIED: Use interpolated progress to calculate distance traveled.
 		const distanceTraveled = Math.floor(totalDistance * (interpolatedProgress / 100));
 		statusText = `Driving to intercept ${monsterName}... (${distanceTraveled}/${totalDistance}m)`;
 	} else { // 'idle'
@@ -106,7 +103,6 @@ export function renderMissionControl () {
 		progressContainerEl.setAttribute('data-prev-state', progressBarStateKey);
 	}
 	
-	// MODIFIED: Update button rendering logic to include the new "Fight" dropdown.
 	const buttonText = isFull ? 'Look for Monsters' : 'Look for Survivors';
 	const buttonDisabled = partyState.missionState !== 'idle';
 	const activeMonsters = gameState.activeMonsters; // Get active monsters.
@@ -128,7 +124,7 @@ export function renderMissionControl () {
             </button>
         `;
 		
-		// NEW: "Fight" dropdown button with list of active monsters.
+		// "Fight" dropdown button with list of active monsters.
 		buttonsHtml += `
 			<div class="dropdown dropdown-top">
 				<div tabindex="0" role="button" class="btn btn-error" ${!canFight ? 'disabled' : ''}>Fight</div>
@@ -240,7 +236,7 @@ export function handleFlee () {
  * This includes movement, monster spawning, and survivor searching.
  */
 export function processMissionTick () {
-	// MODIFIED: Store the progress from the start of the tick for smooth UI interpolation.
+	// Store the progress from the start of the tick for smooth UI interpolation.
 	gameState.party.previousMissionProgress = gameState.party.missionProgress;
 	
 	if (!['driving_out', 'driving_back', 'driving_to_attack'].includes(gameState.party.missionState)) {
