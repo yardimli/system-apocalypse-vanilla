@@ -29,7 +29,8 @@ function renderContent () {
 				contentArea.innerHTML = `
                     <div id="heroes-tab-content" class="grid grid-cols-1 lg:grid-cols-4 gap-4">
                         <!-- Hero Cards Area (spans 3 columns) -->
-                        <div id="heroes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 col-span-1 lg:col-span-3 gap-4">
+                        <!-- MODIFIED: Added 'items-start' to prevent hero cards from stretching vertically when the grid row height changes. -->
+                        <div id="heroes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 col-span-1 lg:col-span-3 gap-4 items-start">
                             <!-- Hero cards will be injected here -->
                         </div>
 

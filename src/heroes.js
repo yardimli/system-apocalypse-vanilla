@@ -261,25 +261,27 @@ export function renderSkillsPanel () {
 				let castButtonsHtml = '';
 				if (skillData.actionType === 'heal') {
 					const currentTargetId = hero.skillTargets[skillData.id] || hero.id;
+					// MODIFIED: Changed button size from btn-xs to btn-sm to make them bigger.
 					const buttons = gameState.heroes.map(targetHero => {
 						const isActive = currentTargetId === targetHero.id;
-						return `<div class="tooltip" data-tip="Cast on ${targetHero.name}">
-                                    <button
-                                        class="btn btn-xs ${isActive ? 'btn-secondary' : 'btn-ghost'}"
-                                        data-skill-id="${skillData.id}"
-                                        data-hero-id="${hero.id}"
-                                        data-target-hero-id="${targetHero.id}"
-                                        ${isCastDisabled ? 'disabled' : ''}>
-                                        ${targetHero.name.substring(0, 3)}
-                                    </button>
-                                </div>`;
+						return `<button
+                      class="btn btn-sm ${isActive ? 'btn-secondary' : 'btn-ghost'}"
+                      style="width: 110px;"
+                      data-skill-id="${skillData.id}"
+                      data-hero-id="${hero.id}"
+                      data-target-hero-id="${targetHero.id}"
+                      ${isCastDisabled ? 'disabled' : ''}>
+                      ${targetHero.name.substring(0, 3)}
+											${costText ? `(${costText})` : ''}
+                  </button>`;
 					}).join('');
-					castButtonsHtml = `<div class="flex items-center gap-1">
-                                        <span class="text-xs mr-1">${costText ? `(${costText})` : ''}</span>
+					// MODIFIED: Added justify-end to align the button group to the right within its container.
+					castButtonsHtml = `<div class="flex items-center gap-1 justify-end">
                                         ${buttons}
                                        </div>`;
 				} else {
-					castButtonsHtml = `<button class="btn btn-sm btn-ghost" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${isCastDisabled ? 'disabled' : ''}>
+					// MODIFIED: Added w-full to make the button fill its new fixed-width container.
+					castButtonsHtml = `<button class="btn btn-sm btn-ghost w-full" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${isCastDisabled ? 'disabled' : ''}>
                                             Cast ${costText ? `(${costText})` : ''}
                                        </button>`;
 				}
@@ -295,10 +297,12 @@ export function renderSkillsPanel () {
                                 ${isOnCooldown ? `<span class="text-error text-xs ml-1">(${remainingCd}s)</span>` : ''}
                                 <span class="text-gray-400 italic text-xs ml-2">${skillData.description}</span>
                             </div>
-                            <div class="flex-shrink-0">${autoButtonHtml}</div>
+                            <!-- MODIFIED: Added fixed width and alignment to the auto-button's container for vertical alignment. -->
+                            <div class="flex-shrink-0 w-24 flex justify-end">${autoButtonHtml}</div>
                         </div>
     
-                        <div class="flex-shrink-0 flex flex-wrap gap-1 justify-end">
+                        <!-- MODIFIED: Set a fixed width on the container for the cast buttons. -->
+                        <div class="flex-shrink-0" style="width: 360px;">
                             ${castButtonsHtml}
                         </div>
                     </div>
