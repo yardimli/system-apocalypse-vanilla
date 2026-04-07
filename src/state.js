@@ -38,11 +38,10 @@ export const gameState = {
 	nextMonsterId: 1,
 	party: {
 		missionState: 'idle',
-		missionTimer: 0,
-		missionProgress: 0,
-		previousMissionProgress: 0,
+		// MODIFIED: Replaced time/progress-based tracking with distance.
+		missionDistance: 0,
+		previousMissionDistance: 0,
 		missionTargetDistance: 0,
-		missionTotalTime: 0,
 		survivorsAwaitingRescue: 0,
 		pausedMission: null,
 		targetMonsterId: null

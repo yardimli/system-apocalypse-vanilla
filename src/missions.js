@@ -41,10 +41,10 @@ export function renderMissionControl (alpha = 0) {
 	const isFull = currentPopulation >= maxPopulation;
 	const partyState = gameState.party;
 	
-	// Interpolate progress between the start of the tick and the current target using the passed-in alpha.
-	const startProgress = partyState.previousMissionProgress || 0;
-	const endProgress = partyState.missionProgress;
-	const interpolatedProgress = startProgress + (endProgress - startProgress) * alpha;
+	// MODIFIED: Interpolate distance for smooth progress bar and text updates.
+	const startDistance = partyState.previousMissionDistance || 0;
+	const endDistance = partyState.missionDistance;
+	const interpolatedDistance = startDistance + (endDistance - startDistance) * alpha;
 	
 	// Determine status text
 	let statusText;
@@ -55,7 +55,6 @@ export function renderMissionControl (alpha = 0) {
 		if (allIncapacitated) {
 			statusText = 'Party incapacitated! Waiting for heroes to be healed to continue...';
 		} else {
-			// Check if this combat is from a specific attack mission to show a different message.
 			if (partyState.pausedMission && partyState.pausedMission.attackTargetId) {
 				const monster = gameState.activeMonsters.find(m => m.id === partyState.pausedMission.attackTargetId);
 				const monsterName = monster ? monster.name : 'the target';
@@ -65,17 +64,17 @@ export function renderMissionControl (alpha = 0) {
 			}
 		}
 	} else if (partyState.missionState === 'driving_out') {
-		const distance = Math.floor(3000 * (interpolatedProgress / 100));
-		statusText = `Driving out... Distance: ${distance}m.`;
+		// MODIFIED: Display current distance from base.
+		statusText = `Driving out... Distance: ${Math.floor(interpolatedDistance)}m.`;
 	} else if (partyState.missionState === 'driving_back') {
-		const distance = Math.floor(3000 * (interpolatedProgress / 100));
-		statusText = `Driving back... Distance: ${distance}m.`;
+		// MODIFIED: Display current distance from base.
+		statusText = `Driving back... Distance: ${Math.floor(interpolatedDistance)}m.`;
 	} else if (partyState.missionState === 'driving_to_attack') {
+		// MODIFIED: Display distance traveled towards the target.
 		const monster = gameState.activeMonsters.find(m => m.id === partyState.targetMonsterId);
 		const monsterName = monster ? monster.name : 'a monster';
-		const totalDistance = gameState.party.missionTargetDistance;
-		const distanceTraveled = Math.floor(totalDistance * (interpolatedProgress / 100));
-		statusText = `Driving to intercept ${monsterName}... (${distanceTraveled}/${totalDistance}m)`;
+		const totalDistance = partyState.missionTargetDistance;
+		statusText = `Driving to intercept ${monsterName}... (${Math.floor(interpolatedDistance)}/${totalDistance}m)`;
 	} else { // 'idle'
 		statusText = 'The party is idle at the base.';
 	}
@@ -86,6 +85,7 @@ export function renderMissionControl (alpha = 0) {
 	const isMissionActive = partyState.missionState !== 'idle';
 	const progressBarStateKey = String(isMissionActive);
 	
+	// MODIFIED: Progress bar is now always present during a mission, its value just changes.
 	if (progressContainerEl.getAttribute('data-prev-state') !== progressBarStateKey) {
 		if (isMissionActive) {
 			progressContainerEl.innerHTML = '<progress class="progress progress-primary w-full"></progress>';
@@ -159,11 +159,10 @@ export function handleStartMission () {
 	const missionType = isFull ? 'monster hunt' : 'survivor rescue';
 	addToLog(`The party is embarking on a ${missionType}!`);
 	
+	// MODIFIED: Initialize distance-based tracking instead of a timer.
 	gameState.party.missionState = 'driving_out';
-	gameState.party.missionTimer = 10; // 10-second trip out
-	gameState.party.missionProgress = 0;
-	// NEW: Synchronize previous progress to prevent jumps on mission start.
-	gameState.party.previousMissionProgress = 0;
+	gameState.party.missionDistance = 0;
+	gameState.party.previousMissionDistance = 0;
 }
 
 /**
@@ -179,9 +178,9 @@ export function handleFlee () {
 	monsterIdsFought.forEach(monsterId => {
 		const monster = gameState.activeMonsters.find(m => m.id === monsterId);
 		if (monster) {
+			// MODIFIED: Update monster distance based on party's mission distance.
 			if (gameState.party.pausedMission) {
-				const missionProgress = gameState.party.pausedMission.progress;
-				monster.distanceFromCity = 3000 * (missionProgress / 100);
+				monster.distanceFromCity = gameState.party.pausedMission.distance;
 			}
 			monster.assignedTo = [];
 			monster.agro = {};
@@ -190,6 +189,7 @@ export function handleFlee () {
 	
 	gameState.heroes.forEach(h => { h.targetMonsterId = null; });
 	
+	// MODIFIED: Logic now sets the mission distance for the return trip.
 	const paused = gameState.party.pausedMission;
 	if (paused) {
 		if (paused.attackTargetId) {
@@ -197,23 +197,19 @@ export function handleFlee () {
 			const distance = targetMonster ? targetMonster.distanceFromCity : 1500;
 			
 			gameState.party.missionState = 'driving_back';
-			gameState.party.missionProgress = (distance / 3000) * 100;
-			gameState.party.missionTimer = Math.ceil(gameState.party.missionProgress / 10);
-			// NEW: Synchronize previous progress to prevent a visual jump.
-			gameState.party.previousMissionProgress = gameState.party.missionProgress;
+			gameState.party.missionDistance = distance;
+			gameState.party.previousMissionDistance = distance; // Sync to prevent visual jump.
 		} else {
 			gameState.party.missionState = 'driving_back';
-			gameState.party.missionProgress = paused.progress;
-			gameState.party.missionTimer = Math.ceil(paused.progress / 10);
-			// NEW: Synchronize previous progress to prevent a visual jump.
-			gameState.party.previousMissionProgress = gameState.party.missionProgress;
+			gameState.party.missionDistance = paused.distance;
+			gameState.party.previousMissionDistance = paused.distance; // Sync to prevent visual jump.
 		}
 		
 		gameState.party.pausedMission = null;
 	} else {
+		// This case should be rare, but as a fallback, go idle.
 		gameState.party.missionState = 'idle';
-		gameState.party.missionProgress = 0;
-		gameState.party.missionTimer = 0;
+		gameState.party.missionDistance = 0;
 	}
 }
 
@@ -226,8 +222,8 @@ export function processMissionTick () {
 		return;
 	}
 	
-	// NEW: Store the progress from the start of the tick for smooth interpolation.
-	gameState.party.previousMissionProgress = gameState.party.missionProgress;
+	// NEW: Store the distance from the start of the tick for smooth interpolation.
+	gameState.party.previousMissionDistance = gameState.party.missionDistance;
 	
 	// 1. Handle Monster Spawning (Ambush)
 	let wasAmbushed = false;
@@ -254,19 +250,19 @@ export function processMissionTick () {
 						agro: {},
 						speed: monsterData.speed || 50
 					};
-					newMonster.distanceFromCity = 3000 * (gameState.party.missionProgress / 100);
+					// MODIFIED: Set monster distance based on party's current distance.
+					newMonster.distanceFromCity = gameState.party.missionDistance;
 					
 					gameState.activeMonsters.push(newMonster);
 					addToLog(`AMBUSH! A Lv.${monsterData.level} ${monsterData.name} (#${newMonster.id}) appeared!`);
 					
+					// MODIFIED: Pause mission state, storing current distance.
 					gameState.party.pausedMission = {
 						state: gameState.party.missionState,
-						timer: gameState.party.missionTimer,
-						progress: gameState.party.missionProgress,
+						distance: gameState.party.missionDistance,
 						ambushMonsterId: newMonster.id
 					};
 					gameState.party.missionState = 'in_combat';
-					gameState.party.missionTimer = 0;
 					wasAmbushed = true;
 					break;
 				}
@@ -312,9 +308,7 @@ export function processMissionTick () {
 						distributedThisLoop = true;
 					}
 				}
-				if (!distributedThisLoop) {
-					break;
-				}
+				if (!distributedThisLoop) break;
 			}
 			
 			heroesOnMission.forEach(hero => {
@@ -330,29 +324,20 @@ export function processMissionTick () {
 		}
 	}
 	
-	// 3. Process Mission Timer and State
-	gameState.party.missionTimer--;
+	// 3. Process Mission Travel and State Changes
+	const travelSpeed = 300; // meters per tick
 	
 	if (gameState.party.missionState === 'driving_out') {
-		const totalTime = 10;
-		gameState.party.missionProgress = 100 - ((gameState.party.missionTimer / totalTime) * 100);
-	} else if (gameState.party.missionState === 'driving_back') {
-		const totalTime = 10;
-		gameState.party.missionProgress = (gameState.party.missionTimer / totalTime) * 100;
-	} else if (gameState.party.missionState === 'driving_to_attack') {
-		const totalTime = gameState.party.missionTotalTime;
-		if (totalTime > 0) {
-			const timeElapsed = totalTime - gameState.party.missionTimer;
-			gameState.party.missionProgress = Math.min(100, (timeElapsed / totalTime) * 100);
-		}
-	}
-	
-	if (gameState.party.missionTimer <= 0) {
-		if (gameState.party.missionState === 'driving_out') {
-			addToLog('The party has reached the furthest point and is returning to base.');
+		gameState.party.missionDistance += travelSpeed;
+		if (gameState.party.missionDistance >= 3000) {
+			gameState.party.missionDistance = 3000;
+			addToLog('The party has reached the furthest point (3000m) and is returning to base.');
 			gameState.party.missionState = 'driving_back';
-			gameState.party.missionTimer = 10;
-		} else if (gameState.party.missionState === 'driving_back') {
+		}
+	} else if (gameState.party.missionState === 'driving_back') {
+		gameState.party.missionDistance -= travelSpeed;
+		if (gameState.party.missionDistance <= 0) {
+			gameState.party.missionDistance = 0;
 			const totalSurvivors = gameState.heroes.reduce((sum, h) => sum + h.survivorsCarried, 0);
 			if (totalSurvivors > 0) {
 				addToLog(`The party successfully returned with ${totalSurvivors} survivors!`);
@@ -369,9 +354,7 @@ export function processMissionTick () {
 								housedThisLoop = true;
 							}
 						}
-						if (!housedThisLoop) {
-							break;
-						}
+						if (!housedThisLoop) break;
 					}
 				}
 				
@@ -388,16 +371,17 @@ export function processMissionTick () {
 			}
 			gameState.heroes.forEach(h => { h.survivorsCarried = 0; });
 			gameState.party.missionState = 'idle';
-			gameState.party.missionTimer = 0;
-			gameState.party.missionProgress = 0;
 			gameState.party.missionTargetDistance = 0;
-			gameState.party.missionTotalTime = 0;
-		} else if (gameState.party.missionState === 'driving_to_attack') {
+		}
+	} else if (gameState.party.missionState === 'driving_to_attack') {
+		gameState.party.missionDistance += travelSpeed;
+		const targetDistance = gameState.party.missionTargetDistance;
+		
+		if (gameState.party.missionDistance >= targetDistance) {
+			gameState.party.missionDistance = targetDistance;
 			const monster = gameState.activeMonsters.find(m => m.id === gameState.party.targetMonsterId);
 			if (monster) {
 				addToLog(`The party has reached ${monster.name} and is engaging in combat!`);
-				// MODIFIED: Finalize progress to 100 before state change to ensure the bar fills completely.
-				gameState.party.missionProgress = 100;
 				
 				gameState.heroes.forEach(hero => {
 					if (hero.location === 'field' && (hero.class === 'Striker' || hero.class === 'Vanguard') && hero.hp.current > 0) {
@@ -408,17 +392,14 @@ export function processMissionTick () {
 				
 				gameState.party.pausedMission = {
 					state: 'idle',
-					timer: 0,
-					progress: 100,
+					distance: targetDistance,
 					attackTargetId: gameState.party.targetMonsterId
 				};
 			} else {
-				addToLog(`The target monster is gone! Returning to base.`);
-				gameState.party.missionState = 'idle';
+				addToLog('The target monster is gone! Returning to base.');
+				gameState.party.missionState = 'driving_back'; // Start returning
 			}
 			gameState.party.targetMonsterId = null;
-			gameState.party.missionTargetDistance = 0;
-			gameState.party.missionTotalTime = 0;
 		}
 	}
 }
@@ -449,16 +430,13 @@ export function handleStartAttackMission (monsterId) {
 	addToLog(`The party is embarking on a mission to hunt ${monster.name}!`);
 	
 	const distanceToTravel = monster.distanceFromCity > 0 ? monster.distanceFromCity : 100;
-	const travelTime = Math.ceil(distanceToTravel / 300);
 	
+	// MODIFIED: Initialize distance-based attack mission.
 	gameState.party.missionState = 'driving_to_attack';
-	gameState.party.missionTimer = travelTime;
-	gameState.party.missionProgress = 0;
-	// MODIFIED: Synchronize previous progress to prevent jumps on mission start.
-	gameState.party.previousMissionProgress = 0;
+	gameState.party.missionDistance = 0;
+	gameState.party.previousMissionDistance = 0;
 	gameState.party.targetMonsterId = monsterId;
 	gameState.party.missionTargetDistance = distanceToTravel;
-	gameState.party.missionTotalTime = travelTime;
 }
 
 /**
@@ -556,26 +534,20 @@ export function handleMonsterDefeat () {
 		
 		const paused = gameState.party.pausedMission;
 		if (paused) {
+			// MODIFIED: Logic now uses distance for mission state changes.
 			if (paused.attackTargetId && defeatedMonsters.some(m => m.id === paused.attackTargetId)) {
-				const defeatedMonsterData = defeatedMonsters.find(m => m.id === paused.attackTargetId);
-				const distance = defeatedMonsterData ? defeatedMonsterData.distanceFromCity : 1500;
-				
 				addToLog('Target monster defeated! The party is returning to base.');
 				gameState.heroes.forEach(h => { h.targetMonsterId = null; });
 				
 				gameState.party.missionState = 'driving_back';
-				gameState.party.missionProgress = (distance / 3000) * 100;
-				gameState.party.missionTimer = Math.ceil(gameState.party.missionProgress / 10);
-				// MODIFIED: Synchronize previous progress to prevent jumps.
-				gameState.party.previousMissionProgress = gameState.party.missionProgress;
+				// The party's missionDistance is already at the correct location for the return trip.
+				gameState.party.previousMissionDistance = gameState.party.missionDistance;
 				gameState.party.pausedMission = null;
 			} else if (paused.ambushMonsterId && defeatedMonsters.some(m => m.id === paused.ambushMonsterId)) {
 				addToLog('Ambush monster defeated. Resuming mission...');
 				gameState.party.missionState = paused.state;
-				gameState.party.missionTimer = paused.timer;
-				gameState.party.missionProgress = paused.progress;
-				// MODIFIED: Synchronize previous progress to prevent jumps.
-				gameState.party.previousMissionProgress = paused.progress;
+				gameState.party.missionDistance = paused.distance;
+				gameState.party.previousMissionDistance = paused.distance;
 				gameState.party.pausedMission = null;
 			}
 		}
