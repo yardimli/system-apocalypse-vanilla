@@ -56,6 +56,11 @@ export const gameState = {
 			id: 1,
 			name: 'Ava',
 			class: 'Aegis',
+			// NEW: Added properties for equipment restrictions.
+			isMagicUser: true,
+			allowedArmorTypes: ['Cloth'],
+			allowedWeaponTypes: ['Wand', 'Bow'],
+			// END NEW
 			level: 1,
 			xp: { current: 0, max: 100 },
 			hp: { current: 150, max: 150 },
@@ -93,6 +98,11 @@ export const gameState = {
 			id: 2,
 			name: 'Jax',
 			class: 'Striker',
+			// NEW: Added properties for equipment restrictions.
+			isMagicUser: true,
+			allowedArmorTypes: ['Cloth', 'Leather'],
+			allowedWeaponTypes: ['Wand', 'Bow'],
+			// END NEW
 			level: 1,
 			xp: { current: 0, max: 100 },
 			hp: { current: 100, max: 100 },
@@ -126,6 +136,11 @@ export const gameState = {
 			id: 3,
 			name: 'Roc',
 			class: 'Vanguard',
+			// NEW: Added properties for equipment restrictions.
+			isMagicUser: false,
+			allowedArmorTypes: ['Cloth', 'Leather', 'Chainmail', 'Plate'],
+			allowedWeaponTypes: ['Sword', 'Shield'],
+			// END NEW
 			level: 1,
 			xp: { current: 0, max: 250 },
 			hp: { current: 250, max: 250 },

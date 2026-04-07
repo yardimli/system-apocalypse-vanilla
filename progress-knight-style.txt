@@ -395,3 +395,12 @@ the party can also attack monsters that are already attacking the city then the 
 
 change the items in shop to be about the car instead of magic wand sword etc. its the car that gets outfitted ???
 
+------
+
+in items.json for armor add armor type cloth, leather, Chainmail and Plate, in state.js define so Aegis can only wear cloth, Striker can wear cloth and leather and Vanguard can wear cloth, leather, Chainmail and Plate.
+in heros define for Aegis and Striker that they are magic users, update the items.json to include if an item is for magic
+in heros define for Vanguard that they dont use magic but can use shields and swords.
+in heros for Aegis and Striker define that they can use bow and arrows that are not magic.
+in shop interface for different heros dont show the items they can not use.
+add simple and advanced bow to items along with arrows in bundles of 100.
+Aegis and Striker can later buy this they initially wont have bows.

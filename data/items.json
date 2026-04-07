@@ -31,6 +31,7 @@
       "type": "heal_mp",
       "value": 25
     },
+    "class": ["Aegis", "Striker"],
     "level": 1,
     "sellPrice": 10
   },
@@ -79,6 +80,7 @@
       "type": "heal_mp",
       "value": 50
     },
+    "class": ["Aegis", "Striker"],
     "level": 2,
     "sellPrice": 25
   },
@@ -123,6 +125,7 @@
       "type": "heal_mp",
       "value": 80
     },
+    "class": ["Aegis", "Striker"],
     "level": 1,
     "sellPrice": 6
   },
@@ -149,6 +152,7 @@
       "type": "heal_mp",
       "value": 200
     },
+    "class": ["Aegis", "Striker"],
     "level": 2,
     "sellPrice": 20
   },
@@ -175,6 +179,7 @@
       "type": "heal_mp",
       "value": 400
     },
+    "class": ["Aegis", "Striker"],
     "level": 3,
     "sellPrice": 60
   },
@@ -184,6 +189,7 @@
     "image": "images/ARM001.png",
     "type": "Armor",
     "equipSlot": "body",
+    "armorType": "Cloth",
     "damageMitigation": "1-2",
     "level": 1,
     "sellPrice": 10,
@@ -195,6 +201,7 @@
     "image": "images/ARM002.png",
     "type": "Armor",
     "equipSlot": "body",
+    "armorType": "Leather",
     "damageMitigation": "3-6",
     "level": 2,
     "sellPrice": 50,
@@ -206,6 +213,7 @@
     "image": "images/ARM003.png",
     "type": "Armor",
     "equipSlot": "body",
+    "armorType": "Chainmail",
     "damageMitigation": "7-12",
     "level": 3,
     "sellPrice": 150,
@@ -217,6 +225,7 @@
     "image": "images/ARM004.png",
     "type": "Armor",
     "equipSlot": "body",
+    "armorType": "Plate",
     "damageMitigation": "15-25",
     "level": 4,
     "sellPrice": 400,
@@ -228,6 +237,7 @@
     "image": "images/ARM005.png",
     "type": "Armor",
     "equipSlot": "body",
+    "armorType": "Plate",
     "damageMitigation": "30-40",
     "level": 5,
     "sellPrice": 1000,
@@ -239,6 +249,7 @@
     "image": "images/ARM002_V.png",
     "type": "Armor",
     "equipSlot": "body",
+    "armorType": "Leather",
     "damageMitigation": "5-8",
     "level": 2,
     "sellPrice": 90,
@@ -250,6 +261,7 @@
     "image": "images/ARM003_V.png",
     "type": "Armor",
     "equipSlot": "body",
+    "armorType": "Chainmail",
     "damageMitigation": "10-16",
     "level": 3,
     "sellPrice": 250,
@@ -261,6 +273,7 @@
     "image": "images/ARM004_V.png",
     "type": "Armor",
     "equipSlot": "body",
+    "armorType": "Plate",
     "damageMitigation": "20-30",
     "level": 4,
     "sellPrice": 600,
@@ -271,11 +284,13 @@
     "name": "Apprentice's Wand",
     "image": "images/WAND001.png",
     "type": "Weapon",
+    "weaponType": "Wand",
     "equipSlot": "mainHand",
     "class": ["Striker", "Aegis"],
     "spellPower": 2,
     "level": 1,
     "sellPrice": 25,
+    "magicUserOnly": true,
     "description": "A simple wooden wand for novice magic users."
   },
   {
@@ -283,11 +298,13 @@
     "name": "Adept's Wand",
     "image": "images/WAND002.png",
     "type": "Weapon",
+    "weaponType": "Wand",
     "equipSlot": "mainHand",
     "class": ["Striker", "Aegis"],
     "spellPower": 3,
     "level": 2,
     "sellPrice": 100,
+    "magicUserOnly": true,
     "description": "A well-balanced wand for an experienced magic user."
   },
   {
@@ -295,11 +312,13 @@
     "name": "Mage's Scepter",
     "image": "images/WAND003.png",
     "type": "Weapon",
+    "weaponType": "Wand",
     "equipSlot": "mainHand",
     "class": ["Striker", "Aegis"],
     "spellPower": 5,
     "level": 3,
     "sellPrice": 350,
+    "magicUserOnly": true,
     "description": "A powerful scepter that greatly amplifies a user's magic."
   },
   {
@@ -307,6 +326,7 @@
     "name": "Rusted Shortsword",
     "image": "images/SWD001.png",
     "type": "Weapon",
+    "weaponType": "Sword",
     "equipSlot": "mainHand",
     "class": "Vanguard",
     "damage": "3-5",
@@ -319,6 +339,7 @@
     "name": "Steel Longsword",
     "image": "images/SWD002.png",
     "type": "Weapon",
+    "weaponType": "Sword",
     "equipSlot": "mainHand",
     "class": "Vanguard",
     "damage": "8-12",
@@ -331,6 +352,7 @@
     "name": "Titanium Greatsword",
     "image": "images/SWD003.png",
     "type": "Weapon",
+    "weaponType": "Sword",
     "equipSlot": "mainHand",
     "class": "Vanguard",
     "damage": "15-22",
@@ -343,6 +365,7 @@
     "name": "Wooden Buckler",
     "image": "images/SHD001.png",
     "type": "Shield",
+    "weaponType": "Shield",
     "equipSlot": "offHand",
     "class": "Vanguard",
     "damageMitigation": "2-4",
@@ -355,6 +378,7 @@
     "name": "Iron Kite Shield",
     "image": "images/SHD002.png",
     "type": "Shield",
+    "weaponType": "Shield",
     "equipSlot": "offHand",
     "class": "Vanguard",
     "damageMitigation": "6-10",
@@ -367,11 +391,48 @@
     "name": "Aegis Barrier",
     "image": "images/SHD003.png",
     "type": "Shield",
+    "weaponType": "Shield",
     "equipSlot": "offHand",
     "class": "Vanguard",
     "damageMitigation": "14-20",
     "level": 3,
     "sellPrice": 380,
     "description": "A high-tech energy barrier projector, the pinnacle of Vanguard defensive gear."
+  },
+  {
+    "id": "BOW001",
+    "name": "Simple Bow",
+    "image": "images/BOW001.png",
+    "type": "Weapon",
+    "weaponType": "Bow",
+    "equipSlot": "mainHand",
+    "class": ["Striker", "Aegis"],
+    "damage": "6-9",
+    "level": 2,
+    "sellPrice": 100,
+    "description": "A basic but reliable wooden bow. Does not use magic."
+  },
+  {
+    "id": "BOW002",
+    "name": "Advanced Bow",
+    "image": "images/BOW002.png",
+    "type": "Weapon",
+    "weaponType": "Bow",
+    "equipSlot": "mainHand",
+    "class": ["Striker", "Aegis"],
+    "damage": "13-18",
+    "level": 3,
+    "sellPrice": 350,
+    "description": "A composite bow with a stronger pull, for skilled archers."
+  },
+  {
+    "id": "AMMO001",
+    "name": "Arrows (100)",
+    "image": "images/AMMO001.png",
+    "class": ["Striker", "Aegis"],
+    "type": "Consumable",
+    "description": "A bundle of 100 simple arrows. Can be sold.",
+    "level": 1,
+    "sellPrice": 20
   }
 ]

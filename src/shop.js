@@ -328,6 +328,26 @@ export function renderShopModal (heroId) {
 		const entity = findEntityById(shopItem.itemId);
 		if (!entity) return '';
 		
+		// MODIFIED: Expanded filtering logic to include consumables.
+		let canUse = true;
+		if (entity.type === 'Armor' && entity.armorType && !hero.allowedArmorTypes.includes(entity.armorType)) {
+			canUse = false;
+		}
+		if ((entity.type === 'Weapon' || entity.type === 'Shield') && entity.weaponType && !hero.allowedWeaponTypes.includes(entity.weaponType)) {
+			canUse = false;
+		}
+		if (entity.magicUserOnly && !hero.isMagicUser) {
+			canUse = false;
+		}
+		// NEW: Check class restrictions on consumables like mana potions.
+		if (entity.type === 'Consumable' && entity.class && !entity.class.includes(hero.class)) {
+			canUse = false;
+		}
+		if (!canUse) {
+			return ''; // Don't render this item for this hero.
+		}
+		// END MODIFICATION
+		
 		let details = '';
 		if (entity.damageMitigation) details = `Mitigation: ${entity.damageMitigation}`;
 		else if (entity.damage) details = `Damage: ${entity.damage}`;
@@ -361,6 +381,12 @@ export function renderShopModal (heroId) {
 	skillsContent.innerHTML = shopSkills.map(shopItem => {
 		const entity = gameData.skills.find(s => s.id === shopItem.skillId);
 		if (!entity) return '';
+		
+		// MODIFIED: Filter skills by class.
+		if (entity.class && entity.class !== hero.class) {
+			return '';
+		}
+		// END MODIFICATION
 		
 		const details = `Req: Lvl ${entity.levelRequirement} | Cost: ${entity.mpCost || entity.rageCost || 0} ${entity.rageCost ? 'Rage' : 'MP'}`;
 		const canAfford = hero.tokens >= shopItem.price;
