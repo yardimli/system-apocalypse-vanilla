@@ -282,7 +282,7 @@
   {
     "id": "WAND001",
     "name": "Apprentice's Wand",
-    "image": "/images/WAND001.png",
+    "image": "/images/wand001.png",
     "type": "Weapon",
     "weaponType": "Wand",
     "equipSlot": "mainHand",
@@ -296,7 +296,7 @@
   {
     "id": "WAND002",
     "name": "Adept's Wand",
-    "image": "/images/WAND002.png",
+    "image": "/images/wand002.png",
     "type": "Weapon",
     "weaponType": "Wand",
     "equipSlot": "mainHand",
@@ -310,7 +310,7 @@
   {
     "id": "WAND003",
     "name": "Mage's Scepter",
-    "image": "/images/WAND003.png",
+    "image": "/images/wand003.png",
     "type": "Weapon",
     "weaponType": "Wand",
     "equipSlot": "mainHand",
