@@ -275,7 +275,24 @@ export function renderSkillsPanel (alpha = 0) {
 			const meetsLevelReq = !skillData.levelRequirement || hero.level >= skillData.levelRequirement;
 			const mpCost = skillData.mpCost || 0;
 			const rageCost = skillData.rageCost || 0;
-			const hasResources = hero.class === 'Vanguard' || (hero.mp && hero.mp.current >= mpCost);
+			
+			let hasResources;
+			if (hero.class === 'Vanguard') {
+				if (skillData.actionType === 'taunt') {
+					hasResources = hero.rage && hero.rage.current >= rageCost;
+				} else {
+					hasResources = true;
+				}
+			} else {
+				// Non-vanguards use MP.
+				hasResources = hero.mp && hero.mp.current >= mpCost;
+			}
+			
+			// NEW: Combat skills should only be usable when in combat (i.e., has a target).
+			let canUseInCurrentState = true;
+			if (skillData.actionType === 'attack' || skillData.actionType === 'taunt') {
+				canUseInCurrentState = !!hero.targetMonsterId;
+			}
 			
 			const shouldFlash = hero.skillFlash && hero.skillFlash.id === skillData.id && gameState.time < hero.skillFlash.clearAtTime;
 			const costText = rageCost > 0 ? `${rageCost} Rage` : (mpCost > 0 ? `${mpCost} MP` : '');
@@ -319,7 +336,8 @@ export function renderSkillsPanel (alpha = 0) {
 						inProgress = true;
 					}
 					
-					button.disabled = isCastingThisSkill || isOnCooldown || !meetsLevelReq || !hasResources;
+					// MODIFIED: Added canUseInCurrentState and corrected hasResources checks.
+					button.disabled = isCastingThisSkill || isOnCooldown || !meetsLevelReq || !hasResources || !canUseInCurrentState;
 					button.style.width = '110px';
 					button.style.setProperty('--cooldown-percent', `${progressPercent}%`);
 					button.classList.toggle('btn-secondary', isActive && !inProgress);
@@ -355,7 +373,8 @@ export function renderSkillsPanel (alpha = 0) {
 					inProgress = true;
 				}
 				
-				button.disabled = isCastingThisSkill || isOnCooldown || !meetsLevelReq || !hasResources;
+				// MODIFIED: Added canUseInCurrentState and corrected hasResources checks.
+				button.disabled = isCastingThisSkill || isOnCooldown || !meetsLevelReq || !hasResources || !canUseInCurrentState;
 				button.style.setProperty('--cooldown-percent', `${progressPercent}%`);
 				button.classList.toggle('cooldown-progress', inProgress);
 				button.classList.toggle('flash-effect', shouldFlash);

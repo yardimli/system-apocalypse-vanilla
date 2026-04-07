@@ -41,7 +41,7 @@ export function getSkillEffect (hero, effectType) {
 	return hero.skills
 		.map(skill => gameData.skills.find(s => s.id === skill.id))
 		.filter(s => s && s.effect === effectType)
-		.reduce((sum, s) => sum + parseRange(s.value), 0);
+		.reduce((sum, s) => sum + parseRange(s.agroValue), 0);
 }
 
 /**

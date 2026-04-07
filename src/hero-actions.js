@@ -73,7 +73,7 @@ export function executeCombatEffect (hero, skill, monster) {
 			break;
 		}
 		case 'taunt': {
-			let agroAmount = skill.value || 0;
+			let agroAmount = skill.agroValue || 0;
 			
 			if (hero.class === 'Vanguard') {
 				if (hasEnoughRage) {
@@ -119,8 +119,18 @@ export function startCombatAction (heroId, skillId) {
 	if (!monster) return;
 	
 	const mpCost = skill.mpCost || 0;
-	if (hero.class !== 'Vanguard' && hero.mp.current < mpCost) {
-		return;
+	const rageCost = skill.rageCost || 0; // NEW: Get rage cost for validation.
+	
+	// MODIFIED: Add a proper resource check that includes Rage for Vanguards.
+	if (hero.class === 'Vanguard') {
+		if (skill.actionType === 'taunt' && (!hero.rage || hero.rage.current < rageCost)) {
+			return; // Not enough rage for Challenge, so abort.
+		}
+	} else {
+		// For other classes, check MP.
+		if (hero.mp.current < mpCost) {
+			return; // Not enough MP, so abort.
+		}
 	}
 	
 	// For instant-cast skills, execute the effect immediately.
