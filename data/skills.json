@@ -110,7 +110,7 @@
     "value": 250,
     "levelRequirement": 1,
     "autoCastUnlockLevel": 1,
-    "cooldown": 2,
+    "cooldown": 20,
     "description": "A challenging shout that generates a small amount of threat."
   },
   {

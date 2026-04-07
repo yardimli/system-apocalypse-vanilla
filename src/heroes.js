@@ -227,7 +227,6 @@ export function renderSkillsPanel () {
 		
 		if (learnedSkills.length > 0) {
 			skillsHtml += learnedSkills.map(skillData => {
-				// This logic is reused from the old per-hero skill rendering.
 				const isAutoCasting = hero.autoCastSkillId === skillData.id;
 				const meetsLevelReq = !skillData.levelRequirement || hero.level >= skillData.levelRequirement;
 				const cooldownEndTime = hero.skillCooldowns[skillData.id] || 0;
@@ -259,49 +258,76 @@ export function renderSkillsPanel () {
 				const costText = rageCost > 0 ? `${rageCost} Rage` : (mpCost > 0 ? `${mpCost} MP` : '');
 				
 				let castButtonsHtml = '';
+				
 				if (skillData.actionType === 'heal') {
 					const currentTargetId = hero.skillTargets[skillData.id] || hero.id;
-					// MODIFIED: Changed button size from btn-xs to btn-sm to make them bigger.
 					const buttons = gameState.heroes.map(targetHero => {
 						const isActive = currentTargetId === targetHero.id;
+						
+						// MODIFICATION START: Logic for targeted flash and static button text.
+						const wasButtonPressed = shouldFlash && hero.skillFlash.targetHeroId === targetHero.id;
+						const flashClass = wasButtonPressed ? 'flash-effect' : '';
+						
+						// The button's text no longer changes to show the cooldown.
+						const buttonContent = `${targetHero.name.substring(0, 3)} ${costText ? `(${costText})` : ''}`;
+						// MODIFICATION END
+						
+						const progressPercent = (isOnCooldown && skillData.cooldown > 0)
+							? (remainingCd / skillData.cooldown) * 100
+							: 0;
+						
+						const buttonStyle = isOnCooldown
+							? `style="width: 110px; --cooldown-percent: ${progressPercent}%"`
+							: `style="width: 110px;"`;
+						
+						const extraClasses = isOnCooldown ? 'cooldown-progress' : '';
+						
 						return `<button
-                      class="btn btn-sm ${isActive ? 'btn-secondary' : 'btn-ghost'}"
-                      style="width: 110px;"
+                      class="btn btn-sm ${isActive && !isOnCooldown ? 'btn-secondary' : 'btn-ghost'} ${extraClasses} ${flashClass}"
+                      ${buttonStyle}
                       data-skill-id="${skillData.id}"
                       data-hero-id="${hero.id}"
                       data-target-hero-id="${targetHero.id}"
                       ${isCastDisabled ? 'disabled' : ''}>
-                      ${targetHero.name.substring(0, 3)}
-											${costText ? `(${costText})` : ''}
+                      ${buttonContent}
                   </button>`;
 					}).join('');
-					// MODIFIED: Added justify-end to align the button group to the right within its container.
 					castButtonsHtml = `<div class="flex items-center gap-1 justify-end">
                                         ${buttons}
                                        </div>`;
 				} else {
-					// MODIFIED: Added w-full to make the button fill its new fixed-width container.
-					castButtonsHtml = `<button class="btn btn-sm btn-ghost w-full" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${isCastDisabled ? 'disabled' : ''}>
-                                            Cast ${costText ? `(${costText})` : ''}
+					// MODIFICATION START: Logic for single-button flash and static button text.
+					const flashClass = shouldFlash ? 'flash-effect' : '';
+					
+					// The button's text no longer changes to show the cooldown.
+					const buttonContent = `Cast ${costText ? `(${costText})` : ''}`;
+					// MODIFICATION END
+					
+					const progressPercent = (isOnCooldown && skillData.cooldown > 0)
+						? (remainingCd / skillData.cooldown) * 100
+						: 0;
+					
+					const buttonStyle = isOnCooldown ? `style="--cooldown-percent: ${progressPercent}%"` : '';
+					const extraClasses = isOnCooldown ? 'cooldown-progress' : '';
+					
+					castButtonsHtml = `<button class="btn btn-sm btn-ghost w-full ${extraClasses} ${flashClass}" ${buttonStyle} data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${isCastDisabled ? 'disabled' : ''}>
+                                            ${buttonContent}
                                        </button>`;
 				}
 				
-				// Return the new single-line HTML structure for the skill.
 				return `
-                    <div class="flex items-center justify-between p-2 bg-base-100 rounded gap-4 ${shouldFlash ? 'flash-effect' : ''}">
+                    <div class="flex items-center justify-between p-2 bg-base-100 rounded gap-4">
                         <div class="w-20 font-bold text-primary truncate" title="${hero.name}">${hero.name}</div>
                         
                         <div class="flex-grow flex items-center gap-2 min-w-0">
                             <div class="flex-grow truncate" title="${skillData.description}">
                                 <span class="font-bold text-sm">${skillData.name}</span>
-                                ${isOnCooldown ? `<span class="text-error text-xs ml-1">(${remainingCd}s)</span>` : ''}
+                                <!-- MODIFIED: Cooldown text is now inside the button's progress bar, so it's removed from here. -->
                                 <span class="text-gray-400 italic text-xs ml-2">${skillData.description}</span>
                             </div>
-                            <!-- MODIFIED: Added fixed width and alignment to the auto-button's container for vertical alignment. -->
                             <div class="flex-shrink-0 w-24 flex justify-end">${autoButtonHtml}</div>
                         </div>
     
-                        <!-- MODIFIED: Set a fixed width on the container for the cast buttons. -->
                         <div class="flex-shrink-0" style="width: 360px;">
                             ${castButtonsHtml}
                         </div>
@@ -310,7 +336,6 @@ export function renderSkillsPanel () {
 			}).join('');
 		}
 		
-		// Add hero-specific data to the state key to trigger updates.
 		keyParts.push(
 			hero.id, hero.level, hero.autoCastSkillId,
 			JSON.stringify(hero.skillTargets),
@@ -320,7 +345,6 @@ export function renderSkillsPanel () {
 		);
 	});
 	
-	// Add game time to the key only if a skill is on cooldown to update the timer.
 	const anySkillOnCooldown = gameState.heroes.some(hero =>
 		Object.values(hero.skillCooldowns).some(cd => cd > gameState.time)
 	);
@@ -367,7 +391,6 @@ export function renderShopModal (heroId) {
 			details = `Effect: ${type === 'heal_hp' ? `+${value} HP` : `+${value} MP`}`;
 		}
 		
-		// Check hero's tokens for buying items.
 		const canAfford = hero.tokens >= shopItem.price;
 		
 		return `
@@ -394,7 +417,6 @@ export function renderShopModal (heroId) {
 		if (!entity) return '';
 		
 		const details = `Req: Lvl ${entity.levelRequirement} | Cost: ${entity.mpCost || entity.rageCost || 0} ${entity.rageCost ? 'Rage' : 'MP'}`;
-		// Check hero's tokens for buying skills.
 		const canAfford = hero.tokens >= shopItem.price;
 		const hasSkill = hero.skills.some(s => s.id === shopItem.skillId);
 		
@@ -416,7 +438,6 @@ export function renderShopModal (heroId) {
 		`;
 	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No skills for sale.</p>';
 	
-	// Render the Building Upgrades tab.
 	buildingUpgradesContent.innerHTML = gameData.building_upgrades.map(upgrade => {
 		const canAfford = hero.tokens >= upgrade.cost;
 		return `
@@ -431,7 +452,6 @@ export function renderShopModal (heroId) {
 		`;
 	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No building upgrades for sale.</p>';
 	
-	// Render the Car Upgrades tab.
 	carUpgradesContent.innerHTML = gameData.car_upgrades.map(upgrade => {
 		const canAfford = hero.tokens >= upgrade.cost;
 		return `

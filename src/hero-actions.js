@@ -183,7 +183,9 @@ export function handleAegisAction(heroId, skillId, options = {}) {
 		hero.xp.current += 25;
 		
 		hero.skillCooldowns[skillId] = gameState.time + skill.cooldown;
-		hero.skillFlash = { id: skillId, clearAtTime: gameState.time + 1 };
+		// MODIFIED: Store the targetHeroId in the skillFlash object.
+		// This tells the UI which specific button to apply the flash effect to.
+		hero.skillFlash = { id: skillId, clearAtTime: gameState.time + 1, targetHeroId: options.targetHeroId };
 		
 		if (hero.xp.current >= hero.xp.max) {
 			hero.level++;
