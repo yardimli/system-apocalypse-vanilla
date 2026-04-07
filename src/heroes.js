@@ -194,112 +194,138 @@ export function renderHeroes () {
 		}
 		updateHtmlIfChanged(statusArea, statusHtml, statusStateKey);
 		
-		const skillsListContainer = card.querySelector('[data-skills-list]');
-		if (skillsListContainer) {
-			let skillsHtml = '';
-			
-			const learnedSkills = hero.skills
-				.map(hs => gameData.skills.find(s => s.id === hs.id))
-				.filter(Boolean);
-			
-			if (learnedSkills.length > 0) {
-				skillsHtml = learnedSkills.map(skillData => {
-					const isAutoCasting = hero.autoCastSkillId === skillData.id;
-					const meetsLevelReq = !skillData.levelRequirement || hero.level >= skillData.levelRequirement;
-					
-					const cooldownEndTime = hero.skillCooldowns[skillData.id] || 0;
-					const isOnCooldown = gameState.time < cooldownEndTime;
-					const remainingCd = Math.ceil(cooldownEndTime - gameState.time);
-					const shouldFlash = hero.skillFlash && hero.skillFlash.id === skillData.id && gameState.time < hero.skillFlash.clearAtTime;
-					
-					let baseSkill = skillData;
-					while (baseSkill.replaces) {
-						const parent = gameData.skills.find(s => s.id === baseSkill.replaces);
-						if (!parent) break;
-						baseSkill = parent;
-					}
-					
-					const unlockLevel = baseSkill.autoCastUnlockLevel;
-					const canAutoCast = unlockLevel && hero.level >= unlockLevel;
-					
-					let autoButtonHtml = '';
-					if (canAutoCast) {
-						autoButtonHtml = `<button class="btn btn-xs ${isAutoCasting ? 'btn-primary' : 'btn-ghost'}" data-autocast-skill-id="${skillData.id}" data-hero-id="${hero.id}">Auto</button>`;
-					} else if (unlockLevel) {
-						autoButtonHtml = `<div class="tooltip" data-tip="Unlocks at Hero Level ${unlockLevel}"><button class="btn btn-xs btn-ghost" disabled>Auto</button></div>`;
-					}
-					
-					const mpCost = skillData.mpCost || 0;
-					const rageCost = skillData.rageCost || 0;
-					// Vanguard skills can be used without rage, so we don't check for it when disabling the button.
-					const hasResources = hero.class === 'Vanguard' || (hero.mp.current >= mpCost);
-					const isCastDisabled = !meetsLevelReq || !hasResources || isOnCooldown;
-					const costText = rageCost > 0 ? `${rageCost} Rage` : (mpCost > 0 ? `${mpCost} MP` : '');
-					
-					return `
-						<div class="card bg-base-100 shadow-md flex flex-col ${shouldFlash ? 'flash-effect' : ''}">
-							<div class="p-2 flex-grow">
-								<div class="flex justify-between items-center">
-									<div class="font-bold text-xs">${skillData.name} ${isOnCooldown ? `<span class="text-error">(${remainingCd}s)</span>` : ''}</div>
-									${skillData.levelRequirement > 1 ? `<div class="badge badge-neutral badge-sm">Lvl ${skillData.levelRequirement}</div>` : ''}
-								</div>
-								<p class="text-[10px] italic text-gray-400 my-1 min-h-[20px]">${skillData.description}</p>
-								<div class="flex flex-wrap gap-1 items-center justify-end mt-1">
-									${autoButtonHtml}
-								</div>
-							</div>
-							${(() => {
-						if (skillData.actionType === 'heal') {
-							const currentTargetId = hero.skillTargets[skillData.id] || hero.id;
-							const buttons = gameState.heroes.map(targetHero => {
-								const isActive = currentTargetId === targetHero.id;
-								return `<button
-													class="btn btn-sm ${isActive ? 'btn-secondary' : 'btn-ghost'}"
-													data-skill-id="${skillData.id}"
-													data-hero-id="${hero.id}"
-													data-target-hero-id="${targetHero.id}"
-													${isCastDisabled ? 'disabled' : ''}>
-													Cast on ${targetHero.name} ${costText ? `(${costText})` : ''}
-												</button>`;
-							}).join('');
-							return `<div class="card-actions p-1 flex flex-col gap-1">${buttons}</div>`;
-						} else {
-							return `
-										<div class="card-actions p-1">
-											<button class="btn btn-sm btn-ghost w-full" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${isCastDisabled ? 'disabled' : ''}>
-												Cast ${costText ? `(${costText})` : ''}
-											</button>
-										</div>
-									`;
-						}
-					})()}
-						</div>
-					`;
-				}).join('');
-			}
-			
-			const keyParts = [
-				hero.level,
-				hero.autoCastSkillId,
-				JSON.stringify(hero.skillTargets),
-				JSON.stringify(hero.skillFlash),
-				JSON.stringify(hero.skillCooldowns), // Always include to detect when a new cooldown starts.
-				// Create a boolean flag for each skill based on whether the hero can afford it.
-				// This part of the key only changes when MP crosses a skill's cost threshold.
-				learnedSkills.map(s => (s.mpCost && hero.mp) ? (hero.mp.current >= s.mpCost) : true).join(',')
-			];
-			
-			// Only add the rapidly-changing `gameState.time` to the key if a skill is actively on cooldown.
-			// This is necessary to make the countdown timer update every tick.
-			const anySkillOnCooldown = learnedSkills.some(skill => (hero.skillCooldowns[skill.id] || 0) > gameState.time);
-			if (anySkillOnCooldown) {
-				keyParts.push(gameState.time);
-			}
-			
-			const skillsStateKey = keyParts.join('|');
-			updateHtmlIfChanged(skillsListContainer, skillsHtml, skillsStateKey);
-		}
+		// MODIFIED: All skill rendering logic has been removed from the hero card
+		// and moved into the new renderSkillsPanel function.
 	});
+}
+
+// NEW: This function renders all hero skills in a single shared panel.
+export function renderSkillsPanel () {
+	const container = getEl('skills-panel-container');
+	if (!container) return;
+	
+	// Ensure the static structure of the panel exists.
+	if (!container.querySelector('#skills-panel-list')) {
+		container.innerHTML = `
+            <div class="card bg-base-200 shadow-md p-4">
+                <h3 class="font-bold text-lg mb-2">Party Skills</h3>
+                <div id="skills-panel-list" class="flex flex-col gap-1"></div>
+            </div>
+        `;
+	}
+	const listContainer = getEl('skills-panel-list');
+	if (!listContainer) return;
+	
+	let skillsHtml = '';
+	const keyParts = [];
+	
+	// Iterate through each hero to build the combined skill list.
+	gameState.heroes.forEach(hero => {
+		const learnedSkills = hero.skills
+			.map(hs => gameData.skills.find(s => s.id === hs.id))
+			.filter(Boolean);
+		
+		if (learnedSkills.length > 0) {
+			skillsHtml += learnedSkills.map(skillData => {
+				// This logic is reused from the old per-hero skill rendering.
+				const isAutoCasting = hero.autoCastSkillId === skillData.id;
+				const meetsLevelReq = !skillData.levelRequirement || hero.level >= skillData.levelRequirement;
+				const cooldownEndTime = hero.skillCooldowns[skillData.id] || 0;
+				const isOnCooldown = gameState.time < cooldownEndTime;
+				const remainingCd = Math.ceil(cooldownEndTime - gameState.time);
+				const shouldFlash = hero.skillFlash && hero.skillFlash.id === skillData.id && gameState.time < hero.skillFlash.clearAtTime;
+				
+				let baseSkill = skillData;
+				while (baseSkill.replaces) {
+					const parent = gameData.skills.find(s => s.id === baseSkill.replaces);
+					if (!parent) break;
+					baseSkill = parent;
+				}
+				
+				const unlockLevel = baseSkill.autoCastUnlockLevel;
+				const canAutoCast = unlockLevel && hero.level >= unlockLevel;
+				
+				let autoButtonHtml = '';
+				if (canAutoCast) {
+					autoButtonHtml = `<button class="btn btn-xs ${isAutoCasting ? 'btn-primary' : 'btn-ghost'}" data-autocast-skill-id="${skillData.id}" data-hero-id="${hero.id}">Auto</button>`;
+				} else if (unlockLevel) {
+					autoButtonHtml = `<div class="tooltip" data-tip="Unlocks at Lvl ${unlockLevel}"><button class="btn btn-xs btn-ghost" disabled>Auto</button></div>`;
+				}
+				
+				const mpCost = skillData.mpCost || 0;
+				const rageCost = skillData.rageCost || 0;
+				const hasResources = hero.class === 'Vanguard' || (hero.mp && hero.mp.current >= mpCost);
+				const isCastDisabled = !meetsLevelReq || !hasResources || isOnCooldown;
+				const costText = rageCost > 0 ? `${rageCost} Rage` : (mpCost > 0 ? `${mpCost} MP` : '');
+				
+				let castButtonsHtml = '';
+				if (skillData.actionType === 'heal') {
+					const currentTargetId = hero.skillTargets[skillData.id] || hero.id;
+					const buttons = gameState.heroes.map(targetHero => {
+						const isActive = currentTargetId === targetHero.id;
+						return `<div class="tooltip" data-tip="Cast on ${targetHero.name}">
+                                    <button
+                                        class="btn btn-xs ${isActive ? 'btn-secondary' : 'btn-ghost'}"
+                                        data-skill-id="${skillData.id}"
+                                        data-hero-id="${hero.id}"
+                                        data-target-hero-id="${targetHero.id}"
+                                        ${isCastDisabled ? 'disabled' : ''}>
+                                        ${targetHero.name.substring(0, 3)}
+                                    </button>
+                                </div>`;
+					}).join('');
+					castButtonsHtml = `<div class="flex items-center gap-1">
+                                        <span class="text-xs mr-1">${costText ? `(${costText})` : ''}</span>
+                                        ${buttons}
+                                       </div>`;
+				} else {
+					castButtonsHtml = `<button class="btn btn-sm btn-ghost" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" ${isCastDisabled ? 'disabled' : ''}>
+                                            Cast ${costText ? `(${costText})` : ''}
+                                       </button>`;
+				}
+				
+				// Return the new single-line HTML structure for the skill.
+				return `
+                    <div class="flex items-center justify-between p-2 bg-base-100 rounded gap-4 ${shouldFlash ? 'flash-effect' : ''}">
+                        <div class="w-20 font-bold text-primary truncate" title="${hero.name}">${hero.name}</div>
+                        
+                        <div class="flex-grow flex items-center gap-2 min-w-0">
+                            <div class="flex-grow truncate" title="${skillData.description}">
+                                <span class="font-bold text-sm">${skillData.name}</span>
+                                ${isOnCooldown ? `<span class="text-error text-xs ml-1">(${remainingCd}s)</span>` : ''}
+                                <span class="text-gray-400 italic text-xs ml-2">${skillData.description}</span>
+                            </div>
+                            <div class="flex-shrink-0">${autoButtonHtml}</div>
+                        </div>
+    
+                        <div class="flex-shrink-0 flex flex-wrap gap-1 justify-end">
+                            ${castButtonsHtml}
+                        </div>
+                    </div>
+                `;
+			}).join('');
+		}
+		
+		// Add hero-specific data to the state key to trigger updates.
+		keyParts.push(
+			hero.id, hero.level, hero.autoCastSkillId,
+			JSON.stringify(hero.skillTargets),
+			JSON.stringify(hero.skillFlash),
+			JSON.stringify(hero.skillCooldowns),
+			hero.class === 'Vanguard' ? hero.rage.current : (hero.mp ? hero.mp.current : 0)
+		);
+	});
+	
+	// Add game time to the key only if a skill is on cooldown to update the timer.
+	const anySkillOnCooldown = gameState.heroes.some(hero =>
+		Object.values(hero.skillCooldowns).some(cd => cd > gameState.time)
+	);
+	if (anySkillOnCooldown) {
+		keyParts.push(gameState.time);
+	}
+	
+	const skillsStateKey = keyParts.join('|');
+	updateHtmlIfChanged(listContainer, skillsHtml, skillsStateKey);
 }
 
 export function renderShopModal (heroId) {

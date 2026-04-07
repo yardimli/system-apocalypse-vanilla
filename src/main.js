@@ -4,13 +4,11 @@ import { addToLog, parseRange } from './utils.js';
 import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { handleUseConsumable } from './inventory.js';
 import { handleShopAndPurchaseClicks } from './shop.js';
-import { renderHeroes, autoEquipBestGear, renderShopModal } from './heroes.js';
-// MODIFIED: Import new monster logic handler
+import { renderHeroes, autoEquipBestGear, renderShopModal, renderSkillsPanel } from './heroes.js';
 import { renderMonsters, processMonsterActions } from './monsters.js';
 import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding } from './buildings.js';
 import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview, renderPartyCombat, renderPartyLog } from './ui.js';
 import { renderCars, initiateCarPurchase } from './cars.js';
-// MODIFIED: Import new mission and combat logic handlers
 import { renderMissionControl, handleStartMission, handleFlee, processMissionTick, handleStartAttackMission, manageCombatAssignments, handleMonsterDefeat } from './missions.js';
 
 const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'City', 'Items', 'Log', 'Sandbox'];
@@ -24,16 +22,19 @@ const contentArea = getEl('content-area');
 function renderContent () {
 	switch (activeTab) {
 		case 'Heroes':
+			// MODIFIED: The layout is changed from a flex-column to a more complex grid.
+			// This positions the skills panel under the 3-column hero grid,
+			// while the sidebar spans both rows in the 4th column.
 			if (!getEl('heroes-tab-content')) {
 				contentArea.innerHTML = `
                     <div id="heroes-tab-content" class="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                        <!-- Hero Cards Area (spans 3 columns on large screens) -->
+                        <!-- Hero Cards Area (spans 3 columns) -->
                         <div id="heroes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 col-span-1 lg:col-span-3 gap-4">
                             <!-- Hero cards will be injected here -->
                         </div>
 
-                        <!-- Sidebar Area (4th column) -->
-                        <div id="heroes-sidebar" class="flex flex-col gap-4">
+                        <!-- Sidebar Area (4th column, spans 2 rows on large screens) -->
+                        <div id="heroes-sidebar" class="lg:row-span-2 flex flex-col gap-4">
 
                             <!-- Mission Control -->
                             <div id="mission-control-area" class="card bg-base-200 shadow-md p-4 flex flex-col gap-4">
@@ -50,13 +51,19 @@ function renderContent () {
                                 <!-- Shared combat info will be injected here -->
                             </div>
                         </div>
+
+                        <!-- Skills Panel Area (spans 3 columns, on the next row) -->
+                        <div id="skills-panel-container" class="col-span-1 lg:col-span-3 w-full">
+                            <!-- The shared skills panel will be injected here -->
+                        </div>
                     </div>
                 `;
 			}
 			renderMissionControl();
 			renderPartyCombat();
-			renderPartyLog(); // Added call to render the new party log
+			renderPartyLog();
 			renderHeroes();
+			renderSkillsPanel();
 			break;
 		case 'Buildings':
 			renderBuildings(contentArea);
