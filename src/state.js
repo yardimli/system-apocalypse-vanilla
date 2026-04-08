@@ -47,6 +47,11 @@ export const gameState = {
 		targetMonsterId: null
 	},
 	city: {
+		// NEW: Add city-wide token balance and income rate.
+		tokens: 1000, // Starting capital for the city.
+		tokensPerPopulationPerTick: 0.1, // Each citizen generates this many tokens per tick.
+		firstShieldInstalled: false, // NEW: Flag to track the first shield upgrade.
+		// END NEW
 		buildings: initialBuildings,
 		cars: initialCars
 	},
@@ -75,7 +80,7 @@ export const gameState = {
 			carId: null,
 			survivorsCarried: 0,
 			targetMonsterId: null,
-			location: 'field',
+			location: 1, // MODIFIED: Start inside the base.
 			tokens: 100,
 			skills:[
 				{ id: 'AEG004' }
@@ -117,7 +122,7 @@ export const gameState = {
 			carId: null,
 			survivorsCarried: 0,
 			targetMonsterId: null,
-			location: 'field',
+			location: 1, // MODIFIED: Start inside the base.
 			tokens: 100,
 			skills: [{ id: 'STR001' }],
 			autoCastSkillId: 'STR001',
@@ -152,7 +157,7 @@ export const gameState = {
 			carId: null,
 			survivorsCarried: 0,
 			targetMonsterId: null,
-			location: 'field',
+			location: 1, // MODIFIED: Start inside the base.
 			tokens: 100,
 			skills: [{ id: 'VAN001' }, { id: 'VAN003' }],
 			autoCastSkillId: 'VAN003',

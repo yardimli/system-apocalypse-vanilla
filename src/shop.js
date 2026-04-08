@@ -224,8 +224,8 @@ export function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 			return;
 		}
 		
-		if (building.tokens < upgrade.cost) {
-			addToLog(`${building.name} doesn't have enough tokens to buy ${upgrade.name}. (Need ${upgrade.cost})`, null);
+		if (gameState.city.tokens < upgrade.cost) {
+			addToLog(`The city doesn't have enough tokens to buy ${upgrade.name} for ${building.name}. (Need ${upgrade.cost})`, null);
 			return;
 		}
 		
@@ -235,7 +235,7 @@ export function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 		}
 		
 		// Process transaction
-		building.tokens -= upgrade.cost;
+		gameState.city.tokens -= upgrade.cost;
 		building.upgrades.push(upgradeId);
 		
 		// Apply one-time effects
@@ -244,12 +244,23 @@ export function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 			if (effect.type === 'add_shield') {
 				building.maxShieldHp = (building.maxShieldHp || 0) + effect.value;
 				building.shieldHp = (building.shieldHp || 0) + effect.value;
+				// NEW: Logic to rename the first building that gets a shield.
+				if (!gameState.city.firstShieldInstalled) {
+					gameState.city.firstShieldInstalled = true;
+					const aegisHero = gameState.heroes.find(h => h.class === 'Aegis');
+					if (aegisHero) {
+						const oldName = building.name;
+						building.name = `${aegisHero.name}'s Bastion`;
+						addToLog(`As the first shielded safezone, ${oldName} has been renamed to ${building.name}!`, null);
+					}
+				}
+				// END NEW
 			} else if (effect.type === 'increase_max_hp') {
 				building.maxHp += effect.value;
 				building.hp += effect.value;
 			}
 		}
-		addToLog(`${building.name} purchased the ${upgrade.name} upgrade for ${upgrade.cost} tokens!`, null);
+		addToLog(`${building.name} purchased the ${upgrade.name} upgrade for ${upgrade.cost} tokens! (Paid by city)`, null);
 		return;
 	}
 	
@@ -368,10 +379,12 @@ export function renderShopModal ({ heroId, buildingId, defaultTab = 'items' }) {
 	if (!header || !itemsContent || !skillsContent || !inventoryContent || !buildingUpgradesContent || !carUpgradesContent) return;
 	
 	// 1. Update Header
+	// MODIFIED: Show city tokens for building context, hero tokens for hero context.
+	const tokensToShow = isBuildingContext ? gameState.city.tokens : contextEntity.tokens;
 	header.innerHTML = `
         <div class="flex justify-between items-center">
             <h3 class="font-bold text-lg">System Shop (${contextEntity.name})</h3>
-            <span class="badge badge-warning">Tokens: ${contextEntity.tokens || 0}</span>
+            <span class="badge badge-warning">Tokens: ${Math.floor(tokensToShow)}</span>
         </div>
     `;
 	
@@ -398,7 +411,8 @@ export function renderShopModal ({ heroId, buildingId, defaultTab = 'items' }) {
 		const building = contextEntity;
 		// Building context: only render building upgrades
 		buildingUpgradesContent.innerHTML = gameData.building_upgrades.map(upgrade => {
-			const canAfford = building.tokens >= upgrade.cost;
+			// MODIFIED: Check against city's token balance.
+			const canAfford = gameState.city.tokens >= upgrade.cost;
 			const hasUpgrade = building.upgrades.includes(upgrade.id);
 			return `
 				<div class="bg-base-300/50 rounded p-2 flex flex-col gap-1">

@@ -85,10 +85,9 @@ export function handleBuyBuilding(buildingId) {
 	if (!building || building.owner === 'player') return;
 	
 	const price = calculateNextBuildingPrice();
-	const totalTokens = gameState.heroes.reduce((sum, h) => sum + h.tokens, 0);
-	
-	if (totalTokens < price) {
-		addToLog(`The party doesn't have enough tokens to buy Building #${buildingId}. (Need ${price})`);
+	// MODIFIED: Check city tokens instead of hero tokens.
+	if (gameState.city.tokens < price) {
+		addToLog(`The city doesn't have enough tokens to buy Building #${buildingId}. (Need ${price})`);
 		return;
 	}
 	
@@ -98,42 +97,8 @@ export function handleBuyBuilding(buildingId) {
 		return;
 	}
 	
-	// Deduct tokens as evenly as possible
-	let remainingCost = price;
-	const payers = gameState.heroes.slice().sort((a, b) => b.tokens - a.tokens);
-	const contributions = {};
-	
-	// First pass: each hero pays up to their fair share
-	let tempCost = remainingCost;
-	for (const hero of payers) {
-		const heroCount = payers.filter(p => p.tokens > (contributions[p.id] || 0)).length;
-		if (heroCount === 0) break;
-		const share = Math.ceil(tempCost / heroCount);
-		const payment = Math.min(hero.tokens, share);
-		if (payment > 0) {
-			contributions[hero.id] = (contributions[hero.id] || 0) + payment;
-			remainingCost -= payment;
-		}
-	}
-	// Second pass: if cost remains, take from the richest heroes
-	if (remainingCost > 0) {
-		for (const hero of payers) {
-			const canPay = hero.tokens - (contributions[hero.id] || 0);
-			const payment = Math.min(canPay, remainingCost);
-			if (payment > 0) {
-				contributions[hero.id] += payment;
-				remainingCost -= payment;
-			}
-		}
-	}
-	
-	// Apply deductions and log
-	let contributionLog = [];
-	for (const heroId in contributions) {
-		const hero = gameState.heroes.find(h => h.id === parseInt(heroId));
-		hero.tokens -= contributions[heroId];
-		contributionLog.push(`${hero.name}: ${contributions[heroId]}`);
-	}
+	// MODIFIED: Deduct cost from city tokens and simplify logic.
+	gameState.city.tokens -= price;
 	
 	building.owner = 'player';
 	building.name = buildingName;
@@ -143,9 +108,9 @@ export function handleBuyBuilding(buildingId) {
 	building.maxShieldHp = 1000;
 	building.shieldHp = 1000;
 	building.isSafezone = true;
-	building.tokens = 0;
 	
-	addToLog(`Party purchased ${building.name} for ${price} tokens! (${contributionLog.join(', ')})`);
+	// MODIFIED: Update log message to reflect city purchase.
+	addToLog(`City purchased ${building.name} for ${price} tokens!`);
 }
 
 /**
@@ -162,7 +127,6 @@ export function renderBuildings(contentArea) {
 	const activeBuildingIds = new Set(gameState.city.buildings.map(b => b.id));
 	
 	// Pre-calculate values needed for multiple cards
-	const totalTokens = gameState.heroes.reduce((sum, h) => sum + h.tokens, 0);
 	const nextPrice = calculateNextBuildingPrice();
 	const heroesOutside = gameState.heroes.filter(h => h.location === 'field');
 	
@@ -190,7 +154,6 @@ export function renderBuildings(contentArea) {
                         <div data-hp></div>
                         <div data-shield class="text-info"></div>
                         <div data-pop class="text-success mt-1"></div>
-                        <div data-tokens class="text-warning mt-1"></div>
                         <div class="mt-2">
                             <p class="font-semibold">Heroes Inside:</p>
                             <p data-heroes-inside class="text-gray-400 truncate"></p>
@@ -225,7 +188,6 @@ export function renderBuildings(contentArea) {
 			updateTextIfChanged(cardContent.querySelector('[data-hp]'), `HP: ${b.hp}/${b.maxHp}`);
 			updateTextIfChanged(cardContent.querySelector('[data-shield]'), `Shield: ${b.shieldHp || 0}/${b.maxShieldHp || 0}`);
 			updateTextIfChanged(cardContent.querySelector('[data-pop]'), `Pop: ${b.population}/10`);
-			updateTextIfChanged(cardContent.querySelector('[data-tokens]'), `Tokens: ${b.tokens || 0}`);
 			
 			const heroesInside = b.heroesInside.map(id => gameState.heroes.find(h => h.id === id)?.name).join(', ') || 'None';
 			updateTextIfChanged(cardContent.querySelector('[data-heroes-inside]'), heroesInside);
@@ -252,7 +214,8 @@ export function renderBuildings(contentArea) {
 			updateTextIfChanged(cardContent.querySelector('[data-pop]'), `Pop: ${b.population}/10`);
 			
 			const buyBtn = cardContent.querySelector('[data-buy-building-id]');
-			const canAfford = totalTokens >= nextPrice;
+			// MODIFIED: Check city tokens instead of hero tokens.
+			const canAfford = gameState.city.tokens >= nextPrice;
 			updateTextIfChanged(buyBtn, `Buy (${nextPrice} T)`);
 			if (buyBtn.disabled !== !canAfford) {
 				buyBtn.disabled = !canAfford;

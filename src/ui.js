@@ -48,6 +48,13 @@ export function renderHeader () {
 	
 	updateTextIfChanged(headerContainer.querySelector('[data-stat="population"]'), totalPop);
 	
+	// NEW: Update city token and income displays.
+	const cityTokens = Math.floor(gameState.city.tokens);
+	const incomePerDay = (totalPop * gameState.city.tokensPerPopulationPerTick * 10).toFixed(1);
+	updateTextIfChanged(headerContainer.querySelector('[data-stat="city-tokens"]'), cityTokens);
+	updateTextIfChanged(headerContainer.querySelector('[data-stat="city-income"]'), `+${incomePerDay}`);
+	// END NEW
+	
 	const speed = gameState.gameSettings.speedMultiplier;
 	const speedControls = headerContainer.querySelector('#speed-controls');
 	if (speedControls) {

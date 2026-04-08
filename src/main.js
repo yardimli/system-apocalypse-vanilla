@@ -149,7 +149,8 @@ function processGameTick () {
 			}
 		}
 		
-		if (hero.class === 'Vanguard' && !hero.targetMonsterId && hero.rage.current > 0) {
+		// MODIFIED: Added check for hero.location to prevent rage decay while in a building.
+		if (hero.class === 'Vanguard' && !hero.targetMonsterId && hero.rage.current > 0 && hero.location === 'field') {
 			hero.rage.current = Math.max(0, hero.rage.current - 10);
 		}
 		
@@ -254,18 +255,23 @@ function processGameTick () {
 		}
 	});
 	
-	// NEW: Process building population effects (HP regen and token generation).
+	// MODIFIED: Process building population effects (HP regen and token generation for the city).
+	let totalCityPopulation = 0;
 	gameState.city.buildings.forEach(building => {
 		if (building.owner === 'player' && building.population > 0) {
+			totalCityPopulation += building.population;
 			// Population restores HP to the building.
 			if (building.hp < building.maxHp) {
 				building.hp = Math.min(building.maxHp, building.hp + building.population);
 			}
-			// Population generates tokens for the building.
-			building.tokens = (building.tokens || 0) + building.population;
 		}
 	});
-	// END NEW
+	// NEW: Calculate and add city-wide income based on total population.
+	if (totalCityPopulation > 0) {
+		const incomeThisTick = totalCityPopulation * gameState.city.tokensPerPopulationPerTick;
+		gameState.city.tokens += incomeThisTick;
+	}
+	// END MODIFIED
 	
 	processMonsterActions();
 	
@@ -353,24 +359,35 @@ async function init () {
 		
 		const potentialSafezoneBuildings = gameState.city.buildings.filter(b => b.owner !== 'player');
 		const shuffledBuildings = potentialSafezoneBuildings.sort(() => 0.5 - Math.random());
-		const baseNames = ['Alpha Base', 'Beta Base', 'Delta Base'];
 		
-		for (let i = 0; i < 3; i++) {
-			if (shuffledBuildings[i]) {
-				const building = shuffledBuildings[i];
-				building.owner = 'player';
-				building.name = baseNames[i];
-				building.state = 'functional';
-				building.maxHp = 1000;
-				building.hp = 1000;
-				building.maxShieldHp = 1000;
-				building.shieldHp = 1000;
-				building.isSafezone = true;
-				building.population = 0;
-				building.tokens = 0; // NEW: Initialize tokens for starting bases.
-			}
+		// MODIFIED: Create only one starting base.
+		let firstBaseId = null;
+		if (shuffledBuildings[0]) {
+			const building = shuffledBuildings[0];
+			building.owner = 'player';
+			building.name = 'Alpha Base';
+			building.state = 'functional';
+			building.maxHp = 1000;
+			building.hp = 1000;
+			building.maxShieldHp = 1000;
+			building.shieldHp = 1000;
+			building.isSafezone = true;
+			building.population = 10; // NEW: Give starting population for income.
+			firstBaseId = building.id;
 		}
-		addToLog('[SYSTEM]: Initial safezones Alpha, Beta, and Delta have been established.');
+		
+		// MODIFIED: Ensure all heroes start in the single base.
+		if (firstBaseId) {
+			gameState.heroes.forEach(hero => {
+				hero.location = firstBaseId;
+				const building = gameState.city.buildings.find(b => b.id === firstBaseId);
+				if (building && !building.heroesInside.includes(hero.id)) {
+					building.heroesInside.push(hero.id);
+				}
+			});
+		}
+		
+		addToLog('[SYSTEM]: Initial safezone Alpha Base has been established.');
 	} catch (error) {
 		console.error('Failed to load game data:', error);
 		contentArea.innerHTML = `<p class="text-error">Error: Could not load game data. Please check the console.</p>`;
