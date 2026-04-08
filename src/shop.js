@@ -18,7 +18,7 @@ function findEntityById (id) {
 const getEl = (id) => document.getElementById(id);
 
 /**
- * entralized handler for all shop and major purchase-related click events.
+ * Centralized handler for all shop and major purchase-related click events.
  * This function is called from the main event listener in main.js.
  * @param {Event} e - The click event object.
  * @returns {boolean} - True if an action was handled, indicating a re-render may be needed.
@@ -31,7 +31,7 @@ export function handleShopAndPurchaseClicks (e) {
 		handleSellItem(heroId, itemId);
 		const modal = getEl('system-shop-modal');
 		if (modal.open) {
-			renderShopModal(heroId);
+			renderShopModal({ heroId });
 		}
 		return true; // Handled, re-render needed
 	}
@@ -41,7 +41,7 @@ export function handleShopAndPurchaseClicks (e) {
 		const heroId = parseInt(buyItemBtn.dataset.heroId, 10);
 		const itemId = buyItemBtn.dataset.buyItemId;
 		handleBuyItem(heroId, itemId);
-		renderShopModal(heroId);
+		renderShopModal({ heroId });
 		return true; // Handled, re-render needed
 	}
 	
@@ -50,16 +50,24 @@ export function handleShopAndPurchaseClicks (e) {
 		const heroId = parseInt(buySkillBtn.dataset.heroId, 10);
 		const skillId = buySkillBtn.dataset.buySkillId;
 		handleBuySkill(heroId, skillId);
-		renderShopModal(heroId);
+		renderShopModal({ heroId });
 		return true; // Handled, re-render needed
 	}
 	
 	const buyUpgradeBtn = e.target.closest('[data-buy-upgrade-id]');
 	if (buyUpgradeBtn) {
 		const upgradeId = buyUpgradeBtn.dataset.buyUpgradeId;
-		const heroId = parseInt(buyUpgradeBtn.dataset.heroId, 10);
-		handleBuyUpgrade(heroId, upgradeId);
-		renderShopModal(heroId);
+		// MODIFIED: Check if the purchase is for a hero or a building
+		const heroId = buyUpgradeBtn.dataset.heroId ? parseInt(buyUpgradeBtn.dataset.heroId, 10) : null;
+		const buildingId = buyUpgradeBtn.dataset.buildingId ? parseInt(buyUpgradeBtn.dataset.buildingId, 10) : null;
+		
+		if (buildingId) {
+			handleBuyUpgrade({ buildingId, upgradeId });
+			renderShopModal({ buildingId, defaultTab: 'building-upgrades' }); // Re-render shop for building
+		} else if (heroId) {
+			handleBuyUpgrade({ heroId, upgradeId });
+			renderShopModal({ heroId }); // Re-render shop for hero
+		}
 		return true; // Handled, re-render needed
 	}
 	
@@ -192,74 +200,104 @@ export function handleSellItem (heroId, itemId) {
 }
 
 /**
- * Handles a hero buying an upgrade for a car or building.
- * @param {number} heroId - The ID of the hero buying the upgrade.
- * @param {string} upgradeId - The ID of the upgrade to buy.
+ * Handles buying an upgrade for a car or building.
+ * Can be initiated by a hero (for their car) or by a building (for itself).
+ * @param {object} options - The purchase options.
+ * @param {number} [options.heroId] - The ID of the hero buying the upgrade.
+ * @param {number} [options.buildingId] - The ID of the building buying the upgrade for itself.
+ * @param {string} options.upgradeId - The ID of the upgrade to buy.
  */
-export function handleBuyUpgrade (heroId, upgradeId) {
-	const hero = gameState.heroes.find(h => h.id === heroId);
+export function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 	const upgrade = gameData.building_upgrades.find(u => u.id === upgradeId) || gameData.car_upgrades.find(u => u.id === upgradeId);
-	
-	if (!hero || !upgrade) {
-		addToLog(`Shop Error: Hero or upgrade with ID ${upgradeId} not found.`);
-		return;
-	}
-	
-	if (hero.tokens < upgrade.cost) {
-		addToLog(`doesn't have enough tokens to buy ${upgrade.name}. (Need ${upgrade.cost})`, hero.id);
+	if (!upgrade) {
+		addToLog(`Shop Error: Upgrade with ID ${upgradeId} not found.`);
 		return;
 	}
 	
 	const isCarUpgrade = upgrade.id.startsWith('CAR_');
-	const targetType = isCarUpgrade ? 'car' : 'building';
-	// For car upgrades, only show cars owned by the hero. For building upgrades, show all player buildings.
-	const ownedAssets = isCarUpgrade
-		? gameState.city.cars.filter(c => c.ownerId === heroId)
-		: gameState.city.buildings.filter(b => b.owner === 'player');
 	
-	if (ownedAssets.length === 0) {
-		addToLog(`has no available ${targetType}s to upgrade.`, hero.id);
+	// Case 1: A building is buying an upgrade for itself.
+	if (buildingId) {
+		const building = gameState.city.buildings.find(b => b.id === buildingId);
+		if (!building) {
+			addToLog(`Shop Error: Building #${buildingId} not found.`);
+			return;
+		}
+		
+		if (building.tokens < upgrade.cost) {
+			addToLog(`${building.name} doesn't have enough tokens to buy ${upgrade.name}. (Need ${upgrade.cost})`, null);
+			return;
+		}
+		
+		if (building.upgrades.includes(upgradeId)) {
+			addToLog(`${building.name} already has the ${upgrade.name} upgrade.`, null);
+			return;
+		}
+		
+		// Process transaction
+		building.tokens -= upgrade.cost;
+		building.upgrades.push(upgradeId);
+		
+		// Apply one-time effects
+		const { effect } = upgrade;
+		if (effect) {
+			if (effect.type === 'add_shield') {
+				building.maxShieldHp = (building.maxShieldHp || 0) + effect.value;
+				building.shieldHp = (building.shieldHp || 0) + effect.value;
+			} else if (effect.type === 'increase_max_hp') {
+				building.maxHp += effect.value;
+				building.hp += effect.value;
+			}
+		}
+		addToLog(`${building.name} purchased the ${upgrade.name} upgrade for ${upgrade.cost} tokens!`, null);
 		return;
 	}
 	
-	const validIds = ownedAssets.map(a => a.id).join(', ');
-	const targetIdStr = prompt(`Enter the ID of the ${targetType} to apply "${upgrade.name}" to.\nYour valid ${targetType} IDs: ${validIds}`);
-	if (!targetIdStr) {
-		addToLog('Upgrade purchase cancelled.', hero.id);
-		return;
-	}
-	
-	const targetId = isCarUpgrade ? targetIdStr : parseInt(targetIdStr, 10);
-	const targetAsset = ownedAssets.find(a => a.id === targetId);
-	
-	if (!targetAsset) {
-		addToLog(`Invalid ID. No valid ${targetType} with ID #${targetId} found for ${hero.name}.`, hero.id);
-		return;
-	}
-	
-	if (targetAsset.upgrades.includes(upgradeId)) {
-		addToLog(`${targetAsset.name || `${targetType} #${targetId}`} already has the ${upgrade.name} upgrade.`, hero.id);
-		return;
-	}
-	
-	hero.tokens -= upgrade.cost;
-	
-	// Apply upgrade
-	targetAsset.upgrades.push(upgradeId);
-	
-	// Handle one-time effects of upgrades (e.g., adding a shield)
-	const { effect } = upgrade;
-	if (effect) {
-		if (effect.type === 'add_shield') {
-			targetAsset.maxShieldHp = (targetAsset.maxShieldHp || 0) + effect.value;
-			targetAsset.shieldHp = (targetAsset.shieldHp || 0) + effect.value;
-		} else if (effect.type === 'increase_max_hp') {
-			targetAsset.maxHp += effect.value;
-			targetAsset.hp += effect.value;
+	// Case 2: A hero is buying a car upgrade.
+	if (heroId) {
+		const hero = gameState.heroes.find(h => h.id === heroId);
+		if (!hero) {
+			addToLog(`Shop Error: Hero #${heroId} not found.`);
+			return;
+		}
+		
+		if (hero.tokens < upgrade.cost) {
+			addToLog(`doesn't have enough tokens to buy ${upgrade.name}. (Need ${upgrade.cost})`, hero.id);
+			return;
+		}
+		
+		if (isCarUpgrade) {
+			const ownedAssets = gameState.city.cars.filter(c => c.ownerId === heroId);
+			if (ownedAssets.length === 0) {
+				addToLog(`has no available cars to upgrade.`, hero.id);
+				return;
+			}
+			
+			const validIds = ownedAssets.map(a => a.id).join(', ');
+			const targetIdStr = prompt(`Enter the ID of the car to apply "${upgrade.name}" to.\nYour valid car IDs: ${validIds}`);
+			if (!targetIdStr) {
+				addToLog('Upgrade purchase cancelled.', hero.id);
+				return;
+			}
+			
+			const targetAsset = ownedAssets.find(a => a.id === targetIdStr);
+			if (!targetAsset) {
+				addToLog(`Invalid ID. No valid car with ID #${targetIdStr} found for ${hero.name}.`, hero.id);
+				return;
+			}
+			
+			if (targetAsset.upgrades.includes(upgradeId)) {
+				addToLog(`${targetAsset.name} already has the ${upgrade.name} upgrade.`, hero.id);
+				return;
+			}
+			
+			hero.tokens -= upgrade.cost;
+			targetAsset.upgrades.push(upgradeId);
+			addToLog(`purchased ${upgrade.name} for ${targetAsset.name} for ${upgrade.cost} tokens!`, hero.id);
+		} else {
+			addToLog('Heroes can no longer purchase building upgrades directly. The building must purchase it with its own tokens.', hero.id);
 		}
 	}
-	
-	addToLog(`purchased ${upgrade.name} for ${targetAsset.name || `${targetType} #${targetId}`} for ${upgrade.cost} tokens!`, hero.id);
 }
 
 /**
@@ -302,11 +340,24 @@ export function handleBuyCar (heroId, carId) {
 	addToLog(`purchased the ${carData.name} for ${carData.price} tokens and is now the driver!`, hero.id);
 }
 
-export function renderShopModal (heroId) {
-	const hero = gameState.heroes.find(h => h.id === heroId);
-	if (!hero) return;
-	
+/**
+ * Renders the System Shop modal for either a hero or a building.
+ * @param {object} options - The options for rendering the modal.
+ * @param {number} [options.heroId] - The ID of the hero to open the shop for.
+ * @param {number} [options.buildingId] - The ID of the building to open the shop for.
+ * @param {string} [options.defaultTab] - The ID of the tab to open by default (e.g., 'items', 'building-upgrades').
+ */
+export function renderShopModal ({ heroId, buildingId, defaultTab = 'items' }) {
 	const modal = getEl('system-shop-modal');
+	if (!modal) return;
+	
+	const isBuildingContext = !!buildingId;
+	const contextEntity = isBuildingContext
+		? gameState.city.buildings.find(b => b.id === buildingId)
+		: gameState.heroes.find(h => h.id === heroId);
+	
+	if (!contextEntity) return;
+	
 	const header = getEl('shop-modal-header');
 	const itemsContent = getEl('shop-modal-items-content');
 	const skillsContent = getEl('shop-modal-skills-content');
@@ -314,167 +365,177 @@ export function renderShopModal (heroId) {
 	const buildingUpgradesContent = getEl('shop-modal-building-upgrades-content');
 	const carUpgradesContent = getEl('shop-modal-car-upgrades-content');
 	
-	if (!modal || !header || !itemsContent || !skillsContent || !inventoryContent || !buildingUpgradesContent || !carUpgradesContent) return;
+	if (!header || !itemsContent || !skillsContent || !inventoryContent || !buildingUpgradesContent || !carUpgradesContent) return;
 	
+	// 1. Update Header
 	header.innerHTML = `
         <div class="flex justify-between items-center">
-            <h3 class="font-bold text-lg">System Shop (${hero.name})</h3>
-            <span class="badge badge-warning">Your Tokens: ${hero.tokens}</span>
+            <h3 class="font-bold text-lg">System Shop (${contextEntity.name})</h3>
+            <span class="badge badge-warning">Tokens: ${contextEntity.tokens || 0}</span>
         </div>
     `;
 	
-	const shopItems = gameData.system_shop.filter(si => si.itemId);
-	itemsContent.innerHTML = shopItems.map(shopItem => {
-		const entity = findEntityById(shopItem.itemId);
-		if (!entity) return '';
-		
-		// MODIFIED: Expanded filtering logic to include consumables.
-		let canUse = true;
-		if (entity.type === 'Armor' && entity.armorType && !hero.allowedArmorTypes.includes(entity.armorType)) {
-			canUse = false;
-		}
-		if ((entity.type === 'Weapon' || entity.type === 'Shield') && entity.weaponType && !hero.allowedWeaponTypes.includes(entity.weaponType)) {
-			canUse = false;
-		}
-		if (entity.magicUserOnly && !hero.isMagicUser) {
-			canUse = false;
-		}
-		// NEW: Check class restrictions on consumables like mana potions.
-		if (entity.type === 'Consumable' && entity.class && !entity.class.includes(hero.class)) {
-			canUse = false;
-		}
-		if (!canUse) {
-			return ''; // Don't render this item for this hero.
-		}
-		// END MODIFICATION
-		
-		let details = '';
-		if (entity.damageMitigation) details = `Mitigation: ${entity.damageMitigation}`;
-		else if (entity.damage) details = `Damage: ${entity.damage}`;
-		else if (entity.spellPower) details = `Spell Power: x${entity.spellPower}`;
-		else if (entity.effect) {
-			const { type, value } = entity.effect;
-			details = `Effect: ${type === 'heal_hp' ? `+${value} HP` : `+${value} MP`}`;
-		}
-		
-		const canAfford = hero.tokens >= shopItem.price;
-		
-		return `
-			<div class="bg-base-300/50 rounded p-2 flex gap-2">
-				<div class="flex-shrink-0"><img src="${entity.image}" alt="${entity.name}" class="w-[50px] h-[50px] object-contain bg-base-100 rounded" /></div>
-				<div class="flex-grow flex flex-col justify-between gap-1 min-w-0">
-					<div>
-						<div class="flex justify-between items-center gap-2">
-							<span class="font-bold text-sm truncate" title="${entity.name}">${entity.name}</span>
-							<span class="badge badge-warning flex-shrink-0">${shopItem.price} T</span>
-						</div>
-						<div class="text-[10px] text-gray-400 italic">${details}</div>
-						<p class="text-xs mt-1">${entity.description || ''}</p>
+	// 2. Manage Tab Visibility
+	const activeGroup = isBuildingContext ? 'building' : 'hero';
+	modal.querySelectorAll('[data-tab-group]').forEach(el => {
+		const groups = el.dataset.tabGroup.split(' ');
+		// A tab/panel is visible if its group list includes the active group
+		el.style.display = groups.includes(activeGroup) ? '' : 'none';
+	});
+	
+	// 3. Set Default Tab
+	const tabInput = getEl(`shop-tab-${defaultTab}`);
+	if (tabInput && tabInput.style.display !== 'none') {
+		tabInput.checked = true;
+	} else {
+		// Fallback to the first visible tab if default is hidden or invalid
+		const firstVisibleTab = modal.querySelector('input[role="tab"]:not([style*="display: none"])');
+		if (firstVisibleTab) firstVisibleTab.checked = true;
+	}
+	
+	// 4. Render Content
+	if (isBuildingContext) {
+		const building = contextEntity;
+		// Building context: only render building upgrades
+		buildingUpgradesContent.innerHTML = gameData.building_upgrades.map(upgrade => {
+			const canAfford = building.tokens >= upgrade.cost;
+			const hasUpgrade = building.upgrades.includes(upgrade.id);
+			return `
+				<div class="bg-base-300/50 rounded p-2 flex flex-col gap-1">
+					<div class="flex justify-between items-center gap-2">
+						<span class="font-bold text-sm truncate" title="${upgrade.name}">${upgrade.name}</span>
+						<span class="badge badge-warning flex-shrink-0">${upgrade.cost} T</span>
 					</div>
-					<button class="btn btn-sm btn-accent w-full mt-1" data-buy-item-id="${entity.id}" data-hero-id="${hero.id}" ${!canAfford ? 'disabled' : ''}>Buy</button>
+					<p class="text-xs mt-1 flex-grow">${upgrade.description || ''}</p>
+					<button class="btn btn-sm btn-accent w-full mt-1" data-buy-upgrade-id="${upgrade.id}" data-building-id="${building.id}" ${!canAfford || hasUpgrade ? 'disabled' : ''}>
+						${hasUpgrade ? 'Installed' : 'Buy & Install'}
+					</button>
 				</div>
-			</div>
-		`;
-	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No items for sale.</p>';
-	
-	const shopSkills = gameData.system_shop.filter(si => si.skillId);
-	skillsContent.innerHTML = shopSkills.map(shopItem => {
-		const entity = gameData.skills.find(s => s.id === shopItem.skillId);
-		if (!entity) return '';
+			`;
+		}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No building upgrades for sale.</p>';
+	} else {
+		// Hero context: render all hero-related tabs
+		const hero = contextEntity;
 		
-		// MODIFIED: Filter skills by class.
-		if (entity.class && entity.class !== hero.class) {
-			return '';
-		}
-		// END MODIFICATION
-		
-		const details = `Req: Lvl ${entity.levelRequirement} | Cost: ${entity.mpCost || entity.rageCost || 0} ${entity.rageCost ? 'Rage' : 'MP'}`;
-		const canAfford = hero.tokens >= shopItem.price;
-		const hasSkill = hero.skills.some(s => s.id === shopItem.skillId);
-		
-		return `
-			<div class="bg-base-300/50 rounded p-2 flex gap-2">
-				<div class="w-[50px] h-[50px] flex-shrink-0 flex items-center justify-center bg-base-100 rounded"><span class="text-2xl">📜</span></div>
-				<div class="flex-grow flex flex-col justify-between gap-1 min-w-0">
-					<div>
-						<div class="flex justify-between items-center gap-2">
-							<span class="font-bold text-sm truncate" title="${entity.name}">${entity.name}</span>
-							<span class="badge badge-warning flex-shrink-0">${shopItem.price} T</span>
-						</div>
-						<div class="text-[10px] text-gray-400 italic">${details}</div>
-						<p class="text-xs mt-1">${entity.description || ''}</p>
-					</div>
-					<button class="btn btn-sm btn-accent w-full mt-1" data-buy-skill-id="${entity.id}" data-hero-id="${hero.id}" ${!canAfford || hasSkill ? 'disabled' : ''}>${hasSkill ? 'Learned' : 'Buy'}</button>
-				</div>
-			</div>
-		`;
-	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No skills for sale.</p>';
-	
-	buildingUpgradesContent.innerHTML = gameData.building_upgrades.map(upgrade => {
-		const canAfford = hero.tokens >= upgrade.cost;
-		return `
-			<div class="bg-base-300/50 rounded p-2 flex flex-col gap-1">
-				<div class="flex justify-between items-center gap-2">
-					<span class="font-bold text-sm truncate" title="${upgrade.name}">${upgrade.name}</span>
-					<span class="badge badge-warning flex-shrink-0">${upgrade.cost} T</span>
-				</div>
-				<p class="text-xs mt-1 flex-grow">${upgrade.description || ''}</p>
-				<button class="btn btn-sm btn-accent w-full mt-1" data-buy-upgrade-id="${upgrade.id}" data-hero-id="${hero.id}" ${!canAfford ? 'disabled' : ''}>Buy & Apply</button>
-			</div>
-		`;
-	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No building upgrades for sale.</p>';
-	
-	carUpgradesContent.innerHTML = gameData.car_upgrades.map(upgrade => {
-		const canAfford = hero.tokens >= upgrade.cost;
-		return `
-			<div class="bg-base-300/50 rounded p-2 flex flex-col gap-1">
-				<div class="flex justify-between items-center gap-2">
-					<span class="font-bold text-sm truncate" title="${upgrade.name}">${upgrade.name}</span>
-					<span class="badge badge-warning flex-shrink-0">${upgrade.cost} T</span>
-				</div>
-				<p class="text-xs mt-1 flex-grow">${upgrade.description || ''}</p>
-				<button class="btn btn-sm btn-accent w-full mt-1" data-buy-upgrade-id="${upgrade.id}" data-hero-id="${hero.id}" ${!canAfford ? 'disabled' : ''}>Buy & Apply</button>
-			</div>
-		`;
-	}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No car upgrades for sale.</p>';
-	
-	const inventoryItems = Object.entries(hero.inventory);
-	if (inventoryItems.length > 0) {
-		inventoryContent.innerHTML = inventoryItems.map(([itemId, totalQty]) => {
-			if (totalQty <= 0) return '';
-			const entity = findEntityById(itemId);
+		const shopItems = gameData.system_shop.filter(si => si.itemId);
+		itemsContent.innerHTML = shopItems.map(shopItem => {
+			const entity = findEntityById(shopItem.itemId);
 			if (!entity) return '';
 			
-			const equippedCount = Object.values(hero.equipment).filter(eqId => eqId === itemId).length;
-			const canSell = totalQty > equippedCount;
-			const isAnyEquipped = equippedCount > 0;
+			let canUse = true;
+			if (entity.type === 'Armor' && entity.armorType && !hero.allowedArmorTypes.includes(entity.armorType)) canUse = false;
+			if ((entity.type === 'Weapon' || entity.type === 'Shield') && entity.weaponType && !hero.allowedWeaponTypes.includes(entity.weaponType)) canUse = false;
+			if (entity.magicUserOnly && !hero.isMagicUser) canUse = false;
+			if (entity.type === 'Consumable' && entity.class && !entity.class.includes(hero.class)) canUse = false;
+			if (!canUse) return '';
+			
+			let details = '';
+			if (entity.damageMitigation) details = `Mitigation: ${entity.damageMitigation}`;
+			else if (entity.damage) details = `Damage: ${entity.damage}`;
+			else if (entity.spellPower) details = `Spell Power: x${entity.spellPower}`;
+			else if (entity.effect) details = `Effect: ${entity.effect.type === 'heal_hp' ? `+${entity.effect.value} HP` : `+${entity.effect.value} MP`}`;
+			
+			const canAfford = hero.tokens >= shopItem.price;
 			
 			return `
 				<div class="bg-base-300/50 rounded p-2 flex gap-2">
-					<div class="relative w-[50px] h-[50px] flex-shrink-0">
-						<img src="${entity.image}" alt="${entity.name}" class="w-full h-full object-contain bg-base-100 rounded" />
-						<span class="absolute bottom-0 right-0 bg-black bg-opacity-60 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-tl-md">${totalQty}</span>
-						${isAnyEquipped ? '<span class="absolute top-1 left-1 badge badge-primary badge-xs" title="Equipped">E</span>' : ''}
-					</div>
+					<div class="flex-shrink-0"><img src="${entity.image}" alt="${entity.name}" class="w-[50px] h-[50px] object-contain bg-base-100 rounded" /></div>
 					<div class="flex-grow flex flex-col justify-between gap-1 min-w-0">
 						<div>
 							<div class="flex justify-between items-center gap-2">
 								<span class="font-bold text-sm truncate" title="${entity.name}">${entity.name}</span>
-								<span class="badge badge-warning flex-shrink-0">${entity.sellPrice} T</span>
+								<span class="badge badge-warning flex-shrink-0">${shopItem.price} T</span>
 							</div>
-							<div class="text-[10px] text-gray-400 italic">${entity.type} - Lvl ${entity.level}</div>
+							<div class="text-[10px] text-gray-400 italic">${details}</div>
+							<p class="text-xs mt-1">${entity.description || ''}</p>
 						</div>
-						<div>
-							<button class="btn btn-sm btn-error w-full mt-1" data-sell-item-id="${itemId}" data-hero-id="${hero.id}" ${!canSell ? 'disabled' : ''}>Sell</button>
-							${!canSell && isAnyEquipped ? '<p class="text-xs text-center text-error mt-1">Cannot sell last equipped item.</p>' : ''}
-						</div>
+						<button class="btn btn-sm btn-accent w-full mt-1" data-buy-item-id="${entity.id}" data-hero-id="${hero.id}" ${!canAfford ? 'disabled' : ''}>Buy</button>
 					</div>
 				</div>
 			`;
-		}).join('');
-	} else {
-		inventoryContent.innerHTML = '<p class="text-xs italic text-center text-gray-500 col-span-full">Inventory is empty.</p>';
+		}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No items for sale.</p>';
+		
+		const shopSkills = gameData.system_shop.filter(si => si.skillId);
+		skillsContent.innerHTML = shopSkills.map(shopItem => {
+			const entity = gameData.skills.find(s => s.id === shopItem.skillId);
+			if (!entity || (entity.class && entity.class !== hero.class)) return '';
+			
+			const details = `Req: Lvl ${entity.levelRequirement} | Cost: ${entity.mpCost || entity.rageCost || 0} ${entity.rageCost ? 'Rage' : 'MP'}`;
+			const canAfford = hero.tokens >= shopItem.price;
+			const hasSkill = hero.skills.some(s => s.id === shopItem.skillId);
+			
+			return `
+				<div class="bg-base-300/50 rounded p-2 flex gap-2">
+					<div class="w-[50px] h-[50px] flex-shrink-0 flex items-center justify-center bg-base-100 rounded"><span class="text-2xl">📜</span></div>
+					<div class="flex-grow flex flex-col justify-between gap-1 min-w-0">
+						<div>
+							<div class="flex justify-between items-center gap-2">
+								<span class="font-bold text-sm truncate" title="${entity.name}">${entity.name}</span>
+								<span class="badge badge-warning flex-shrink-0">${shopItem.price} T</span>
+							</div>
+							<div class="text-[10px] text-gray-400 italic">${details}</div>
+							<p class="text-xs mt-1">${entity.description || ''}</p>
+						</div>
+						<button class="btn btn-sm btn-accent w-full mt-1" data-buy-skill-id="${entity.id}" data-hero-id="${hero.id}" ${!canAfford || hasSkill ? 'disabled' : ''}>${hasSkill ? 'Learned' : 'Buy'}</button>
+					</div>
+				</div>
+			`;
+		}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No skills for sale.</p>';
+		
+		buildingUpgradesContent.innerHTML = '<p class="text-xs italic text-center text-gray-500 col-span-full p-4">Building upgrades must be purchased by the building itself from the Buildings tab.</p>';
+		
+		carUpgradesContent.innerHTML = gameData.car_upgrades.map(upgrade => {
+			const canAfford = hero.tokens >= upgrade.cost;
+			return `
+				<div class="bg-base-300/50 rounded p-2 flex flex-col gap-1">
+					<div class="flex justify-between items-center gap-2">
+						<span class="font-bold text-sm truncate" title="${upgrade.name}">${upgrade.name}</span>
+						<span class="badge badge-warning flex-shrink-0">${upgrade.cost} T</span>
+					</div>
+					<p class="text-xs mt-1 flex-grow">${upgrade.description || ''}</p>
+					<button class="btn btn-sm btn-accent w-full mt-1" data-buy-upgrade-id="${upgrade.id}" data-hero-id="${hero.id}" ${!canAfford ? 'disabled' : ''}>Buy & Apply</button>
+				</div>
+			`;
+		}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No car upgrades for sale.</p>';
+		
+		const inventoryItems = Object.entries(hero.inventory);
+		if (inventoryItems.length > 0) {
+			inventoryContent.innerHTML = inventoryItems.map(([itemId, totalQty]) => {
+				if (totalQty <= 0) return '';
+				const entity = findEntityById(itemId);
+				if (!entity) return '';
+				
+				const equippedCount = Object.values(hero.equipment).filter(eqId => eqId === itemId).length;
+				const canSell = totalQty > equippedCount;
+				const isAnyEquipped = equippedCount > 0;
+				
+				return `
+					<div class="bg-base-300/50 rounded p-2 flex gap-2">
+						<div class="relative w-[50px] h-[50px] flex-shrink-0">
+							<img src="${entity.image}" alt="${entity.name}" class="w-full h-full object-contain bg-base-100 rounded" />
+							<span class="absolute bottom-0 right-0 bg-black bg-opacity-60 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-tl-md">${totalQty}</span>
+							${isAnyEquipped ? '<span class="absolute top-1 left-1 badge badge-primary badge-xs" title="Equipped">E</span>' : ''}
+						</div>
+						<div class="flex-grow flex flex-col justify-between gap-1 min-w-0">
+							<div>
+								<div class="flex justify-between items-center gap-2">
+									<span class="font-bold text-sm truncate" title="${entity.name}">${entity.name}</span>
+									<span class="badge badge-warning flex-shrink-0">${entity.sellPrice} T</span>
+								</div>
+								<div class="text-[10px] text-gray-400 italic">${entity.type} - Lvl ${entity.level}</div>
+							</div>
+							<div>
+								<button class="btn btn-sm btn-error w-full mt-1" data-sell-item-id="${itemId}" data-hero-id="${hero.id}" ${!canSell ? 'disabled' : ''}>Sell</button>
+								${!canSell && isAnyEquipped ? '<p class="text-xs text-center text-error mt-1">Cannot sell last equipped item.</p>' : ''}
+							</div>
+						</div>
+					</div>
+				`;
+			}).join('');
+		} else {
+			inventoryContent.innerHTML = '<p class="text-xs italic text-center text-gray-500 col-span-full">Inventory is empty.</p>';
+		}
 	}
 	
 	modal.showModal();
-};
+}

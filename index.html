@@ -17,7 +17,7 @@
 	<div id="tabs-container" role="tablist" class="tabs tabs-boxed"></div>
 	
 	<!-- CONTENT AREA -->
-	<main id="content-area" class="p-4 bg-base-300 rounded-box mt-4 min-h-screen">
+	<main id="content-area" class="p-4 bg-base-300 rounded-box mt-4 min-h-[70vh]">
 	</main>
 
 </div>
@@ -30,36 +30,37 @@
 		</div>
 		
 		<div role="tablist" class="tabs tabs-lifted mt-4 flex-grow min-h-0">
-			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Items" checked />
-			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none">
+			<!-- MODIFIED: Added IDs and data-tab-group attributes for easier control -->
+			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Items" id="shop-tab-items" data-tab-group="hero" checked />
+			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none" data-tab-group="hero">
 				<div id="shop-modal-items-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Items for sale will be injected here -->
 				</div>
 			</div>
 			
-			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Inventory" />
-			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none">
+			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Inventory" id="shop-tab-inventory" data-tab-group="hero" />
+			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none" data-tab-group="hero">
 				<div id="shop-modal-inventory-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Hero inventory will be injected here -->
 				</div>
 			</div>
 			
-			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Skills" />
-			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none">
+			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Skills" id="shop-tab-skills" data-tab-group="hero" />
+			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none" data-tab-group="hero">
 				<div id="shop-modal-skills-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Skills for sale will be injected here -->
 				</div>
 			</div>
 			
-			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Building Upgrades" />
-			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none">
+			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Building Upgrades" id="shop-tab-building-upgrades" data-tab-group="building" />
+			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none" data-tab-group="building">
 				<div id="shop-modal-building-upgrades-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Building upgrades for sale will be injected here -->
 				</div>
 			</div>
 			
-			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Car Upgrades" />
-			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none">
+			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Car Upgrades" id="shop-tab-car-upgrades" data-tab-group="hero" />
+			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none" data-tab-group="hero">
 				<div id="shop-modal-car-upgrades-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Car upgrades for sale will be injected here -->
 				</div>

@@ -394,6 +394,7 @@ the party can also attack monsters that are already attacking the city then the 
 
 
 change the items in shop to be about the car instead of magic wand sword etc. its the car that gets outfitted ???
+add card decks for upgrades etc.
 
 ------
 
@@ -404,3 +405,10 @@ in heros for Aegis and Striker define that they can use bow and arrows that are 
 in shop interface for different heros dont show the items they can not use.
 add simple and advanced bow to items along with arrows in bundles of 100.
 Aegis and Striker can later buy this they initially wont have bows.
+
+-----
+
+add to the game logic so when a building has a population the population will restore 1hp per person per game tick, and generate 1 token
+the party should distribute the survivors across all buildings not just the home bases
+on the buildings page show how many tokens the building has earned
+link the upgrade button on buildings to the shop only show the shop should only show the building upgrades tab and the building should be able to purchase upgrades

@@ -254,6 +254,19 @@ function processGameTick () {
 		}
 	});
 	
+	// NEW: Process building population effects (HP regen and token generation).
+	gameState.city.buildings.forEach(building => {
+		if (building.owner === 'player' && building.population > 0) {
+			// Population restores HP to the building.
+			if (building.hp < building.maxHp) {
+				building.hp = Math.min(building.maxHp, building.hp + building.population);
+			}
+			// Population generates tokens for the building.
+			building.tokens = (building.tokens || 0) + building.population;
+		}
+	});
+	// END NEW
+	
 	processMonsterActions();
 	
 	handleMonsterDefeat();
@@ -354,6 +367,7 @@ async function init () {
 				building.shieldHp = 1000;
 				building.isSafezone = true;
 				building.population = 0;
+				building.tokens = 0; // NEW: Initialize tokens for starting bases.
 			}
 		}
 		addToLog('[SYSTEM]: Initial safezones Alpha, Beta, and Delta have been established.');
@@ -412,10 +426,20 @@ async function init () {
 		const openShopForHeroBtn = e.target.closest('[data-open-shop-for-hero]');
 		if (openShopForHeroBtn) {
 			const heroId = parseInt(openShopForHeroBtn.dataset.openShopForHero, 10);
-			renderShopModal(heroId);
+			renderShopModal({ heroId }); // MODIFIED: Pass an options object.
 			if (document.activeElement) document.activeElement.blur();
 			return;
 		}
+		
+		// NEW: Add handler for opening the shop for a building.
+		const openShopForBuildingBtn = e.target.closest('[data-open-shop-for-building]');
+		if (openShopForBuildingBtn) {
+			const buildingId = parseInt(openShopForBuildingBtn.dataset.openShopForBuilding, 10);
+			renderShopModal({ buildingId, defaultTab: 'building-upgrades' });
+			if (document.activeElement) document.activeElement.blur();
+			return;
+		}
+		// END NEW
 		
 		const autoCastBtn = e.target.closest('[data-autocast-skill-id]');
 		if (autoCastBtn) {

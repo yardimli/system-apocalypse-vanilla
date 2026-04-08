@@ -1,5 +1,5 @@
 import { gameState, gameData } from './state.js';
-import { addToLog, updateTextIfChanged } from './utils.js';
+import { addToLog, updateTextIfChanged, updateHtmlIfChanged } from './utils.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
@@ -143,12 +143,13 @@ export function handleBuyBuilding(buildingId) {
 	building.maxShieldHp = 1000;
 	building.shieldHp = 1000;
 	building.isSafezone = true;
+	building.tokens = 0;
 	
 	addToLog(`Party purchased ${building.name} for ${price} tokens! (${contributionLog.join(', ')})`);
 }
 
 /**
- * Renders the grid of city buildings.
+ * Renders the grid of city buildings using a granular update strategy.
  * @param {HTMLElement} contentArea - The main content DOM element.
  */
 export function renderBuildings(contentArea) {
@@ -158,53 +159,112 @@ export function renderBuildings(contentArea) {
 		grid = getEl('buildings-grid');
 	}
 	
-	// Generate a state key to check if an update is needed
-	const stateKey = JSON.stringify(gameState.city.buildings) + JSON.stringify(gameState.heroes.map(h => [h.id, h.location, h.tokens]));
-	if (grid.getAttribute('data-prev-state') === stateKey) return;
+	const activeBuildingIds = new Set(gameState.city.buildings.map(b => b.id));
 	
+	// Pre-calculate values needed for multiple cards
 	const totalTokens = gameState.heroes.reduce((sum, h) => sum + h.tokens, 0);
 	const nextPrice = calculateNextBuildingPrice();
+	const heroesOutside = gameState.heroes.filter(h => h.location === 'field');
 	
-	grid.innerHTML = gameState.city.buildings.map(b => {
-		if (b.owner === 'player') {
-			// Player-owned building card
-			const heroesInside = b.heroesInside.map(id => gameState.heroes.find(h => h.id === id)?.name).join(', ') || 'None';
-			const heroesOutside = gameState.heroes.filter(h => h.location === 'field');
+	// Update or create cards for each building
+	gameState.city.buildings.forEach(b => {
+		const cardId = `building-card-${b.id}`;
+		let card = getEl(cardId);
+		const isPlayerOwned = b.owner === 'player';
+		
+		// If card doesn't exist, or its type has changed (owned vs unowned), create it.
+		const cardType = isPlayerOwned ? 'player' : 'unowned';
+		if (!card || card.dataset.cardType !== cardType) {
+			if (card) card.remove(); // Remove old card if type changed
+			const cardWrapper = document.createElement('div');
+			cardWrapper.id = cardId;
+			cardWrapper.dataset.cardType = cardType;
+			grid.appendChild(cardWrapper);
+			card = cardWrapper;
 			
-			return `
-                <div class="card bg-base-200 shadow-sm p-3 text-xs border border-primary">
-                    <div class="font-bold text-sm mb-1 text-primary">${b.name} (#${b.id})</div>
-                    <div data-state class="font-semibold text-success">State: ${b.state}</div>
-                    <div data-hp>HP: ${b.hp}/${b.maxHp}</div>
-                    <div data-shield class="text-info">Shield: ${b.shieldHp || 0}/${b.maxShieldHp || 0}</div>
-                    <div data-pop class="text-success mt-1">Pop: ${b.population}/10</div>
-                    <div class="mt-2">
-                        <p class="font-semibold">Heroes Inside:</p>
-                        <p class="text-gray-400 truncate">${heroesInside}</p>
+			if (isPlayerOwned) {
+				card.innerHTML = `
+                    <div class="card bg-base-200 shadow-sm p-3 text-xs border border-primary h-full flex flex-col">
+                        <div data-name class="font-bold text-sm mb-1 text-primary"></div>
+                        <div data-state class="font-semibold"></div>
+                        <div data-hp></div>
+                        <div data-shield class="text-info"></div>
+                        <div data-pop class="text-success mt-1"></div>
+                        <div data-tokens class="text-warning mt-1"></div>
+                        <div class="mt-2">
+                            <p class="font-semibold">Heroes Inside:</p>
+                            <p data-heroes-inside class="text-gray-400 truncate"></p>
+                        </div>
+                        <div data-btn-container class="btn-group btn-group-vertical w-full mt-auto pt-2"></div>
                     </div>
-                    <div class="btn-group btn-group-vertical w-full mt-2">
-                        <button class="btn btn-sm btn-secondary" data-open-upgrade-modal="${b.id}">Upgrade</button>
-                        ${heroesOutside.map(h => `<button class="btn btn-sm btn-ghost" data-enter-building-hero="${h.id}" data-enter-building-bldg="${b.id}">Enter: ${h.name}</button>`).join('')}
-                        ${b.heroesInside.map(id => `<button class="btn btn-sm btn-ghost" data-exit-building-hero="${id}">Exit: ${gameState.heroes.find(h => h.id === id)?.name}</button>`).join('')}
+                `;
+			} else {
+				card.innerHTML = `
+                    <div class="card bg-base-200 shadow-sm p-3 text-xs border border-base-300 h-full flex flex-col">
+                        <div data-name class="font-bold text-sm mb-1"></div>
+                        <div data-state class="font-semibold"></div>
+                        <div data-hp></div>
+                        <div data-pop class="text-success mt-1"></div>
+                        <div class="mt-auto pt-2">
+                            <button class="btn btn-sm btn-accent w-full" data-buy-building-id="${b.id}"></button>
+                        </div>
                     </div>
-                </div>
-            `;
-		} else {
-			// Unowned building card
-			const canAfford = totalTokens >= nextPrice;
-			return `
-                <div class="card bg-base-200 shadow-sm p-3 text-xs border border-base-300">
-                    <div class="font-bold text-sm mb-1">Bldg #${b.id}</div>
-                    <div data-state class="font-semibold ${b.state === 'functional' ? 'text-success' : b.state === 'damaged' ? 'text-warning' : 'text-error'}">State: ${b.state}</div>
-                    <div data-hp>HP: ${b.hp}/${b.maxHp}</div>
-                    <div data-pop class="text-success mt-1">Pop: ${b.population}/10</div>
-                    <button class="btn btn-sm btn-accent w-full mt-2" data-buy-building-id="${b.id}" ${!canAfford ? 'disabled' : ''}>
-                        Buy (${nextPrice} T)
-                    </button>
-                </div>
-            `;
+                `;
+			}
 		}
-	}).join('');
+		
+		// Granularly update the card's content
+		const cardContent = card.firstElementChild;
+		if (isPlayerOwned) {
+			updateTextIfChanged(cardContent.querySelector('[data-name]'), `${b.name} (#${b.id})`);
+			
+			const stateEl = cardContent.querySelector('[data-state]');
+			updateTextIfChanged(stateEl, `State: ${b.state}`);
+			stateEl.className = `font-semibold ${b.state === 'functional' ? 'text-success' : 'text-error'}`;
+			
+			updateTextIfChanged(cardContent.querySelector('[data-hp]'), `HP: ${b.hp}/${b.maxHp}`);
+			updateTextIfChanged(cardContent.querySelector('[data-shield]'), `Shield: ${b.shieldHp || 0}/${b.maxShieldHp || 0}`);
+			updateTextIfChanged(cardContent.querySelector('[data-pop]'), `Pop: ${b.population}/10`);
+			updateTextIfChanged(cardContent.querySelector('[data-tokens]'), `Tokens: ${b.tokens || 0}`);
+			
+			const heroesInside = b.heroesInside.map(id => gameState.heroes.find(h => h.id === id)?.name).join(', ') || 'None';
+			updateTextIfChanged(cardContent.querySelector('[data-heroes-inside]'), heroesInside);
+			
+			const btnContainer = cardContent.querySelector('[data-btn-container]');
+			const heroesInsideIds = b.heroesInside.join(',');
+			const heroesOutsideIds = heroesOutside.map(h => h.id).join(',');
+			const btnStateKey = `${heroesInsideIds}-${heroesOutsideIds}`;
+			
+			const newButtonsHtml = `
+                <button class="btn btn-sm btn-secondary" data-open-shop-for-building="${b.id}">Upgrade</button>
+                ${heroesOutside.map(h => `<button class="btn btn-sm btn-ghost" data-enter-building-hero="${h.id}" data-enter-building-bldg="${b.id}">Enter: ${h.name}</button>`).join('')}
+                ${b.heroesInside.map(id => `<button class="btn btn-sm btn-ghost" data-exit-building-hero="${id}">Exit: ${gameState.heroes.find(h => h.id === id)?.name}</button>`).join('')}
+            `;
+			updateHtmlIfChanged(btnContainer, newButtonsHtml, btnStateKey);
+		} else {
+			updateTextIfChanged(cardContent.querySelector('[data-name]'), `Bldg #${b.id}`);
+			
+			const stateEl = cardContent.querySelector('[data-state]');
+			updateTextIfChanged(stateEl, `State: ${b.state}`);
+			stateEl.className = `font-semibold ${b.state === 'functional' ? 'text-success' : b.state === 'damaged' ? 'text-warning' : 'text-error'}`;
+			
+			updateTextIfChanged(cardContent.querySelector('[data-hp]'), `HP: ${b.hp}/${b.maxHp}`);
+			updateTextIfChanged(cardContent.querySelector('[data-pop]'), `Pop: ${b.population}/10`);
+			
+			const buyBtn = cardContent.querySelector('[data-buy-building-id]');
+			const canAfford = totalTokens >= nextPrice;
+			updateTextIfChanged(buyBtn, `Buy (${nextPrice} T)`);
+			if (buyBtn.disabled !== !canAfford) {
+				buyBtn.disabled = !canAfford;
+			}
+		}
+	});
 	
-	grid.setAttribute('data-prev-state', stateKey);
+	// Remove cards for non-existent buildings
+	for (const card of grid.children) {
+		const cardIdNum = parseInt(card.id.replace('building-card-', ''), 10);
+		if (!activeBuildingIds.has(cardIdNum)) {
+			card.remove();
+		}
+	}
 }
