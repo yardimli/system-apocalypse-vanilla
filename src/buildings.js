@@ -85,7 +85,6 @@ export function handleBuyBuilding(buildingId) {
 	if (!building || building.owner === 'player') return;
 	
 	const price = calculateNextBuildingPrice();
-	// MODIFIED: Check city tokens instead of hero tokens.
 	if (gameState.city.tokens < price) {
 		addToLog(`The city doesn't have enough tokens to buy Building #${buildingId}. (Need ${price})`);
 		return;
@@ -97,7 +96,6 @@ export function handleBuyBuilding(buildingId) {
 		return;
 	}
 	
-	// MODIFIED: Deduct cost from city tokens and simplify logic.
 	gameState.city.tokens -= price;
 	
 	building.owner = 'player';
@@ -105,11 +103,11 @@ export function handleBuyBuilding(buildingId) {
 	building.state = 'functional';
 	building.maxHp = 1000;
 	building.hp = 1000;
-	building.maxShieldHp = 1000;
-	building.shieldHp = 1000;
+	// MODIFIED: Buildings are now purchased without shields. Shields must be added via upgrades.
+	building.maxShieldHp = 0;
+	building.shieldHp = 0;
 	building.isSafezone = true;
 	
-	// MODIFIED: Update log message to reflect city purchase.
 	addToLog(`City purchased ${building.name} for ${price} tokens!`);
 }
 
@@ -149,7 +147,11 @@ export function renderBuildings(contentArea) {
 			if (isPlayerOwned) {
 				card.innerHTML = `
                     <div class="card bg-base-200 shadow-sm p-3 text-xs border border-primary h-full flex flex-col">
-                        <div data-name class="font-bold text-sm mb-1 text-primary"></div>
+						<div class="flex justify-between items-start">
+							<div data-name class="font-bold text-sm mb-1 text-primary"></div>
+							<button class="btn btn-xs btn-ghost" data-rename-building-id="${b.id}">Rename</button>
+						</div>
+						<img data-building-image src="" alt="Building Image" class="w-[50px] h-[50px] object-contain bg-base-100 rounded" />
                         <div data-state class="font-semibold"></div>
                         <div data-hp></div>
                         <div data-shield class="text-info"></div>
@@ -165,6 +167,7 @@ export function renderBuildings(contentArea) {
 				card.innerHTML = `
                     <div class="card bg-base-200 shadow-sm p-3 text-xs border border-base-300 h-full flex flex-col">
                         <div data-name class="font-bold text-sm mb-1"></div>
+						<img data-building-image src="" alt="Building Image" class="w-[50px] h-[50px] object-contain bg-base-100 rounded" />
                         <div data-state class="font-semibold"></div>
                         <div data-hp></div>
                         <div data-pop class="text-success mt-1"></div>
@@ -178,6 +181,21 @@ export function renderBuildings(contentArea) {
 		
 		// Granularly update the card's content
 		const cardContent = card.firstElementChild;
+		
+		const imgEl = cardContent.querySelector('[data-building-image]');
+		if (imgEl) {
+			let stateChar = 'n'; // normal
+			if (b.state === 'damaged') stateChar = 'd';
+			if (b.state === 'ruined') stateChar = 'r';
+			if (b.state === 'functional' && b.shieldHp > 0 && b.owner === 'player') stateChar = 's';
+			// Assuming images are in public/images/buildings/
+			const imageUrl = `/images/buildings/${b.type}-${stateChar}.png`;
+			if (imgEl.src !== window.location.origin + imageUrl) {
+				imgEl.src = imageUrl;
+				imgEl.alt = `${b.name} - ${b.state}`;
+			}
+		}
+		
 		if (isPlayerOwned) {
 			updateTextIfChanged(cardContent.querySelector('[data-name]'), `${b.name} (#${b.id})`);
 			
@@ -187,7 +205,7 @@ export function renderBuildings(contentArea) {
 			
 			updateTextIfChanged(cardContent.querySelector('[data-hp]'), `HP: ${b.hp}/${b.maxHp}`);
 			updateTextIfChanged(cardContent.querySelector('[data-shield]'), `Shield: ${b.shieldHp || 0}/${b.maxShieldHp || 0}`);
-			updateTextIfChanged(cardContent.querySelector('[data-pop]'), `Pop: ${b.population}/10`);
+			updateTextIfChanged(cardContent.querySelector('[data-pop]'), `Pop: ${b.population}/${b.maxPopulation}`);
 			
 			const heroesInside = b.heroesInside.map(id => gameState.heroes.find(h => h.id === id)?.name).join(', ') || 'None';
 			updateTextIfChanged(cardContent.querySelector('[data-heroes-inside]'), heroesInside);
@@ -204,17 +222,16 @@ export function renderBuildings(contentArea) {
             `;
 			updateHtmlIfChanged(btnContainer, newButtonsHtml, btnStateKey);
 		} else {
-			updateTextIfChanged(cardContent.querySelector('[data-name]'), `Bldg #${b.id}`);
+			updateTextIfChanged(cardContent.querySelector('[data-name]'), `${b.name} (#${b.id})`);
 			
 			const stateEl = cardContent.querySelector('[data-state]');
 			updateTextIfChanged(stateEl, `State: ${b.state}`);
 			stateEl.className = `font-semibold ${b.state === 'functional' ? 'text-success' : b.state === 'damaged' ? 'text-warning' : 'text-error'}`;
 			
 			updateTextIfChanged(cardContent.querySelector('[data-hp]'), `HP: ${b.hp}/${b.maxHp}`);
-			updateTextIfChanged(cardContent.querySelector('[data-pop]'), `Pop: ${b.population}/10`);
+			updateTextIfChanged(cardContent.querySelector('[data-pop]'), `Pop: ${b.population}/${b.maxPopulation}`);
 			
 			const buyBtn = cardContent.querySelector('[data-buy-building-id]');
-			// MODIFIED: Check city tokens instead of hero tokens.
 			const canAfford = gameState.city.tokens >= nextPrice;
 			updateTextIfChanged(buyBtn, `Buy (${nextPrice} T)`);
 			if (buyBtn.disabled !== !canAfford) {
@@ -222,6 +239,16 @@ export function renderBuildings(contentArea) {
 			}
 		}
 	});
+	
+	// NEW: Enforce the DOM order of cards to match the gameState array order.
+	// This prevents the grid from re-sorting on its own.
+	gameState.city.buildings.forEach((b, index) => {
+		const cardNode = getEl(`building-card-${b.id}`);
+		if (grid.children[index] !== cardNode) {
+			grid.insertBefore(cardNode, grid.children[index]);
+		}
+	});
+	// END NEW
 	
 	// Remove cards for non-existent buildings
 	for (const card of grid.children) {

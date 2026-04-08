@@ -12,7 +12,8 @@ import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview, r
 import { renderCars, initiateCarPurchase } from './cars.js';
 import { renderMissionControl, handleStartMission, handleFlee, processMissionTick, handleStartAttackMission, manageCombatAssignments, handleMonsterDefeat } from './missions.js';
 
-const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'City', 'Items', 'Log', 'Sandbox'];
+// MODIFIED: Removed 'City' tab.
+const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'Items', 'Log', 'Sandbox'];
 let activeTab = 'Heroes';
 
 // --- DOM ELEMENTS ---
@@ -54,9 +55,7 @@ function renderContent (alpha) {
 		case 'Monsters':
 			renderMonsters(contentArea);
 			break;
-		case 'City':
-			renderCity(contentArea);
-			break;
+		// MODIFIED: Removed 'City' case. The renderCity function is now unused.
 		case 'Items':
 			renderItemsOverview(contentArea);
 			break;
@@ -316,14 +315,16 @@ function gameLoop (currentTime) {
 
 async function init () {
 	try {
-		const [items, skills, monsters, systemShop, buildingUpgrades, carUpgrades, cars] = await Promise.all([
+		// MODIFIED: Added buildings.json to the list of files to fetch.
+		const [items, skills, monsters, systemShop, buildingUpgrades, carUpgrades, cars, buildings] = await Promise.all([
 			fetch('/data/items.json').then(res => res.json()),
 			fetch('/data/skills.json').then(res => res.json()),
 			fetch('/data/monsters.json').then(res => res.json()),
 			fetch('/data/system_shop.json').then(res => res.json()),
 			fetch('/data/building_upgrades.json').then(res => res.json()),
 			fetch('/data/car_upgrades.json').then(res => res.json()),
-			fetch('/data/cars.json').then(res => res.json())
+			fetch('/data/cars.json').then(res => res.json()),
+			fetch('/data/buildings.json').then(res => res.json()) // NEW: Fetch buildings data.
 		]);
 		gameData.items = items;
 		gameData.skills = skills;
@@ -332,6 +333,15 @@ async function init () {
 		gameData.building_upgrades = buildingUpgrades;
 		gameData.car_upgrades = carUpgrades;
 		gameData.cars = cars;
+		gameData.buildings = buildings; // NEW: Store raw building data.
+		
+		// NEW: Populate game state with buildings from the new JSON file.
+		gameState.city.buildings = gameData.buildings.map(buildingData => ({
+			...buildingData, // Spread properties from JSON file.
+			owner: null, // Add dynamic properties not in the file.
+			isSafezone: false,
+			heroesInside: []
+		}));
 		
 		gameState.city.cars = gameData.cars.map(carData => ({
 			id: carData.id,
@@ -357,22 +367,20 @@ async function init () {
 		});
 		addToLog('[SYSTEM]: Initial vehicles have been assigned to the starting heroes.');
 		
-		const potentialSafezoneBuildings = gameState.city.buildings.filter(b => b.owner !== 'player');
-		const shuffledBuildings = potentialSafezoneBuildings.sort(() => 0.5 - Math.random());
+		// MODIFIED: Now uses the pre-loaded building data instead of random selection.
+		const potentialSafezoneBuildings = gameState.city.buildings.filter(b => b.state === 'functional');
 		
-		// MODIFIED: Create only one starting base.
 		let firstBaseId = null;
-		if (shuffledBuildings[0]) {
-			const building = shuffledBuildings[0];
+		if (potentialSafezoneBuildings[0]) {
+			const building = potentialSafezoneBuildings[0];
 			building.owner = 'player';
 			building.name = 'Alpha Base';
-			building.state = 'functional';
+			// These properties are now set to higher "safezone" values upon purchase/setup.
 			building.maxHp = 1000;
 			building.hp = 1000;
 			building.maxShieldHp = 1000;
 			building.shieldHp = 1000;
 			building.isSafezone = true;
-			building.population = 10; // NEW: Give starting population for income.
 			firstBaseId = building.id;
 		}
 		
@@ -454,6 +462,23 @@ async function init () {
 			const buildingId = parseInt(openShopForBuildingBtn.dataset.openShopForBuilding, 10);
 			renderShopModal({ buildingId, defaultTab: 'building-upgrades' });
 			if (document.activeElement) document.activeElement.blur();
+			return;
+		}
+		// END NEW
+		
+		// NEW: Add handler for renaming a building.
+		const renameBuildingBtn = e.target.closest('[data-rename-building-id]');
+		if (renameBuildingBtn) {
+			const buildingId = parseInt(renameBuildingBtn.dataset.renameBuildingId, 10);
+			const building = gameState.city.buildings.find(b => b.id === buildingId);
+			if (building && building.owner === 'player') {
+				const newName = prompt(`Enter a new name for ${building.name}:`, building.name);
+				if (newName && newName.trim() !== '') {
+					addToLog(`Renamed ${building.name} to ${newName.trim()}.`);
+					building.name = newName.trim();
+					renderContent(0); // Re-render to show new name.
+				}
+			}
 			return;
 		}
 		// END NEW

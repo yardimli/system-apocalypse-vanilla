@@ -1,31 +1,4 @@
-// Initialize 100 buildings with their respective states, HP, and population
-const initialBuildings =[];
-for (let i = 1; i <= 20; i++) {
-	const newBuilding = {
-		id: i,
-		state: 'ruined',
-		hp: 0,
-		maxHp: 100,
-		population: 0,
-		owner: null,
-		name: null,
-		isSafezone: false,
-		upgrades: [],
-		heroesInside: []
-	};
-	
-	if (i <= 3) {
-		newBuilding.state = 'functional';
-		newBuilding.hp = 100;
-		newBuilding.population = 10;
-	} else if (i <= 15) {
-		newBuilding.state = 'damaged';
-		newBuilding.hp = 50;
-		newBuilding.population = 4;
-	}
-	initialBuildings.push(newBuilding);
-}
-
+// MODIFIED: Removed the procedural building generation loop.
 const initialCars = [];
 
 export const gameState = {
@@ -52,7 +25,7 @@ export const gameState = {
 		tokensPerPopulationPerTick: 0.1, // Each citizen generates this many tokens per tick.
 		firstShieldInstalled: false, // NEW: Flag to track the first shield upgrade.
 		// END NEW
-		buildings: initialBuildings,
+		buildings: [], // MODIFIED: Initialized as empty; will be populated from JSON.
 		cars: initialCars
 	},
 	activeMonsters:[],
@@ -186,5 +159,6 @@ export const gameData = {
 	system_shop: [],
 	building_upgrades: [],
 	car_upgrades: [],
-	cars: []
+	cars: [],
+	buildings: [] // NEW: Added to hold raw building data.
 };

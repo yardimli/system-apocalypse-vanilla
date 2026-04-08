@@ -36,7 +36,8 @@ export function renderMissionControl (alpha = 0) {
 	const buttonsEl = missionControlArea.querySelector('[data-mission-buttons]');
 	
 	const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
-	const maxPopulation = playerBases.length * 10;
+	// MODIFIED: Calculate max population by summing up capacities of all player-owned bases.
+	const maxPopulation = playerBases.reduce((sum, b) => sum + b.maxPopulation, 0);
 	const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
 	const isFull = currentPopulation >= maxPopulation;
 	const partyState = gameState.party;
@@ -152,7 +153,8 @@ export function handleStartMission () {
 	});
 	
 	const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
-	const maxPopulation = playerBases.length * 10;
+	// MODIFIED: Calculate max population by summing up capacities of all player-owned bases.
+	const maxPopulation = playerBases.reduce((sum, b) => sum + b.maxPopulation, 0);
 	const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
 	const isFull = currentPopulation >= maxPopulation;
 	
@@ -274,7 +276,8 @@ export function processMissionTick () {
 	
 	// 2. Handle Survivor Searching (while driving)
 	const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
-	const maxPopulation = playerBases.length * 10;
+	// MODIFIED: Calculate max population by summing up capacities of all player-owned bases.
+	const maxPopulation = playerBases.reduce((sum, b) => sum + b.maxPopulation, 0);
 	const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
 	const isBaseFull = currentPopulation >= maxPopulation;
 	
@@ -342,13 +345,15 @@ export function processMissionTick () {
 			if (totalSurvivors > 0) {
 				addToLog(`The party successfully returned with ${totalSurvivors} survivors!`);
 				let survivorsToHouse = totalSurvivors;
-				const playerBasesWithSpace = gameState.city.buildings.filter(b => b.owner === 'player' && b.population < 10);
+				// MODIFIED: Logic now finds any player-owned building with space according to its own maxPopulation.
+				const playerBasesWithSpace = gameState.city.buildings.filter(b => b.owner === 'player' && b.population < b.maxPopulation);
 				
 				if (playerBasesWithSpace.length > 0) {
 					while (survivorsToHouse > 0) {
 						let housedThisLoop = false;
 						for (const base of playerBasesWithSpace) {
-							if (survivorsToHouse > 0 && base.population < 10) {
+							// MODIFIED: Check against the building's specific maxPopulation.
+							if (survivorsToHouse > 0 && base.population < base.maxPopulation) {
 								base.population++;
 								survivorsToHouse--;
 								housedThisLoop = true;
