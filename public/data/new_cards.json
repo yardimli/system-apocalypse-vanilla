@@ -6,7 +6,8 @@
     "description": "The fundamental spark of vitality and growth.",
     "dropRatio": 0.15,
     "minMonsterLevel": 1,
-    "recipe": null
+    "recipe": null,
+    "card_image_description": "A simple, light wood border with a faint green glow. The center of the card shows a single, vibrant green sprout pushing up from a mote of light."
   },
   {
     "card_id": "C003",
@@ -15,7 +16,8 @@
     "description": "A mote of raw, chaotic fire.",
     "dropRatio": 0.15,
     "minMonsterLevel": 1,
-    "recipe": null
+    "recipe": null,
+    "card_image_description": "A simple, slightly charred dark wood border. The center of the card contains a single, bright orange spark of fire, crackling with energy."
   },
   {
     "card_id": "C005",
@@ -24,7 +26,8 @@
     "description": "Embodies the unyielding nature of the earth.",
     "dropRatio": 0.15,
     "minMonsterLevel": 2,
-    "recipe": null
+    "recipe": null,
+    "card_image_description": "A simple, rough-hewn grey stone border. The center of the card depicts a solid, grey, unblemished river stone, looking heavy and dense."
   },
   {
     "card_id": "C010",
@@ -33,7 +36,8 @@
     "description": "A symbol of raw power and impact.",
     "dropRatio": 0.12,
     "minMonsterLevel": 3,
-    "recipe": null
+    "recipe": null,
+    "card_image_description": "A simple, dark stone border etched with a single, straight line. The center shows a glowing purple rune, shaped like a meteor impact, radiating lines of force."
   },
   {
     "card_id": "C014",
@@ -42,7 +46,8 @@
     "description": "A symbol of protection and deflection.",
     "dropRatio": 0.12,
     "minMonsterLevel": 4,
-    "recipe": null
+    "recipe": null,
+    "card_image_description": "A simple, dark stone border etched with a single, circular line. The center shows a glowing cyan rune, resembling an interlocking shield, shimmering softly."
   },
   {
     "card_id": "C016",
@@ -51,7 +56,8 @@
     "description": "A fragment of an ethereal being's soul.",
     "dropRatio": 0.08,
     "minMonsterLevel": 10,
-    "recipe": null
+    "recipe": null,
+    "card_image_description": "A simple, smooth, polished white stone border. The center contains a translucent, jagged shard of pale blue crystal, with a faint, ghostly light moving within it."
   },
   {
     "card_id": "G101",
@@ -65,7 +71,8 @@
       "Essence of Life",
       "Essence of Life",
       "Essence of Life"
-    ]
+    ],
+    "card_image_description": "An ornate bronze border, entwined with carved green vines and leaves. The center depicts a pulsating, heart-shaped core of brilliant green light, with roots of energy spreading outwards."
   },
   {
     "card_id": "G103",
@@ -79,7 +86,8 @@
       "Glimmer of Light",
       "Rune of Warding",
       "Rune of Warding"
-    ]
+    ],
+    "card_image_description": "An ornate silver border, polished to a mirror shine, with angelic wing motifs at the corners. The center shows a complex, glowing golden glyph composed of interlocking circles and radiant lines."
   },
   {
     "card_id": "G104",
@@ -93,7 +101,8 @@
       "Stone of Endurance",
       "Stone of Endurance",
       "Stone of Endurance"
-    ]
+    ],
+    "card_image_description": "An ornate, heavy iron border that looks forged from a single piece of metal. The center shows a massive, crystalline geode cracked open to reveal a slowly pulsing, deep-grey light at its core."
   },
   {
     "card_id": "G106",
@@ -107,7 +116,8 @@
       "Spark of Flame",
       "Spark of Flame",
       "Spark of Flame"
-    ]
+    ],
+    "card_image_description": "An ornate obsidian border with cracks filled with glowing magma. The center contains a swirling sphere of molten rock and fire, intensely bright at its center."
   },
   {
     "card_id": "G111",
@@ -121,7 +131,8 @@
       "Rune of Warding",
       "Rune of Warding",
       "Stone of Endurance"
-    ]
+    ],
+    "card_image_description": "A thick, interlocking border of grey stone and tarnished bronze plates, looking ancient and impenetrable. The center depicts a colossal fortress wall made of glowing stone, with a massive, rune-etched shield at its center."
   },
   {
     "card_id": "G112",
@@ -135,7 +146,8 @@
       "Void Fragment",
       "Echo of Pain",
       "Symbol of Command"
-    ]
+    ],
+    "card_image_description": "A jagged, chaotic border of scorched, dark metal, etched with ominous, glowing red runes. The center shows a terrifying, complex rune that seems to burn a hole in reality, showing a glimpse of a fiery void behind it."
   },
   {
     "card_id": "T201",
@@ -149,7 +161,8 @@
       "Glyph of Sanctity",
       "Glimmer of Light",
       "Spirit Shard"
-    ]
+    ],
+    "card_image_description": "A magnificent, glowing golden border, intricately carved with celestial patterns. The center shows a multifaceted, diamond-like crystal floating in a field of starlight, with a miniature galaxy of pure life energy swirling within."
   },
   {
     "card_id": "T202",
@@ -163,7 +176,8 @@
       "Heart of the Mountain",
       "Heart of Life",
       "Rune of Warding"
-    ]
+    ],
+    "card_image_description": "An impossibly thick border of living wood, petrified stone, and glowing adamantite, all fused together. The center depicts a continental map viewed from orbit, with a shimmering green and gold shield of energy enveloping the entire world."
   },
   {
     "card_id": "T203",
@@ -177,7 +191,8 @@
       "Core of the Inferno",
       "Glyph of Fury",
       "Void Fragment"
-    ]
+    ],
+    "card_image_description": "A fractured, crystalline border of obsidian and solidified shadow, with veins of pulsating, chaotic energy. The center shows a black hole pulling in and consuming streams of fire and shattered rock, frozen in a single moment of destruction."
   },
   {
     "card_id": "T204",
@@ -191,6 +206,7 @@
       "Glyph of Winter",
       "Core of the Arcane",
       "Whisper of Wind"
-    ]
+    ],
+    "card_image_description": "An intricate border of jagged, clear ice crystals that refract light into a cold, blue-white spectrum. The center is the calm eye of a swirling, magical blizzard, containing a single, floating, multi-faceted snowflake that glows with immense arcane power."
   }
 ]

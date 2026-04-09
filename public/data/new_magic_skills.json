@@ -16,7 +16,8 @@
       "Essence of Life",
       "Essence of Mending",
       "Glimmer of Light"
-    ]
+    ],
+    "card_image_description": "A simple, smooth white wood border with light green filigree. The center depicts a hand gently touching an arm, with a soft green and white light emanating from the point of contact."
   },
   {
     "id": "HEA002",
@@ -35,7 +36,8 @@
       "Essence of Mending",
       "Whisper of Wind",
       "Glimmer of Light"
-    ]
+    ],
+    "card_image_description": "A polished white wood border with swirling, cloud-like carvings. The image shows a gentle, glowing green mist rolling across a field, with sparkles of light within it."
   },
   {
     "id": "HEA003",
@@ -54,7 +56,8 @@
       "Glimmer of Light",
       "Drop of Purity",
       "Rune of Warding"
-    ]
+    ],
+    "card_image_description": "A silver-inlaid white wood border. The center image is of a single drop of perfectly clear water falling onto a dark, corrupted symbol, causing it to dissolve into light."
   },
   {
     "id": "HEA004",
@@ -73,7 +76,8 @@
       "Glimmer of Light",
       "Spark of Haste",
       "Spark of Haste"
-    ]
+    ],
+    "card_image_description": "A polished white wood border with golden, lightning-fast streaks carved into it. The center shows a brilliant, sudden flash of golden light, too bright to see the source."
   },
   {
     "id": "HEA005",
@@ -92,7 +96,8 @@
       "Spirit Shard",
       "Spirit Shard",
       "Rune of Warding"
-    ]
+    ],
+    "card_image_description": "An ornate silver border etched with faint, ghostly figures. The central image depicts a translucent, benevolent spirit guardian floating protectively behind a warrior."
   },
   {
     "id": "HEA006",
@@ -111,7 +116,8 @@
       "Whisper of Wind",
       "Glimmer of Light",
       "Glyph of Connection"
-    ]
+    ],
+    "card_image_description": "An ornate silver border with interconnected, flowing lines. The center shows a bolt of turquoise healing energy arcing from one allied silhouette to two others."
   },
   {
     "id": "HEA007",
@@ -130,7 +136,8 @@
       "Glimmer of Light",
       "Heart of the Mountain",
       "Glyph of Sanctity"
-    ]
+    ],
+    "card_image_description": "A heavy, white marble border with golden runes of protection. The image shows a large, circular area of ground glowing with holy light, with angelic wings faintly visible in the pattern."
   },
   {
     "id": "HEA008",
@@ -149,7 +156,8 @@
       "Spirit Shard",
       "Glyph of Connection",
       "Rune of Warding"
-    ]
+    ],
+    "card_image_description": "An ornate silver border designed to look like two intertwined ribbons. The center shows two figures connected by a vibrant, green tether of light."
   },
   {
     "id": "HEA009",
@@ -168,7 +176,8 @@
       "Glimmer of Light",
       "Glyph of Sanctity",
       "Heart of Life"
-    ]
+    ],
+    "card_image_description": "A brilliant, solid gold border with sunburst patterns. The image shows a pillar of divine light descending from the sky to envelop a single figure, forming a protective golden bubble around them."
   },
   {
     "id": "HEA010",
@@ -187,7 +196,8 @@
       "Glyph of Sanctity",
       "Spirit Shard",
       "Shard of Divinity"
-    ]
+    ],
+    "card_image_description": "A celestial, glowing golden border that seems to be made of pure light. The center depicts an angelic, ethereal being with wings outstretched, singing as waves of powerful, holy light radiate outwards."
   },
   {
     "id": "CC001",
@@ -208,7 +218,8 @@
       "Stone of Endurance",
       "Rune of Force",
       "Symbol of Command"
-    ]
+    ],
+    "card_image_description": "A rough, cracked stone border. The image shows two large hands made of rock and earth erupting from the ground to clutch the legs of a shadowy figure."
   },
   {
     "id": "CC002",
@@ -228,7 +239,8 @@
       "Shard of Ice",
       "Whisper of Wind",
       "Rune of Force"
-    ]
+    ],
+    "card_image_description": "A border of jagged, frosted blue ice. The center shows a ring of sharp ice crystals exploding outwards from a central point, encasing the ground in frost."
   },
   {
     "id": "CC003",
@@ -249,7 +261,8 @@
       "Thought of Cunning",
       "Void Fragment",
       "Symbol of Command"
-    ]
+    ],
+    "card_image_description": "A dark purple, metallic border with psychic wave patterns. The central image is of a humanoid head silhouette with a glowing purple padlock superimposed over its mouth."
   },
   {
     "id": "CC004",
@@ -269,7 +282,8 @@
       "Whisper of Wind",
       "Whisper of Wind",
       "Glyph of Binding"
-    ]
+    ],
+    "card_image_description": "A border made of swirling, transparent air currents. The image shows a miniature, violent tornado lifting a figure off the ground, trapping it within the vortex."
   },
   {
     "id": "CC005",
@@ -289,7 +303,8 @@
       "Void Fragment",
       "Echo of Pain",
       "Glyph of Binding"
-    ]
+    ],
+    "card_image_description": "A border of writhing, dark shadow tendrils. In the center, inky black shadows rise from the floor to completely envelop and bind a struggling figure."
   },
   {
     "id": "DPS_FIRE_001",
@@ -309,7 +324,8 @@
       "Spark of Flame",
       "Rune of Force",
       "Rune of Force"
-    ]
+    ],
+    "card_image_description": "A simple, charred wood border with glowing embers in the cracks. The center shows a single, fast-moving bolt of fire streaking across a dark background."
   },
   {
     "id": "DPS_FIRE_002",
@@ -329,7 +345,8 @@
       "Spark of Flame",
       "Spark of Flame",
       "Rune of Force"
-    ]
+    ],
+    "card_image_description": "An ornate obsidian border with rivers of magma flowing through it. The central image is a large, airborne sphere of molten rock, just about to impact the ground in a fiery explosion."
   },
   {
     "id": "DPS_FIRE_003",
@@ -349,7 +366,8 @@
       "Apocalyptic Rune",
       "Core of the Inferno",
       "Spark of Flame"
-    ]
+    ],
+    "card_image_description": "A chaotic, jagged border of cooled lava and red-hot metal. The image shows a colossal meteor, wreathed in apocalyptic flames, descending from a smoke-filled sky towards a terrified landscape."
   },
   {
     "id": "DPS_FROST_001",
@@ -369,7 +387,8 @@
       "Shard of Ice",
       "Whisper of Wind",
       "Rune of Force"
-    ]
+    ],
+    "card_image_description": "A simple, frosted metal border. The center depicts a single, sharp icicle flying through the air, leaving a trail of cold mist behind it."
   },
   {
     "id": "DPS_FROST_002",
@@ -389,7 +408,8 @@
       "Shard of Ice",
       "Shard of Ice",
       "Rune of Force"
-    ]
+    ],
+    "card_image_description": "An ornate border made of thick, clear ice with snowflake patterns. The image shows a gigantic, jagged spike of ice erupting violently from a frozen tundra."
   },
   {
     "id": "DPS_FROST_003",
@@ -409,7 +429,8 @@
       "Glyph of Winter",
       "Glyph of Winter",
       "Whisper of Wind"
-    ]
+    ],
+    "card_image_description": "A magnificent border of shifting, crystalline ice that seems to absorb all warmth. The center shows a world-ending blizzard, with the calm, dark eye of the storm visible at the top, radiating immense cold."
   },
   {
     "id": "DPS_ELEC_001",
@@ -429,7 +450,8 @@
       "Whisper of Wind",
       "Spark of Haste",
       "Rune of Force"
-    ]
+    ],
+    "card_image_description": "A simple, polished steel border with fine, crackling lines of electricity. The image is of a small, intensely bright yellow spark of lightning jumping from one point to another."
   },
   {
     "id": "DPS_ELEC_002",
@@ -449,7 +471,8 @@
       "Whisper of Wind",
       "Whisper of Wind",
       "Glyph of Connection"
-    ]
+    ],
+    "card_image_description": "An ornate, stormy grey metal border with lightning bolt motifs. The center shows a powerful fork of blue-white lightning arcing between four separate targets."
   },
   {
     "id": "DPS_ELEC_003",
@@ -469,7 +492,8 @@
       "Glyph of Fury",
       "Spark of Haste",
       "Shard of Divinity"
-    ]
+    ],
+    "card_image_description": "A border of dark, swirling storm clouds, constantly illuminated by flashes of internal lightning. The center depicts a heroic figure transformed into pure electrical energy, with eyes of lightning and a body of storm."
   },
   {
     "id": "DPS_ARCA_001",
@@ -489,7 +513,8 @@
       "Rune of Force",
       "Rune of Force",
       "Thought of Cunning"
-    ]
+    ],
+    "card_image_description": "A simple, dark purple border with faint, glowing runes. The image shows a single, glowing missile of pink and purple energy curving through the air."
   },
   {
     "id": "DPS_ARCA_002",
@@ -509,7 +534,8 @@
       "Rune of Force",
       "Rune of Force",
       "Thought of Cunning"
-    ]
+    ],
+    "card_image_description": "An ornate, deep purple border covered in complex, glowing arcane symbols. The center depicts a volley of five magical missiles fanning out from a central point, each glowing brighter than the last."
   },
   {
     "id": "DPS_ARCA_003",
@@ -529,7 +555,8 @@
       "Core of the Arcane",
       "Apocalyptic Rune",
       "Void Fragment"
-    ]
+    ],
+    "card_image_description": "A cosmic border that looks like a window into deep space, filled with nebulae and stars. The image shows a mage unleashing a continuous, overwhelming torrent of pure, white-hot arcane energy from their hands."
   },
   {
     "id": "TNK001",
@@ -549,7 +576,8 @@
       "Symbol of Command",
       "Rune of Force",
       "Stone of Endurance"
-    ]
+    ],
+    "card_image_description": "A simple, thick iron border. The center shows a stylized, roaring face with red concentric circles emanating from its mouth, representing a commanding shout."
   },
   {
     "id": "TNK002",
@@ -570,7 +598,8 @@
       "Rune of Warding",
       "Stone of Endurance",
       "Stone of Endurance"
-    ]
+    ],
+    "card_image_description": "A border of interlocking shield plates. The image depicts a large, steel kite shield deflecting a sword strike with a bright spark of impact."
   },
   {
     "id": "TNK005",
@@ -590,7 +619,8 @@
       "Rune of Warding",
       "Heart of the Mountain",
       "Heart of the Mountain"
-    ]
+    ],
+    "card_image_description": "A heavy, forged iron border with large rivets. The center shows a muscular arm, its skin transforming and taking on the metallic sheen and texture of solid iron."
   },
   {
     "id": "TNK008",
@@ -610,7 +640,8 @@
       "Heart of the Mountain",
       "Glyph of Sanctity",
       "Bulwark of Ages"
-    ]
+    ],
+    "card_image_description": "An immense border of interlocking, rune-etched fortress stones. The image shows a lone warrior standing firm as a wall of massive, ethereal shields materializes around them, deflecting a rain of arrows and spells."
   },
   {
     "id": "TNK010",
@@ -630,6 +661,7 @@
       "Bulwark of Ages",
       "Glyph of Fury",
       "Aegis of the World-Warden"
-    ]
+    ],
+    "card_image_description": "A monumental border that appears to be carved from the heart of a mountain. The center depicts a warrior mid-transformation, growing to immense size as their body becomes living stone, with molten-hot cracks and glowing eyes."
   }
 ]

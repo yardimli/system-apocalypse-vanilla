@@ -19,7 +19,8 @@
       "Spark of Haste",
       "Rune of Force",
       "Echo of Pain"
-    ]
+    ],
+    "card_image_description": "A simple, worn leather border. The center shows a blurred, silver streak representing the rapid movement of a dagger or shortsword."
   },
   {
     "id": "MAR002",
@@ -41,7 +42,8 @@
       "Thought of Cunning",
       "Rune of Force",
       "Whisper of Wind"
-    ]
+    ],
+    "card_image_description": "A border of polished yew wood, wrapped with bowstring. The image is a first-person view, looking down the shaft of an arrow at a distant target."
   },
   {
     "id": "MAR003",
@@ -63,7 +65,8 @@
       "Rune of Force",
       "Rune of Force",
       "Echo of Pain"
-    ]
+    ],
+    "card_image_description": "A thick, dented iron border. The center depicts a massive warhammer just before impact, with lines of force gathering around its head."
   },
   {
     "id": "MAR004",
@@ -85,7 +88,8 @@
       "Spark of Haste",
       "Thought of Cunning",
       "Drop of Venom"
-    ]
+    ],
+    "card_image_description": "A border of stitched, rough leather. The image shows a close-up of a blade cutting across the back of a creature's leg, with a red icon indicating slowness."
   },
   {
     "id": "MAR005",
@@ -106,7 +110,8 @@
       "Thought of Cunning",
       "Spark of Haste",
       "Stone of Endurance"
-    ]
+    ],
+    "card_image_description": "A border designed like the crossguard of a sword, made of polished steel. The center shows two blades crossed, with a bright flash of sparks at their intersection."
   },
   {
     "id": "MAR006",
@@ -128,7 +133,8 @@
       "Whisper of Wind",
       "Echo of Pain",
       "Echo of Pain"
-    ]
+    ],
+    "card_image_description": "A wide, sharpened steel border. The image shows a warrior swinging a large axe in a wide, horizontal arc, with the white blur of the weapon connecting with two enemy silhouettes."
   },
   {
     "id": "MAR007",
@@ -150,7 +156,8 @@
       "Drop of Venom",
       "Drop of Venom",
       "Thought of Cunning"
-    ]
+    ],
+    "card_image_description": "A border with a green, snakeskin texture. The center shows an arrow in flight, its arrowhead glowing with a sickly green venom that drips off in its wake."
   },
   {
     "id": "MAR008",
@@ -171,7 +178,8 @@
       "Echo of Pain",
       "Spark of Haste",
       "Glyph of Fury"
-    ]
+    ],
+    "card_image_description": "A dark steel border, stained with crimson. The image depicts two daggers being brutally plunged into a target, with a visceral red slash effect."
   },
   {
     "id": "MAR009",
@@ -193,7 +201,8 @@
       "Spark of Haste",
       "Rune of Force",
       "Glyph of Connection"
-    ]
+    ],
+    "card_image_description": "A border decorated with arrow fletching patterns. The center shows three arrows being fired from a single bow, fanning out to hit multiple targets."
   },
   {
     "id": "MAR010",
@@ -214,7 +223,8 @@
       "Rune of Force",
       "Rune of Force",
       "Symbol of Command"
-    ]
+    ],
+    "card_image_description": "A border of cracked and broken iron plates. The image shows a massive maul crashing down on a metal shield, causing it to shatter into pieces."
   },
   {
     "id": "MAR011",
@@ -235,7 +245,8 @@
       "Thought of Cunning",
       "Spirit Shard",
       "Echo of Pain"
-    ]
+    ],
+    "card_image_description": "A border of swirling, red and black energy. The center shows the silhouette of a warrior, with their eyes glowing with a sharp, focused, crimson light."
   },
   {
     "id": "MAR012",
@@ -256,7 +267,8 @@
       "Thought of Cunning",
       "Spark of Haste",
       "Rune of Warding"
-    ]
+    ],
+    "card_image_description": "A border made of broken chain links. The central image is of a sword being knocked from a gauntleted hand, spinning through the air."
   },
   {
     "id": "MAR013",
@@ -277,7 +289,8 @@
       "Spark of Haste",
       "Whisper of Wind",
       "Whisper of Wind"
-    ]
+    ],
+    "card_image_description": "An elegant border of curved, razor-sharp steel blades. The center depicts a warrior as a whirlwind of motion, surrounded by a storm of silver slash marks."
   },
   {
     "id": "MAR014",
@@ -298,7 +311,8 @@
       "Stone of Endurance",
       "Rune of Force",
       "Thought of Cunning"
-    ]
+    ],
+    "card_image_description": "A heavy iron-banded wood border, like a siege crossbow. The image shows a thick, heavy bolt piercing a creature's shadow and pinning it firmly to the rocky ground."
   },
   {
     "id": "MAR015",
@@ -319,7 +333,8 @@
       "Echo of Pain",
       "Echo of Pain",
       "Symbol of Command"
-    ]
+    ],
+    "card_image_description": "A grim, dark iron border adorned with skulls and chains. The center shows the massive, shadowed blade of an executioner's axe raised high, ready for the final, devastating chop."
   },
   {
     "id": "MAR016",
@@ -340,7 +355,8 @@
       "Whisper of Wind",
       "Spark of Haste",
       "Eye of the Frost-Storm"
-    ]
+    ],
+    "card_image_description": "A border resembling a stone castle battlement. The image shows a sky darkened by a massive, unending shower of arrows falling onto a targeted circle on the ground."
   },
   {
     "id": "MAR017",
@@ -361,7 +377,8 @@
       "Void Fragment",
       "Echo of Pain",
       "Glyph of Fury"
-    ]
+    ],
+    "card_image_description": "An ornate border of black steel and silver filigree. The center shows a heavily armored knight with a single, glowing red weak point exposed on their chest."
   },
   {
     "id": "MAR018",
@@ -382,7 +399,8 @@
       "Heart of the Mountain",
       "Apocalyptic Rune",
       "Rune of Force"
-    ]
+    ],
+    "card_image_description": "A monumental border of shattered rock and earth. The image shows a warrior slamming a colossal hammer into the ground, causing a powerful, cone-shaped shockwave of rock and dust to erupt forward."
   },
   {
     "id": "MAR019",
@@ -403,7 +421,8 @@
       "Thought of Cunning",
       "Symbol of Command",
       "Spark of Haste"
-    ]
+    ],
+    "card_image_description": "A border of cold, dark metal styled like a rifle's scope. The center is the view through the scope, with red crosshairs centered on the head of a huge, wounded beast."
   },
   {
     "id": "MAR020",
@@ -424,6 +443,7 @@
       "Glyph of Fury",
       "Glyph of Fury",
       "Aegis of the World-Warden"
-    ]
+    ],
+    "card_image_description": "A legendary border of masterwork Damascus steel, wrapped in crimson silk. The center shows a single enemy being overwhelmed by a storm of countless, impossibly fast sword strikes, appearing as a cage of silver light."
   }
 ]
