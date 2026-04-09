@@ -1,0 +1,108 @@
+{
+  "characterId": "UNIQUE_NPC_ID_001",
+  "name": "",
+  "title": "",
+  "identity": {
+    "gender": "",
+    "age": 0,
+    "ageDescription": "",
+    "raceOrSpecies": "",
+    "ethnicity": ""
+  },
+  "appearance": {
+    "summary": "",
+    "height": "",
+    "build": "",
+    "skin": {
+      "color": "",
+      "complexion": ""
+    },
+    "hair": {
+      "color": "",
+      "style": "",
+      "length": ""
+    },
+    "eyes": {
+      "color": "",
+      "shape": ""
+    },
+    "distinguishingFeatures": [
+      ""
+    ]
+  },
+  "clothingAndEquipment": {
+    "outfitDescription": "",
+    "armorType": "",
+    "accessories": [
+      ""
+    ],
+    "mainWeapon": "",
+    "offHand": ""
+  },
+  "personality": {
+    "coreTrait": "",
+    "alignment": "",
+    "positiveTraits": [
+      ""
+    ],
+    "negativeTraits": [
+      ""
+    ],
+    "quirksAndHabits": [
+      ""
+    ],
+    "motivations": [
+      ""
+    ]
+  },
+  "background": {
+    "backstory": "",
+    "origin": "",
+    "profession": ""
+  },
+  "relationships": [
+    {
+      "characterId": "NPC_ID_002",
+      "name": "",
+      "relationshipType": "Rival"
+    }
+  ],
+  "gameplay": {
+    "class": "",
+    "level": 1,
+    "stats": {
+      "strength": 10,
+      "stamina": 10,
+      "constitution": 10,
+      "intelligence": 10,
+      "wisdom": 10,
+      "charisma": 10,
+      "luck": 5
+    },
+    "skills": [
+      {
+        "skillName": "",
+        "skillLevel": 1,
+        "description": ""
+      }
+    ],
+    "abilitiesOrSpells": [
+      {
+        "abilityName": "",
+        "type": "Active/Passive/Spell",
+        "cost": "10 Mana",
+        "cooldown": "5 seconds",
+        "description": ""
+      }
+    ]
+  },
+  "narrative": {
+    "secrets": [
+      ""
+    ],
+    "goals": {
+      "shortTerm": "",
+      "longTerm": ""
+    }
+  }
+}

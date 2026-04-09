@@ -1,0 +1,196 @@
+[
+  {
+    "card_id": "C001",
+    "name": "Essence of Life",
+    "cardTier": 1,
+    "description": "The fundamental spark of vitality and growth.",
+    "dropRatio": 0.15,
+    "minMonsterLevel": 1,
+    "recipe": null
+  },
+  {
+    "card_id": "C003",
+    "name": "Spark of Flame",
+    "cardTier": 1,
+    "description": "A mote of raw, chaotic fire.",
+    "dropRatio": 0.15,
+    "minMonsterLevel": 1,
+    "recipe": null
+  },
+  {
+    "card_id": "C005",
+    "name": "Stone of Endurance",
+    "cardTier": 1,
+    "description": "Embodies the unyielding nature of the earth.",
+    "dropRatio": 0.15,
+    "minMonsterLevel": 2,
+    "recipe": null
+  },
+  {
+    "card_id": "C010",
+    "name": "Rune of Force",
+    "cardTier": 1,
+    "description": "A symbol of raw power and impact.",
+    "dropRatio": 0.12,
+    "minMonsterLevel": 3,
+    "recipe": null
+  },
+  {
+    "card_id": "C014",
+    "name": "Rune of Warding",
+    "cardTier": 1,
+    "description": "A symbol of protection and deflection.",
+    "dropRatio": 0.12,
+    "minMonsterLevel": 4,
+    "recipe": null
+  },
+  {
+    "card_id": "C016",
+    "name": "Spirit Shard",
+    "cardTier": 1,
+    "description": "A fragment of an ethereal being's soul.",
+    "dropRatio": 0.08,
+    "minMonsterLevel": 10,
+    "recipe": null
+  },
+  {
+    "card_id": "G101",
+    "name": "Heart of Life",
+    "cardTier": 2,
+    "description": "The ultimate concentration of life energy.",
+    "dropRatio": null,
+    "minMonsterLevel": null,
+    "recipe": [
+      "Essence of Life",
+      "Essence of Life",
+      "Essence of Life",
+      "Essence of Life"
+    ]
+  },
+  {
+    "card_id": "G103",
+    "name": "Glyph of Sanctity",
+    "cardTier": 2,
+    "description": "A powerful symbol of holy protection and power.",
+    "dropRatio": null,
+    "minMonsterLevel": null,
+    "recipe": [
+      "Glimmer of Light",
+      "Glimmer of Light",
+      "Rune of Warding",
+      "Rune of Warding"
+    ]
+  },
+  {
+    "card_id": "G104",
+    "name": "Heart of the Mountain",
+    "cardTier": 2,
+    "description": "The unshakeable core of a mountain, personified.",
+    "dropRatio": null,
+    "minMonsterLevel": null,
+    "recipe": [
+      "Stone of Endurance",
+      "Stone of Endurance",
+      "Stone of Endurance",
+      "Stone of Endurance"
+    ]
+  },
+  {
+    "card_id": "G106",
+    "name": "Core of the Inferno",
+    "cardTier": 2,
+    "description": "The searing heart of a volcano.",
+    "dropRatio": null,
+    "minMonsterLevel": null,
+    "recipe": [
+      "Spark of Flame",
+      "Spark of Flame",
+      "Spark of Flame",
+      "Spark of Flame"
+    ]
+  },
+  {
+    "card_id": "G111",
+    "name": "Bulwark of Ages",
+    "cardTier": 2,
+    "description": "The concept of an impassable fortress, given form.",
+    "dropRatio": null,
+    "minMonsterLevel": null,
+    "recipe": [
+      "Heart of the Mountain",
+      "Rune of Warding",
+      "Rune of Warding",
+      "Stone of Endurance"
+    ]
+  },
+  {
+    "card_id": "G112",
+    "name": "Apocalyptic Rune",
+    "cardTier": 2,
+    "description": "A forbidden rune that heralds world-ending power.",
+    "dropRatio": null,
+    "minMonsterLevel": null,
+    "recipe": [
+      "Core of the Inferno",
+      "Void Fragment",
+      "Echo of Pain",
+      "Symbol of Command"
+    ]
+  },
+  {
+    "card_id": "T201",
+    "name": "Shard of Divinity",
+    "cardTier": 3,
+    "description": "A crystallized moment of a god's birth.",
+    "dropRatio": null,
+    "minMonsterLevel": null,
+    "recipe": [
+      "Heart of Life",
+      "Glyph of Sanctity",
+      "Glimmer of Light",
+      "Spirit Shard"
+    ]
+  },
+  {
+    "card_id": "T202",
+    "name": "Aegis of the World-Warden",
+    "cardTier": 3,
+    "description": "The unbreakable will of a world defending itself.",
+    "dropRatio": null,
+    "minMonsterLevel": null,
+    "recipe": [
+      "Bulwark of Ages",
+      "Heart of the Mountain",
+      "Heart of Life",
+      "Rune of Warding"
+    ]
+  },
+  {
+    "card_id": "T203",
+    "name": "Heart of the Calamity",
+    "cardTier": 3,
+    "description": "The focal point of a destructive event, contained.",
+    "dropRatio": null,
+    "minMonsterLevel": null,
+    "recipe": [
+      "Apocalyptic Rune",
+      "Core of the Inferno",
+      "Glyph of Fury",
+      "Void Fragment"
+    ]
+  },
+  {
+    "card_id": "T204",
+    "name": "Eye of the Frost-Storm",
+    "cardTier": 3,
+    "description": "The serene, deadly center of an eternal blizzard.",
+    "dropRatio": null,
+    "minMonsterLevel": null,
+    "recipe": [
+      "Glyph of Winter",
+      "Glyph of Winter",
+      "Core of the Arcane",
+      "Whisper of Wind"
+    ]
+  }
+]

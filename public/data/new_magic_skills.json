@@ -1,0 +1,497 @@
+[
+  {
+    "id": "HEA001",
+    "name": "Mending Touch",
+    "class": "Healing",
+    "type": "Active",
+    "mpCost": 20,
+    "levelRequirement": 1,
+    "cooldown": 2,
+    "castTime": 1.5,
+    "description": "A simple touch that restores a small amount of health to a single target.",
+    "hpHealing": "30-45",
+    "agroValue": 35,
+    "cards_needed": [
+      "Essence of Life",
+      "Essence of Life",
+      "Essence of Mending",
+      "Glimmer of Light"
+    ]
+  },
+  {
+    "id": "HEA002",
+    "name": "Soothing Mist",
+    "class": "Healing",
+    "type": "Active",
+    "mpCost": 60,
+    "levelRequirement": 5,
+    "cooldown": 10,
+    "castTime": 2,
+    "description": "Blankets a small area in a restorative mist, healing all allies within it over 8 seconds.",
+    "hpHealing": "80-100",
+    "agroValue": 90,
+    "cards_needed": [
+      "Essence of Mending",
+      "Essence of Mending",
+      "Whisper of Wind",
+      "Glimmer of Light"
+    ]
+  },
+  {
+    "id": "HEA003",
+    "name": "Purify",
+    "class": "Healing",
+    "type": "Active",
+    "mpCost": 45,
+    "levelRequirement": 8,
+    "cooldown": 8,
+    "castTime": 1,
+    "description": "Removes one harmful magical effect and one poison effect from an ally.",
+    "hpHealing": "0",
+    "agroValue": 25,
+    "cards_needed": [
+      "Essence of Life",
+      "Glimmer of Light",
+      "Drop of Purity",
+      "Rune of Warding"
+    ]
+  },
+  {
+    "id": "HEA004",
+    "name": "Flash Heal",
+    "class": "Healing",
+    "type": "Active",
+    "mpCost": 75,
+    "levelRequirement": 12,
+    "cooldown": 6,
+    "castTime": 0.5,
+    "description": "A quick, but mana-intensive burst of healing for a single target.",
+    "hpHealing": "90-110",
+    "agroValue": 100,
+    "cards_needed": [
+      "Essence of Life",
+      "Glimmer of Light",
+      "Spark of Haste",
+      "Spark of Haste"
+    ]
+  },
+  {
+    "id": "HEA005",
+    "name": "Ancestral Spirit",
+    "class": "Healing",
+    "type": "Active",
+    "mpCost": 150,
+    "levelRequirement": 18,
+    "cooldown": 180,
+    "castTime": 2.5,
+    "description": "Calls upon an ancestral spirit to watch over an ally. If they die within 30 seconds, they are resurrected with 40% health and mana.",
+    "hpHealing": "0",
+    "agroValue": 120,
+    "cards_needed": [
+      "Essence of Life",
+      "Spirit Shard",
+      "Spirit Shard",
+      "Rune of Warding"
+    ]
+  },
+  {
+    "id": "HEA006",
+    "name": "Chain Heal",
+    "class": "Healing",
+    "type": "Active",
+    "mpCost": 110,
+    "levelRequirement": 20,
+    "cooldown": 12,
+    "castTime": 2,
+    "description": "Heals a target, then jumps to two nearby allies, healing for a reduced amount with each jump.",
+    "hpHealing": "150-180",
+    "agroValue": 160,
+    "cards_needed": [
+      "Essence of Mending",
+      "Whisper of Wind",
+      "Glimmer of Light",
+      "Glyph of Connection"
+    ]
+  },
+  {
+    "id": "HEA007",
+    "name": "Sanctuary",
+    "class": "Healing",
+    "type": "Active",
+    "mpCost": 200,
+    "levelRequirement": 25,
+    "cooldown": 60,
+    "castTime": 3,
+    "description": "Consecrates the ground in a large area. Allies standing within it are healed every 2 seconds and take 10% less damage.",
+    "hpHealing": "400-500",
+    "agroValue": 350,
+    "cards_needed": [
+      "Rune of Warding",
+      "Glimmer of Light",
+      "Heart of the Mountain",
+      "Glyph of Sanctity"
+    ]
+  },
+  {
+    "id": "HEA008",
+    "name": "Life Link",
+    "class": "Healing",
+    "type": "Active",
+    "mpCost": 90,
+    "levelRequirement": 28,
+    "cooldown": 25,
+    "castTime": 1.5,
+    "description": "Links the caster to an ally for 15 seconds. The ally receives 50% of all healing the caster receives.",
+    "hpHealing": "0",
+    "agroValue": 70,
+    "cards_needed": [
+      "Essence of Life",
+      "Spirit Shard",
+      "Glyph of Connection",
+      "Rune of Warding"
+    ]
+  },
+  {
+    "id": "HEA009",
+    "name": "Beacon of Light",
+    "class": "Healing",
+    "type": "Active",
+    "mpCost": 180,
+    "levelRequirement": 35,
+    "cooldown": 20,
+    "castTime": 2.5,
+    "description": "A powerful, single-target heal that also grants the target a shield absorbing a moderate amount of damage.",
+    "hpHealing": "350-420",
+    "agroValue": 380,
+    "cards_needed": [
+      "Glimmer of Light",
+      "Glimmer of Light",
+      "Glyph of Sanctity",
+      "Heart of Life"
+    ]
+  },
+  {
+    "id": "HEA010",
+    "name": "Divine Hymn",
+    "class": "Healing",
+    "type": "Channeled",
+    "mpCost": 350,
+    "levelRequirement": 45,
+    "cooldown": 120,
+    "castTime": 8,
+    "description": "The ultimate healing spell. Channels divine energy to heal all nearby allies for a massive amount over 8 seconds.",
+    "hpHealing": "2000-2500",
+    "agroValue": 1500,
+    "cards_needed": [
+      "Heart of Life",
+      "Glyph of Sanctity",
+      "Spirit Shard",
+      "Shard of Divinity"
+    ]
+  },
+  {
+    "id": "CC001",
+    "name": "Earthen Grasp",
+    "class": "Crowd Control",
+    "type": "Active",
+    "mpCost": 50,
+    "levelRequirement": 6,
+    "cooldown": 15,
+    "castTime": 1,
+    "description": "Summons stone hands from the ground to root a single enemy in place for 4 seconds.",
+    "damage": "5-10",
+    "agroValue": 40,
+    "agroMultiplier": 1.0,
+    "autoCastUnlockLevel": 10,
+    "cards_needed": [
+      "Stone of Endurance",
+      "Stone of Endurance",
+      "Rune of Force",
+      "Symbol of Command"
+    ]
+  },
+  {
+    "id": "CC002",
+    "name": "Frost Nova",
+    "class": "Crowd Control",
+    "type": "Active",
+    "mpCost": 80,
+    "levelRequirement": 10,
+    "cooldown": 20,
+    "castTime": 0.5,
+    "description": "An explosion of ice erupts from the caster, rooting all nearby enemies for 3 seconds and slowing them for 5 seconds after.",
+    "damage": "1-5",
+    "agroValue": 60,
+    "agroMultiplier": 1.0,
+    "cards_needed": [
+      "Shard of Ice",
+      "Shard of Ice",
+      "Whisper of Wind",
+      "Rune of Force"
+    ]
+  },
+  {
+    "id": "CC003",
+    "name": "Mind Lock",
+    "class": "Crowd Control",
+    "type": "Active",
+    "mpCost": 70,
+    "levelRequirement": 15,
+    "cooldown": 25,
+    "castTime": 1.2,
+    "description": "Locks an enemy's mind, silencing them and preventing any spellcasting for 5 seconds.",
+    "damage": "0",
+    "agroValue": 55,
+    "agroMultiplier": 1.0,
+    "autoCastUnlockLevel": 20,
+    "cards_needed": [
+      "Thought of Cunning",
+      "Thought of Cunning",
+      "Void Fragment",
+      "Symbol of Command"
+    ]
+  },
+  {
+    "id": "CC004",
+    "name": "Cyclone",
+    "class": "Crowd Control",
+    "type": "Active",
+    "mpCost": 120,
+    "levelRequirement": 22,
+    "cooldown": 30,
+    "castTime": 1.8,
+    "description": "Traps an enemy in a vortex of wind, making them invulnerable but unable to act for 6 seconds.",
+    "damage": "0",
+    "agroValue": 10,
+    "agroMultiplier": 1.0,
+    "cards_needed": [
+      "Whisper of Wind",
+      "Whisper of Wind",
+      "Whisper of Wind",
+      "Glyph of Binding"
+    ]
+  },
+  {
+    "id": "CC005",
+    "name": "Shadow Prison",
+    "class": "Crowd Control",
+    "type": "Active",
+    "mpCost": 150,
+    "levelRequirement": 30,
+    "cooldown": 45,
+    "castTime": 2,
+    "description": "Binds an enemy with tendrils of shadow, stunning them for 4 seconds. Deals shadow damage if the stun is broken early.",
+    "damage": "80-100",
+    "agroValue": 120,
+    "agroMultiplier": 1.1,
+    "cards_needed": [
+      "Void Fragment",
+      "Void Fragment",
+      "Echo of Pain",
+      "Glyph of Binding"
+    ]
+  },
+  {
+    "id": "DPS001",
+    "name": "Firebolt",
+    "class": "DPS",
+    "type": "Active",
+    "mpCost": 15,
+    "levelRequirement": 1,
+    "cooldown": 0,
+    "castTime": 2,
+    "description": "Hurls a small bolt of fire at an enemy.",
+    "damage": "18-25",
+    "agroValue": 20,
+    "agroMultiplier": 1.1,
+    "autoCastUnlockLevel": 2,
+    "cards_needed": [
+      "Spark of Flame",
+      "Spark of Flame",
+      "Rune of Force",
+      "Rune of Force"
+    ]
+  },
+  {
+    "id": "DPS002",
+    "name": "Viper Strike",
+    "class": "DPS",
+    "type": "Active",
+    "mpCost": 25,
+    "levelRequirement": 2,
+    "cooldown": 6,
+    "castTime": 0,
+    "description": "An instant strike that deals minor physical damage and applies a poison, dealing nature damage over 12 seconds.",
+    "damage": "10-15",
+    "agroValue": 30,
+    "agroMultiplier": 1.0,
+    "autoCastUnlockLevel": 5,
+    "cards_needed": [
+      "Drop of Venom",
+      "Drop of Venom",
+      "Spark of Haste",
+      "Echo of Pain"
+    ]
+  },
+  {
+    "id": "DPS014",
+    "name": "Glacial Spike",
+    "class": "DPS",
+    "type": "Active",
+    "mpCost": 150,
+    "levelRequirement": 20,
+    "cooldown": 15,
+    "castTime": 3,
+    "description": "Summons a massive spike of ice and hurls it at the enemy, dealing huge frost damage and briefly freezing them.",
+    "damage": "250-310",
+    "agroValue": 280,
+    "agroMultiplier": 1.2,
+    "cards_needed": [
+      "Shard of Ice",
+      "Shard of Ice",
+      "Rune of Force",
+      "Glyph of Winter"
+    ]
+  },
+  {
+    "id": "DPS025",
+    "name": "Blizzard",
+    "class": "DPS",
+    "type": "Channeled",
+    "mpCost": 300,
+    "levelRequirement": 35,
+    "cooldown": 30,
+    "castTime": 8,
+    "description": "Summons a storm of ice shards over a large area, dealing frost damage and heavily slowing all enemies within it.",
+    "damage": "800-1000",
+    "agroValue": 900,
+    "agroMultiplier": 1.1,
+    "cards_needed": [
+      "Glyph of Winter",
+      "Glyph of Winter",
+      "Whisper of Wind",
+      "Eye of the Frost-Storm"
+    ]
+  },
+  {
+    "id": "DPS030",
+    "name": "Pyroblast",
+    "class": "DPS",
+    "type": "Active",
+    "mpCost": 350,
+    "levelRequirement": 50,
+    "cooldown": 4,
+    "castTime": 4.5,
+    "description": "The pinnacle of fire magic. Hurls a massive boulder of fire that deals catastrophic damage and a powerful burn effect.",
+    "damage": "1500-1800",
+    "agroValue": 1600,
+    "agroMultiplier": 1.2,
+    "cards_needed": [
+      "Core of the Inferno",
+      "Apocalyptic Rune",
+      "Heart of the Calamity",
+      "Rune of Force"
+    ]
+  },
+  {
+    "id": "TNK001",
+    "name": "Taunt",
+    "class": "Tanking",
+    "type": "Active",
+    "rageCost": 10,
+    "levelRequirement": 2,
+    "cooldown": 8,
+    "castTime": 0,
+    "description": "Forces a single enemy to attack you for 3 seconds.",
+    "damage": "1-2",
+    "agroValue": 500,
+    "agroMultiplier": 5.0,
+    "cards_needed": [
+      "Symbol of Command",
+      "Symbol of Command",
+      "Rune of Force",
+      "Stone of Endurance"
+    ]
+  },
+  {
+    "id": "TNK002",
+    "name": "Shield Block",
+    "class": "Tanking",
+    "type": "Active",
+    "rageCost": 15,
+    "levelRequirement": 4,
+    "cooldown": 12,
+    "castTime": 0,
+    "description": "Raises your shield, blocking the next physical attack made against you within 6 seconds.",
+    "damage": "0",
+    "agroValue": 30,
+    "agroMultiplier": 1.0,
+    "autoCastUnlockLevel": 8,
+    "cards_needed": [
+      "Rune of Warding",
+      "Rune of Warding",
+      "Stone of Endurance",
+      "Stone of Endurance"
+    ]
+  },
+  {
+    "id": "TNK005",
+    "name": "Iron Skin",
+    "class": "Tanking",
+    "type": "Active",
+    "rageCost": 40,
+    "levelRequirement": 14,
+    "cooldown": 60,
+    "castTime": 0,
+    "description": "Hardens your skin to be like iron, reducing physical damage taken by 40% for 12 seconds.",
+    "damage": "0",
+    "agroValue": 80,
+    "agroMultiplier": 1.0,
+    "cards_needed": [
+      "Stone of Endurance",
+      "Rune of Warding",
+      "Heart of the Mountain",
+      "Heart of the Mountain"
+    ]
+  },
+  {
+    "id": "TNK008",
+    "name": "Shield Wall",
+    "class": "Tanking",
+    "type": "Active",
+    "rageCost": 50,
+    "levelRequirement": 30,
+    "cooldown": 240,
+    "castTime": 0,
+    "description": "The ultimate defensive cooldown. Reduces all damage taken by 60% for 12 seconds.",
+    "damage": "0",
+    "agroValue": 250,
+    "agroMultiplier": 1.0,
+    "cards_needed": [
+      "Rune of Warding",
+      "Heart of the Mountain",
+      "Glyph of Sanctity",
+      "Bulwark of Ages"
+    ]
+  },
+  {
+    "id": "TNK010",
+    "name": "Avatar",
+    "class": "Tanking",
+    "type": "Active",
+    "rageCost": 100,
+    "levelRequirement": 50,
+    "cooldown": 120,
+    "castTime": 1.5,
+    "description": "Transforms into a colossal stone avatar for 20 seconds, increasing damage dealt, making you immune to movement impairing effects, and generating massive threat with every attack.",
+    "damage": "150-200",
+    "agroValue": 1000,
+    "agroMultiplier": 4.0,
+    "cards_needed": [
+      "Bulwark of Ages",
+      "Bulwark of Ages",
+      "Glyph of Fury",
+      "Aegis of the World-Warden"
+    ]
+  }
+]
