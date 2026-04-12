@@ -11,6 +11,7 @@
     "description": "A simple touch that restores a small amount of health to a single target.",
     "hpHealing": "30-45",
     "agroValue": 35,
+    "autoCastUnlockLevel": 1,
     "cards_needed": [
       "Essence of Life",
       "Essence of Life",
@@ -424,6 +425,7 @@
     "damage": "18-25",
     "agroValue": 20,
     "agroMultiplier": 1.1,
+    "autoCastUnlockLevel": 1,
     "cards_needed": [
       "Spark of Flame",
       "Spark of Flame",

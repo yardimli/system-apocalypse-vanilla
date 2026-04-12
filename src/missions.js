@@ -1,6 +1,7 @@
 import { gameState, gameData } from './state.js';
 import { addToLog, updateTextIfChanged, updateProgressIfChanged } from './utils.js';
 import { handleExitBuilding, handleEnterBuilding } from './buildings.js';
+import { recalculateHeroStats } from './heroes.js'; // Added import
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
@@ -518,12 +519,9 @@ export function handleMonsterDefeat () {
 						hero.level++;
 						hero.xp.current -= hero.xp.max;
 						hero.xp.max = Math.ceil(hero.xp.max * 1.5);
-						hero.hp.max += hero.hpMaxPerLevel;
-						hero.mp.max += hero.mpMaxPerLevel;
-						hero.hpRegen += hero.hpRegenPerLevel;
-						hero.mpRegen += hero.mpRegenPerLevel;
-						hero.hp.current = hero.hp.max;
-						addToLog(`reached Level ${hero.level}!`, hero.id);
+						hero.unspentStatPoints += 3; // Grant 3 stat points per level
+						recalculateHeroStats(hero); // Update derived stats
+						addToLog(`reached Level ${hero.level}! Gained 3 Stat Points.`, hero.id);
 					}
 				});
 			}

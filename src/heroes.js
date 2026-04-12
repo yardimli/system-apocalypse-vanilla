@@ -4,6 +4,35 @@ import { addToLog, updateTextIfChanged, updateHtmlIfChanged, updateProgressIfCha
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
 
+/**
+ * Recalculates derived stats (Max HP, Max MP, Regen) based on the hero's core stats.
+ * Endurance boosts HP, Intelligence boosts MP, Spirit boosts Regen.
+ * @param {object} hero - The hero object to update.
+ */
+export function recalculateHeroStats(hero) {
+	const baseHp = hero.class === 'Vanguard' ? 200 : 100;
+	const baseMp = hero.class === 'Aegis' ? 150 : 100;
+	
+	const oldMaxHp = hero.hp.max;
+	const oldMaxMp = hero.mp ? hero.mp.max : 0;
+	
+	// Base scaling per level + Stat scaling
+	hero.hp.max = baseHp + (hero.level * 10) + (hero.stats.end * 10);
+	if (hero.class !== 'Vanguard') {
+		hero.mp.max = baseMp + (hero.level * 10) + (hero.stats.int * 5);
+	}
+	
+	// Spirit increases regeneration rates
+	hero.hpRegen = (hero.class === 'Vanguard' ? 2.0 : 1.0) + (hero.stats.spr * 0.1);
+	if (hero.class !== 'Vanguard') {
+		hero.mpRegen = (hero.class === 'Aegis' ? 2.0 : 1.0) + (hero.stats.spr * 0.1);
+	}
+	
+	// Add the difference to current HP/MP so leveling up/adding stats heals for the gained amount
+	if (hero.hp.max > oldMaxHp) hero.hp.current += (hero.hp.max - oldMaxHp);
+	if (hero.mp && hero.mp.max > oldMaxMp) hero.mp.current += (hero.mp.max - oldMaxMp);
+}
+
 export function autoEquipBestGear (hero) {
 	const slots = {
 		mainHand: [],
@@ -90,9 +119,23 @@ export function renderHeroes () {
 				if (item.damageMitigation) details = `Mit: ${item.damageMitigation}`;
 				if (item.damage) details = `Dmg: ${item.damage}`;
 				if (item.spellPower) details = `SP: x${item.spellPower}`;
+				
+				let imageUrl = '';
+				if (item.card_images && Array.isArray(item.card_images)) {
+					const normalImage = item.card_images.find(img => img.state === 'normal');
+					if (normalImage) {
+						// Remove 'public' from the beginning of the folder path if it exists
+						let folderPath = normalImage.image_folder.replace(/^public/, '');
+						if (!folderPath.startsWith('/')) {
+							folderPath = '/' + folderPath;
+						}
+						imageUrl = `${folderPath}/thumbnails/${normalImage.image_file_name}`;
+					}
+				}
+				
 				return `
           <div class="tooltip" data-tip="${item.name} (${details}) | Slot: ${slot}">
-            <img src="${item.image}" alt="${item.name}" class="w-[32px] h-[32px] object-contain bg-base-300/50 rounded" />
+            <img src="${imageUrl}" alt="${item.name}" class="w-[40px] aspect-[3/4] bg-base-300 rounded flex-shrink-0 object-contain" />
           </div>
         `;
 			}).join(' ');
@@ -101,6 +144,35 @@ export function renderHeroes () {
 		}
 		const equipStateKey = JSON.stringify(hero.equipment);
 		updateHtmlIfChanged(equipmentContainer, equipHtml, equipStateKey);
+		
+		// Render Stats Container
+		const statsContainer = card.querySelector('[data-stats-container]');
+		if (statsContainer) {
+			const statsStateKey = JSON.stringify(hero.stats) + hero.unspentStatPoints;
+			if (statsContainer.getAttribute('data-prev-state') !== statsStateKey) {
+				const makeStatRow = (label, key, tooltip) => `
+					<div class="flex justify-between items-center bg-base-300 px-2 py-1 rounded">
+						<span title="${tooltip}">${label}: ${hero.stats[key]}</span>
+						${hero.unspentStatPoints > 0 ? `<button class="btn btn-xs btn-ghost text-success px-1 min-h-0 h-5" data-add-stat="${key}" data-hero-id="${hero.id}">+</button>` : ''}
+					</div>
+				`;
+				
+				let statsHtml = `
+					${makeStatRow('STR', 'str', 'Strength: Boosts Melee Damage')}
+					${makeStatRow('AGI', 'agi', 'Agility: Boosts Ranged Damage')}
+					${makeStatRow('INT', 'int', 'Intelligence: Boosts Magic Damage & Max MP')}
+					${makeStatRow('END', 'end', 'Endurance: Boosts Max HP')}
+					${makeStatRow('SPR', 'spr', 'Spirit: Boosts Healing & Regen')}
+				`;
+				
+				if (hero.unspentStatPoints > 0) {
+					statsHtml += `<div class="col-span-2 text-center text-warning font-bold mt-1">Unspent Points: ${hero.unspentStatPoints}</div>`;
+				}
+				
+				statsContainer.innerHTML = statsHtml;
+				statsContainer.setAttribute('data-prev-state', statsStateKey);
+			}
+		}
 		
 		const xpText = `XP: ${hero.xp.current}/${hero.xp.max}`;
 		updateTextIfChanged(card.querySelector('[data-xp-label]'), xpText);

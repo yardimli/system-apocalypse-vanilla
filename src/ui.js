@@ -99,35 +99,6 @@ export function renderTabs (activeTab, TABS) {
 }
 
 /**
- * Renders the main city status overview.
- * @param {HTMLElement} contentArea - The main content DOM element.
- */
-export function renderCity (contentArea) {
-	if (!getEl('city-status-container')) {
-		contentArea.innerHTML = `
-        <div id="city-status-container" class="card bg-base-200 shadow-xl p-6">
-            <h2 class="text-2xl font-bold mb-4">City Status</h2>
-            <div class="stats stats-vertical lg:stats-horizontal shadow mb-4">
-                <div class="stat"><div class="stat-title">Functional</div><div class="stat-value text-success" id="city-func-stat"></div></div>
-                <div class="stat"><div class="stat-title">Shielded</div><div class="stat-value text-info" id="city-shield-stat"></div></div>
-                <div class="stat"><div class="stat-title">Broken</div><div class="stat-value text-error" id="city-broken-stat"></div></div>
-                <div class="stat"><div class="stat-title">Player Cars</div><div class="stat-value text-warning" id="city-cars-stat"></div></div>
-            </div>
-        </div>`;
-	}
-	
-	const functional = gameState.city.buildings.filter(b => b.state === 'functional').length;
-	const shielded = gameState.city.buildings.filter(b => b.owner === 'player' && b.shieldHp > 0).length;
-	const broken = gameState.city.buildings.filter(b => b.state !== 'functional').length;
-	const activeCars = gameState.city.cars.filter(c => c.owner === 'player').length;
-	
-	getEl('city-func-stat').textContent = functional;
-	getEl('city-shield-stat').textContent = shielded;
-	getEl('city-broken-stat').textContent = broken;
-	getEl('city-cars-stat').textContent = `${activeCars}/${gameState.city.cars.length}`;
-}
-
-/**
  * Renders the game log.
  * @param {HTMLElement} contentArea - The main content DOM element.
  */

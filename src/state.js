@@ -18,126 +18,14 @@ export const gameState = {
 		targetMonsterId: null
 	},
 	city: {
-		// Add city-wide token balance and income rate.
-		tokens: 1000, // Starting capital for the city.
-		tokensPerPopulationPerTick: 0.1, // Each citizen generates this many tokens per tick.
-		firstShieldInstalled: false, // Flag to track the first shield upgrade.
+		tokens: 1000,
+		tokensPerPopulationPerTick: 0.1,
+		firstShieldInstalled: false,
 		buildings: [],
 		cars: initialCars
 	},
 	activeMonsters:[],
-	heroes:[
-		{
-			id: 1,
-			name: 'Ava',
-			class: 'Aegis',
-			isMagicUser: true,
-			allowedArmorTypes: ['Cloth'],
-			allowedWeaponTypes: ['Wand', 'Bow'],
-			level: 1,
-			xp: { current: 0, max: 100 },
-			hp: { current: 150, max: 150 },
-			mp: { current: 200, max: 200 },
-			hpRegen: 0.5,
-			mpRegen: 2.0,
-			hpMaxPerLevel: 10,
-			mpMaxPerLevel: 50,
-			hpRegenPerLevel: 0.1,
-			mpRegenPerLevel: 1.0,
-			equipment: { mainHand: 'WAND001', offHand: null, body: 'ARM001' },
-			carId: null,
-			survivorsCarried: 0,
-			targetMonsterId: null,
-			location: 1,
-			tokens: 100,
-			skills:[
-				{ id: 'AEG004' }
-			],
-			autoCastSkillId: null,
-			skillTargets: { 'AEG004': 1 },
-			skillCooldowns: {},
-			skillFlash: null,
-			casting: null,
-			inventory: {
-				'ARM001': 1,
-				'WAND001': 1,
-				'ITM003': 2,
-				'ITM006': 3,
-				'ITM016': 4,
-				'ITM017': 2
-			}
-		},
-		{
-			id: 2,
-			name: 'Jax',
-			class: 'Striker',
-			isMagicUser: true,
-			allowedArmorTypes: ['Cloth', 'Leather'],
-			allowedWeaponTypes: ['Wand', 'Bow'],
-			level: 1,
-			xp: { current: 0, max: 100 },
-			hp: { current: 100, max: 100 },
-			mp: { current: 100, max: 100 },
-			hpRegen: 1.0,
-			mpRegen: 1.0,
-			hpMaxPerLevel: 15,
-			mpMaxPerLevel: 10,
-			hpRegenPerLevel: 0.2,
-			mpRegenPerLevel: 0.5,
-			equipment: { mainHand: 'WAND001', offHand: null, body: 'ARM001' },
-			carId: null,
-			survivorsCarried: 0,
-			targetMonsterId: null,
-			location: 1,
-			tokens: 100,
-			skills: [{ id: 'STR001' }],
-			autoCastSkillId: 'STR001',
-			skillTargets: {},
-			skillCooldowns: {},
-			skillFlash: null,
-			casting: null,
-			inventory: {
-				'ARM001': 1,
-				'WAND001': 1,
-				'ITM016': 4,
-				'ITM017': 2
-			}
-		},
-		{
-			id: 3,
-			name: 'Roc',
-			class: 'Vanguard',
-			isMagicUser: false,
-			allowedArmorTypes: ['Cloth', 'Leather', 'Chainmail', 'Plate'],
-			allowedWeaponTypes: ['Sword', 'Shield'],
-			level: 1,
-			xp: { current: 0, max: 250 },
-			hp: { current: 250, max: 250 },
-			rage: { current: 0, max: 100 },
-			hpRegen: 2.0,
-			hpMaxPerLevel: 30,
-			hpRegenPerLevel: 0.5,
-			equipment: { mainHand: 'SWD001', offHand: 'SHD001', body: 'ARM001' },
-			carId: null,
-			survivorsCarried: 0,
-			targetMonsterId: null,
-			location: 1,
-			tokens: 100,
-			skills: [{ id: 'VAN001' }, { id: 'VAN003' }],
-			autoCastSkillId: 'VAN003',
-			skillTargets: {},
-			skillCooldowns: {},
-			skillFlash: null,
-			casting: null,
-			inventory: {
-				'ARM001': 1,
-				'SWD001': 1,
-				'SHD001': 1,
-				'ITM016': 4,
-				'ITM017': 2
-			}
-		}
-	],
+	heroes: [], // Heroes are now loaded dynamically from heroes.json
 	log: [
 		{ time: 0, message: 'The Awakening has begun. Defend the city.', heroId: null }
 	]
@@ -153,5 +41,6 @@ export const gameData = {
 	building_upgrades: [],
 	car_upgrades: [],
 	cars: [],
-	buildings: []
+	buildings: [],
+	heroes: [] // Added heroes array to gameData
 };

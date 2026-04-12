@@ -1,0 +1,140 @@
+[
+  {
+    "id": 1,
+    "name": "Ava",
+    "class": "Aegis",
+    "isMagicUser": true,
+    "allowedArmorTypes": [
+      "Cloth"
+    ],
+    "allowedWeaponTypes": [
+      "Wand",
+      "Bow"
+    ],
+    "baseStats": {
+      "str": 5,
+      "agi": 8,
+      "int": 15,
+      "end": 10,
+      "spr": 20
+    },
+    "startingEquipment": {
+      "mainHand": "WAND001",
+      "offHand": null,
+      "body": "ARM001"
+    },
+    "startingInventory": {
+      "ARM001": 1,
+      "WAND001": 1,
+      "ITM003": 2,
+      "ITM006": 3,
+      "ITM016": 4,
+      "ITM017": 2
+    },
+    "startingSkills": [
+      "HEA001",
+      "HEA002"
+    ],
+    "autoCastSkillId": null,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "Ava, the Aegis. A dedicated healer and protector.",
+        "image_file_name": "hero_ava_normal.png",
+        "image_folder": "public/images/heroes"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Jax",
+    "class": "Striker",
+    "isMagicUser": true,
+    "allowedArmorTypes": [
+      "Cloth",
+      "Leather"
+    ],
+    "allowedWeaponTypes": [
+      "Wand",
+      "Bow"
+    ],
+    "baseStats": {
+      "str": 10,
+      "agi": 18,
+      "int": 12,
+      "end": 12,
+      "spr": 8
+    },
+    "startingEquipment": {
+      "mainHand": "WAND001",
+      "offHand": null,
+      "body": "ARM001"
+    },
+    "startingInventory": {
+      "ARM001": 1,
+      "WAND001": 1,
+      "ITM016": 4,
+      "ITM017": 2
+    },
+    "startingSkills": [
+      "DPS_FIRE_001"
+    ],
+    "autoCastSkillId": "DPS_FIRE_001",
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "Jax, the Striker. Agile and deadly from a distance.",
+        "image_file_name": "hero_jax_normal.png",
+        "image_folder": "public/images/heroes"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Roc",
+    "class": "Vanguard",
+    "isMagicUser": false,
+    "allowedArmorTypes": [
+      "Cloth",
+      "Leather",
+      "Chainmail",
+      "Plate"
+    ],
+    "allowedWeaponTypes": [
+      "Sword",
+      "Shield"
+    ],
+    "baseStats": {
+      "str": 20,
+      "agi": 10,
+      "int": 5,
+      "end": 18,
+      "spr": 5
+    },
+    "startingEquipment": {
+      "mainHand": "SWD001",
+      "offHand": "SHD001",
+      "body": "ARM001"
+    },
+    "startingInventory": {
+      "ARM001": 1,
+      "SWD001": 1,
+      "SHD001": 1,
+      "ITM016": 4,
+      "ITM017": 2
+    },
+    "startingSkills": [
+      "TNK001",
+      "MAR001"
+    ],
+    "autoCastSkillId": "MAR001",
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "Roc, the Vanguard. A towering wall of muscle and iron.",
+        "image_file_name": "hero_roc_normal.png",
+        "image_folder": "public/images/heroes"
+      }
+    ]
+  }
+]

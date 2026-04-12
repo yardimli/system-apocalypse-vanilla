@@ -3,10 +3,10 @@ import { startCombatAction, startAegisAction, executeCombatEffect, executeAegisE
 import { addToLog, parseRange } from './utils.js';
 import { handleUseConsumable } from './inventory.js';
 import { handleShopAndPurchaseClicks, renderShopModal } from './shop.js';
-import { renderHeroes, autoEquipBestGear, renderSkillsPanel } from './heroes.js';
+import { renderHeroes, autoEquipBestGear, renderSkillsPanel, recalculateHeroStats } from './heroes.js';
 import { renderMonsters, processMonsterActions } from './monsters.js';
 import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding } from './buildings.js';
-import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview, renderPartyCombat, renderPartyLog } from './ui.js';
+import { renderHeader, renderTabs, renderLog, renderItemsOverview, renderPartyCombat, renderPartyLog } from './ui.js';
 import { renderCars, initiateCarPurchase } from './cars.js';
 import { renderMissionControl, handleStartMission, handleFlee, processMissionTick, handleStartAttackMission, manageCombatAssignments, handleMonsterDefeat } from './missions.js';
 
@@ -306,7 +306,7 @@ function gameLoop (currentTime) {
 
 async function init () {
 	try {
-		const [items, magicSkills, martialSkills, cards, monsters, buildingUpgrades, carUpgrades, cars, buildings] = await Promise.all([
+		const [items, magicSkills, martialSkills, cards, monsters, buildingUpgrades, carUpgrades, cars, buildings, heroes] = await Promise.all([
 			fetch('/data/items.json').then(res => res.json()),
 			fetch('/data/new_magic_skills.json').then(res => res.json()),
 			fetch('/data/new_martial_skills.json').then(res => res.json()),
@@ -315,7 +315,8 @@ async function init () {
 			fetch('/data/building_upgrades.json').then(res => res.json()),
 			fetch('/data/car_upgrades.json').then(res => res.json()),
 			fetch('/data/cars.json').then(res => res.json()),
-			fetch('/data/buildings.json').then(res => res.json())
+			fetch('/data/buildings.json').then(res => res.json()),
+			fetch('/data/heroes.json').then(res => res.json()) // Load heroes
 		]);
 		gameData.items = items;
 		gameData.magic_skills = magicSkills;
@@ -327,6 +328,46 @@ async function init () {
 		gameData.car_upgrades = carUpgrades;
 		gameData.cars = cars;
 		gameData.buildings = buildings;
+		gameData.heroes = heroes;
+		
+		// Initialize Heroes from JSON data
+		gameState.heroes = gameData.heroes.map(hData => ({
+			id: hData.id,
+			name: hData.name,
+			class: hData.class,
+			isMagicUser: hData.isMagicUser,
+			allowedArmorTypes: hData.allowedArmorTypes,
+			allowedWeaponTypes: hData.allowedWeaponTypes,
+			level: 1,
+			xp: { current: 0, max: 100 },
+			hp: { current: 0, max: 0 }, // Set dynamically by recalculateHeroStats
+			mp: hData.class !== 'Vanguard' ? { current: 0, max: 0 } : null,
+			rage: hData.class === 'Vanguard' ? { current: 0, max: 100 } : null,
+			hpRegen: 0,
+			mpRegen: 0,
+			stats: { ...hData.baseStats },
+			unspentStatPoints: 0,
+			equipment: { ...hData.startingEquipment },
+			inventory: { ...hData.startingInventory },
+			skills: hData.startingSkills.map(id => ({ id })),
+			autoCastSkillId: hData.autoCastSkillId,
+			skillTargets: {},
+			skillCooldowns: {},
+			skillFlash: null,
+			casting: null,
+			carId: null,
+			survivorsCarried: 0,
+			targetMonsterId: null,
+			location: 1,
+			tokens: 100
+		}));
+		
+		// Apply derived stats and fill HP/MP to max for start
+		gameState.heroes.forEach(recalculateHeroStats);
+		gameState.heroes.forEach(h => {
+			h.hp.current = h.hp.max;
+			if (h.mp) h.mp.current = h.mp.max;
+		});
 		
 		// Populate game state with buildings from the new JSON file.
 		gameState.city.buildings = gameData.buildings.map(buildingData => ({
@@ -560,6 +601,22 @@ async function init () {
 		if (logToggler) {
 			const logContainer = logToggler.parentElement.nextElementSibling;
 			if (logContainer) logContainer.classList.toggle('hidden');
+			return;
+		}
+		
+		const addStatBtn = e.target.closest('[data-add-stat]');
+		if (addStatBtn) {
+			const stat = addStatBtn.dataset.addStat;
+			const heroId = parseInt(addStatBtn.dataset.heroId, 10);
+			const hero = gameState.heroes.find(h => h.id === heroId);
+			
+			if (hero && hero.unspentStatPoints > 0) {
+				hero.stats[stat]++;
+				hero.unspentStatPoints--;
+				recalculateHeroStats(hero); // Update max HP/MP if END/INT changed
+				addToLog(`increased ${stat.toUpperCase()} to ${hero.stats[stat]}.`, hero.id);
+				renderContent(0);
+			}
 			return;
 		}
 	});

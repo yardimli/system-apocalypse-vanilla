@@ -1,5 +1,6 @@
 import { gameState, gameData } from './state.js';
 import { addToLog, parseRange } from './utils.js';
+import { recalculateHeroStats } from './heroes.js';
 
 /**
  * Executes the effect of a combat skill after its cast time is complete.
@@ -18,6 +19,19 @@ export function executeCombatEffect (hero, skill, monster) {
 	switch (skill.actionType) {
 		case 'attack': {
 			const levelBoost = 1 + (hero.level * 0.1);
+			
+			// Calculate stat multiplier based on class archetype
+			let statMultiplier = 1;
+			if (hero.class === 'Vanguard') {
+				statMultiplier = 1 + (hero.stats.str * 0.02); // 2% Physical Damage per STR
+			} else if (hero.class === 'Striker') {
+				statMultiplier = 1 + (hero.stats.agi * 0.02); // 2% Ranged Damage per AGI
+			} else {
+				statMultiplier = 1 + (hero.stats.int * 0.02); // 2% Magic Damage per INT
+			}
+			
+			const totalBoost = levelBoost * statMultiplier;
+			
 			let damageDealt;
 			let agroGenerated;
 			
@@ -37,13 +51,13 @@ export function executeCombatEffect (hero, skill, monster) {
 					}
 				}
 				
-				damageDealt = Math.ceil(finalDamage * levelBoost);
+				damageDealt = Math.ceil(finalDamage * totalBoost);
 				agroGenerated = damageDealt * finalAgroMultiplier;
 			} else {
 				const wand = gameData.items.find(i => i.id === hero.equipment.mainHand);
 				const spellPower = wand && wand.spellPower ? wand.spellPower : 1;
 				const baseDamage = parseRange(skill.damage);
-				damageDealt = Math.ceil((baseDamage * spellPower) * levelBoost);
+				damageDealt = Math.ceil((baseDamage * spellPower) * totalBoost);
 				agroGenerated = damageDealt * (skill.agroMultiplier || 1.0);
 			}
 			
@@ -156,6 +170,10 @@ export function executeAegisEffect (hero, skill, options = {}) {
 	let success = false;
 	const levelBoost = 1 + (hero.level * 0.1);
 	
+	// Spirit boosts healing power
+	const statMultiplier = 1 + (hero.stats.spr * 0.02); // 2% Healing per SPR
+	const totalBoost = levelBoost * statMultiplier;
+	
 	switch (skill.actionType) {
 		case 'heal':
 			const targetHero = gameState.heroes.find(h => h.id === options.targetHeroId);
@@ -166,7 +184,7 @@ export function executeAegisEffect (hero, skill, options = {}) {
 				const spellPower = wand && wand.spellPower ? wand.spellPower : 1;
 				
 				const baseHealAmount = skill.id.includes('III') ? 500 : skill.id.includes('II') ? 250 : 100;
-				const healAmount = Math.ceil((baseHealAmount * spellPower) * levelBoost);
+				const healAmount = Math.ceil((baseHealAmount * spellPower) * totalBoost);
 				
 				targetHero.hp.current = Math.min(targetHero.hp.max, targetHero.hp.current + healAmount);
 				addToLog(`healed ${targetHero.name} for ${healAmount} HP.`, hero.id);
@@ -212,13 +230,9 @@ export function executeAegisEffect (hero, skill, options = {}) {
 			hero.level++;
 			hero.xp.current -= hero.xp.max;
 			hero.xp.max = Math.ceil(hero.xp.max * 1.5);
-			hero.hp.max += hero.hpMaxPerLevel;
-			hero.mp.max += hero.mpMaxPerLevel;
-			hero.hpRegen += hero.hpRegenPerLevel;
-			hero.mpRegen += hero.mpRegenPerLevel;
-			hero.hp.current = hero.hp.max;
-			hero.mp.current = hero.mp.max;
-			addToLog(`reached Level ${hero.level}! Stats increased.`, hero.id);
+			hero.unspentStatPoints += 3; // Grant 3 stat points per level
+			recalculateHeroStats(hero); // Update derived stats
+			addToLog(`reached Level ${hero.level}! Gained 3 Stat Points.`, hero.id);
 		}
 	}
 }
