@@ -227,7 +227,7 @@ export function renderItemsOverview (contentArea) {
 		// MODIFIED: Updated the card layout to be horizontal (flex-row) with the image on the left (3:4 aspect ratio, 100px width)
 		return `
 			<div class="card bg-base-200 shadow-md p-4 flex flex-row gap-4 items-start">
-				<img src="${imageUrl}" alt="${item.name}" class="w-[100px] aspect-[3/4] bg-base-300 rounded flex-shrink-0" />
+				<img src="${imageUrl}" alt="${item.name}" class="w-[175px] aspect-[3/4] bg-base-300 rounded flex-shrink-0" />
 				<div class="flex flex-col flex-grow min-w-0">
 					<h3 class="font-bold text-lg truncate" title="${item.name}">${item.name} (${item.id})</h3>
 					<div class="text-sm w-full mt-2">

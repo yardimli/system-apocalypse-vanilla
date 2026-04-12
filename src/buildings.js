@@ -118,7 +118,8 @@ export function handleBuyBuilding(buildingId) {
 export function renderBuildings(contentArea) {
 	let grid = getEl('buildings-grid');
 	if (!grid) {
-		contentArea.innerHTML = `<div id="buildings-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>`;
+		// MODIFIED: Changed grid columns to lg:grid-cols-3 to accommodate horizontal cards
+		contentArea.innerHTML = `<div id="buildings-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>`;
 		grid = getEl('buildings-grid');
 	}
 	
@@ -144,36 +145,45 @@ export function renderBuildings(contentArea) {
 			grid.appendChild(cardWrapper);
 			card = cardWrapper;
 			
+			// MODIFIED: Updated to horizontal layout matching items and cars
 			if (isPlayerOwned) {
 				card.innerHTML = `
-                    <div class="card bg-base-200 shadow-sm p-3 text-xs border border-primary h-full flex flex-col">
-						<div class="flex justify-between items-start">
-							<div data-name class="font-bold text-sm mb-1 text-primary"></div>
-							<button class="btn btn-xs btn-ghost" data-rename-building-id="${b.id}">Rename</button>
+                    <div class="card bg-base-200 shadow-md p-4 flex flex-row gap-4 items-start border border-primary h-full">
+						<img data-building-image src="" alt="Building Image" class="w-[175px] aspect-[3/4] bg-base-300 rounded flex-shrink-0 object-contain" />
+                        <div class="flex flex-col flex-grow min-w-0 h-full">
+							<div class="flex justify-between items-start">
+								<h3 data-name class="font-bold text-lg truncate text-primary" title="Building Name"></h3>
+								<button class="btn btn-xs btn-ghost" data-rename-building-id="${b.id}">Rename</button>
+							</div>
+							<div class="text-sm w-full mt-2 flex-grow">
+								<div data-state class="font-semibold"></div>
+								<div data-hp></div>
+								<div data-shield class="text-info"></div>
+								<div data-pop class="text-success mt-1"></div>
+								<div class="mt-2">
+									<p class="font-semibold">Heroes Inside:</p>
+									<p data-heroes-inside class="text-gray-400 truncate"></p>
+								</div>
+							</div>
+							<div data-btn-container class="btn-group btn-group-vertical w-full mt-3"></div>
 						</div>
-						<img data-building-image src="" alt="Building Image" class="w-[50px] h-[50px] object-contain bg-base-100 rounded" />
-                        <div data-state class="font-semibold"></div>
-                        <div data-hp></div>
-                        <div data-shield class="text-info"></div>
-                        <div data-pop class="text-success mt-1"></div>
-                        <div class="mt-2">
-                            <p class="font-semibold">Heroes Inside:</p>
-                            <p data-heroes-inside class="text-gray-400 truncate"></p>
-                        </div>
-                        <div data-btn-container class="btn-group btn-group-vertical w-full mt-auto pt-2"></div>
                     </div>
                 `;
 			} else {
 				card.innerHTML = `
-                    <div class="card bg-base-200 shadow-sm p-3 text-xs border border-base-300 h-full flex flex-col">
-                        <div data-name class="font-bold text-sm mb-1"></div>
-						<img data-building-image src="" alt="Building Image" class="w-[50px] h-[50px] object-contain bg-base-100 rounded" />
-                        <div data-state class="font-semibold"></div>
-                        <div data-hp></div>
-                        <div data-pop class="text-success mt-1"></div>
-                        <div class="mt-auto pt-2">
-                            <button class="btn btn-sm btn-accent w-full" data-buy-building-id="${b.id}"></button>
-                        </div>
+                    <div class="card bg-base-300 shadow-md p-4 flex flex-row gap-4 items-start border border-base-300 h-full">
+						<img data-building-image src="" alt="Building Image" class="w-[175px] aspect-[3/4] bg-base-300 rounded flex-shrink-0 object-contain" />
+                        <div class="flex flex-col flex-grow min-w-0 h-full">
+							<h3 data-name class="font-bold text-lg truncate" title="Building Name"></h3>
+							<div class="text-sm w-full mt-2 flex-grow">
+								<div data-state class="font-semibold"></div>
+								<div data-hp></div>
+								<div data-pop class="text-success mt-1"></div>
+							</div>
+							<div class="w-full mt-3">
+								<button class="btn btn-sm btn-accent w-full" data-buy-building-id="${b.id}"></button>
+							</div>
+						</div>
                     </div>
                 `;
 			}
@@ -182,17 +192,36 @@ export function renderBuildings(contentArea) {
 		// Granularly update the card's content
 		const cardContent = card.firstElementChild;
 		
+		// NEW: Image logic using card_images array
 		const imgEl = cardContent.querySelector('[data-building-image]');
 		if (imgEl) {
-			let stateChar = 'n'; // normal
-			if (b.state === 'damaged') stateChar = 'd';
-			if (b.state === 'ruined') stateChar = 'r';
-			if (b.state === 'functional' && b.shieldHp > 0 && b.owner === 'player') stateChar = 's';
-			// Assuming images are in public/images/buildings/
-			const imageUrl = `/images/buildings/${b.type}-${stateChar}.png`;
-			if (imgEl.src !== window.location.origin + imageUrl) {
+			let targetState = 'normal';
+			if (b.state === 'ruined') targetState = 'ruined';
+			else if (b.state === 'damaged') targetState = 'damaged';
+			else if (b.state === 'functional' && b.shieldHp > 0 && b.owner === 'player') targetState = 'shielded';
+			
+			let imageUrl = '';
+			if (b.card_images && Array.isArray(b.card_images)) {
+				const imgData = b.card_images.find(img => img.state === targetState) || b.card_images.find(img => img.state === 'normal');
+				if (imgData) {
+					let folderPath = imgData.image_folder.replace(/^public/, '');
+					if (!folderPath.startsWith('/')) {
+						folderPath = '/' + folderPath;
+					}
+					imageUrl = `${folderPath}/${imgData.image_file_name}`;
+				}
+			} else {
+				// Fallback to old logic if card_images is missing
+				let stateChar = 'n';
+				if (targetState === 'damaged') stateChar = 'd';
+				if (targetState === 'ruined') stateChar = 'r';
+				if (targetState === 'shielded') stateChar = 's';
+				imageUrl = `/images/buildings/${b.type}-${stateChar}.png`;
+			}
+			
+			if (imgEl.src !== window.location.origin + imageUrl && imageUrl !== '') {
 				imgEl.src = imageUrl;
-				imgEl.alt = `${b.name} - ${b.state}`;
+				imgEl.alt = `${b.name} - ${targetState}`;
 			}
 		}
 		
@@ -240,7 +269,7 @@ export function renderBuildings(contentArea) {
 		}
 	});
 	
-	// NEW: Enforce the DOM order of cards to match the gameState array order.
+	// Enforce the DOM order of cards to match the gameState array order.
 	// This prevents the grid from re-sorting on its own.
 	gameState.city.buildings.forEach((b, index) => {
 		const cardNode = getEl(`building-card-${b.id}`);
@@ -248,7 +277,6 @@ export function renderBuildings(contentArea) {
 			grid.insertBefore(cardNode, grid.children[index]);
 		}
 	});
-	// END NEW
 	
 	// Remove cards for non-existent buildings
 	for (const card of grid.children) {
