@@ -36,13 +36,13 @@ export function renderMissionControl (alpha = 0) {
 	const buttonsEl = missionControlArea.querySelector('[data-mission-buttons]');
 	
 	const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
-	// MODIFIED: Calculate max population by summing up capacities of all player-owned bases.
+	// Calculate max population by summing up capacities of all player-owned bases.
 	const maxPopulation = playerBases.reduce((sum, b) => sum + b.maxPopulation, 0);
 	const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
 	const isFull = currentPopulation >= maxPopulation;
 	const partyState = gameState.party;
 	
-	// MODIFIED: Interpolate distance for smooth progress bar and text updates.
+	// Interpolate distance for smooth progress bar and text updates.
 	const startDistance = partyState.previousMissionDistance || 0;
 	const endDistance = partyState.missionDistance;
 	const interpolatedDistance = startDistance + (endDistance - startDistance) * alpha;
@@ -65,13 +65,10 @@ export function renderMissionControl (alpha = 0) {
 			}
 		}
 	} else if (partyState.missionState === 'driving_out') {
-		// MODIFIED: Display current distance from base.
 		statusText = `Driving out... Distance: ${Math.floor(interpolatedDistance)}m.`;
 	} else if (partyState.missionState === 'driving_back') {
-		// MODIFIED: Display current distance from base.
 		statusText = `Driving back... Distance: ${Math.floor(interpolatedDistance)}m.`;
 	} else if (partyState.missionState === 'driving_to_attack') {
-		// MODIFIED: Display distance traveled towards the target.
 		const monster = gameState.activeMonsters.find(m => m.id === partyState.targetMonsterId);
 		const monsterName = monster ? monster.name : 'a monster';
 		const totalDistance = partyState.missionTargetDistance;
@@ -86,7 +83,6 @@ export function renderMissionControl (alpha = 0) {
 	const isMissionActive = partyState.missionState !== 'idle';
 	const progressBarStateKey = String(isMissionActive);
 	
-	// MODIFIED: Progress bar is now always present during a mission, its value just changes.
 	if (progressContainerEl.getAttribute('data-prev-state') !== progressBarStateKey) {
 		if (isMissionActive) {
 			progressContainerEl.innerHTML = '<progress class="progress progress-primary w-full"></progress>';
@@ -153,7 +149,7 @@ export function handleStartMission () {
 	});
 	
 	const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
-	// MODIFIED: Calculate max population by summing up capacities of all player-owned bases.
+	// Calculate max population by summing up capacities of all player-owned bases.
 	const maxPopulation = playerBases.reduce((sum, b) => sum + b.maxPopulation, 0);
 	const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
 	const isFull = currentPopulation >= maxPopulation;
@@ -161,7 +157,6 @@ export function handleStartMission () {
 	const missionType = isFull ? 'monster hunt' : 'survivor rescue';
 	addToLog(`The party is embarking on a ${missionType}!`);
 	
-	// MODIFIED: Initialize distance-based tracking instead of a timer.
 	gameState.party.missionState = 'driving_out';
 	gameState.party.missionDistance = 0;
 	gameState.party.previousMissionDistance = 0;
@@ -180,7 +175,7 @@ export function handleFlee () {
 	monsterIdsFought.forEach(monsterId => {
 		const monster = gameState.activeMonsters.find(m => m.id === monsterId);
 		if (monster) {
-			// MODIFIED: Update monster distance based on party's mission distance.
+			// Update monster distance based on party's mission distance.
 			if (gameState.party.pausedMission) {
 				monster.distanceFromCity = gameState.party.pausedMission.distance;
 			}
@@ -191,7 +186,7 @@ export function handleFlee () {
 	
 	gameState.heroes.forEach(h => { h.targetMonsterId = null; });
 	
-	// MODIFIED: Logic now sets the mission distance for the return trip.
+	// Logic now sets the mission distance for the return trip.
 	const paused = gameState.party.pausedMission;
 	if (paused) {
 		if (paused.attackTargetId) {
@@ -224,7 +219,7 @@ export function processMissionTick () {
 		return;
 	}
 	
-	// NEW: Store the distance from the start of the tick for smooth interpolation.
+	// Store the distance from the start of the tick for smooth interpolation.
 	gameState.party.previousMissionDistance = gameState.party.missionDistance;
 	
 	// 1. Handle Monster Spawning (Ambush)
@@ -252,13 +247,13 @@ export function processMissionTick () {
 						agro: {},
 						speed: monsterData.speed || 50
 					};
-					// MODIFIED: Set monster distance based on party's current distance.
+					// Set monster distance based on party's current distance.
 					newMonster.distanceFromCity = gameState.party.missionDistance;
 					
 					gameState.activeMonsters.push(newMonster);
 					addToLog(`AMBUSH! A Lv.${monsterData.level} ${monsterData.name} (#${newMonster.id}) appeared!`);
 					
-					// MODIFIED: Pause mission state, storing current distance.
+					// Pause mission state, storing current distance.
 					gameState.party.pausedMission = {
 						state: gameState.party.missionState,
 						distance: gameState.party.missionDistance,
@@ -276,7 +271,7 @@ export function processMissionTick () {
 	
 	// 2. Handle Survivor Searching (while driving)
 	const playerBases = gameState.city.buildings.filter(b => b.owner === 'player');
-	// MODIFIED: Calculate max population by summing up capacities of all player-owned bases.
+	// Calculate max population by summing up capacities of all player-owned bases.
 	const maxPopulation = playerBases.reduce((sum, b) => sum + b.maxPopulation, 0);
 	const currentPopulation = playerBases.reduce((sum, b) => sum + b.population, 0);
 	const isBaseFull = currentPopulation >= maxPopulation;
@@ -345,14 +340,13 @@ export function processMissionTick () {
 			if (totalSurvivors > 0) {
 				addToLog(`The party successfully returned with ${totalSurvivors} survivors!`);
 				let survivorsToHouse = totalSurvivors;
-				// MODIFIED: Logic now finds any player-owned building with space according to its own maxPopulation.
+				// Logic now finds any player-owned building with space according to its own maxPopulation.
 				const playerBasesWithSpace = gameState.city.buildings.filter(b => b.owner === 'player' && b.population < b.maxPopulation);
 				
 				if (playerBasesWithSpace.length > 0) {
 					while (survivorsToHouse > 0) {
 						let housedThisLoop = false;
 						for (const base of playerBasesWithSpace) {
-							// MODIFIED: Check against the building's specific maxPopulation.
 							if (survivorsToHouse > 0 && base.population < base.maxPopulation) {
 								base.population++;
 								survivorsToHouse--;
@@ -436,7 +430,7 @@ export function handleStartAttackMission (monsterId) {
 	
 	const distanceToTravel = monster.distanceFromCity > 0 ? monster.distanceFromCity : 100;
 	
-	// MODIFIED: Initialize distance-based attack mission.
+	// Initialize distance-based attack mission.
 	gameState.party.missionState = 'driving_to_attack';
 	gameState.party.missionDistance = 0;
 	gameState.party.previousMissionDistance = 0;
@@ -539,7 +533,7 @@ export function handleMonsterDefeat () {
 		
 		const paused = gameState.party.pausedMission;
 		if (paused) {
-			// MODIFIED: Logic now uses distance for mission state changes.
+			// Logic now uses distance for mission state changes.
 			if (paused.attackTargetId && defeatedMonsters.some(m => m.id === paused.attackTargetId)) {
 				addToLog('Target monster defeated! The party is returning to base.');
 				gameState.heroes.forEach(h => { h.targetMonsterId = null; });

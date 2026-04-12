@@ -63,7 +63,6 @@ export function initiateCarPurchase(carId) {
 export function renderCars(contentArea) {
 	let container = getEl('cars-container');
 	if (!container) {
-		// MODIFIED: Changed grid columns to lg:grid-cols-3 to accommodate horizontal cards
 		contentArea.innerHTML = `
             <div id="cars-container" class="flex flex-col gap-4">
                 <div id="cars-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -82,7 +81,6 @@ export function renderCars(contentArea) {
 		const carData = gameData.cars.find(c => c.id === car.id);
 		if (!carData) return ''; // Skip if car data isn't loaded yet
 		
-		// NEW: Extract image URL from card_images where state is 'normal'
 		let imageUrl = '';
 		if (carData.card_images && Array.isArray(carData.card_images)) {
 			const normalImage = carData.card_images.find(img => img.state === 'normal');
@@ -107,7 +105,6 @@ export function renderCars(contentArea) {
 				.map(upg => `<div class="tooltip" data-tip="${upg.description}"><span class="badge badge-secondary">${upg.name}</span></div>`)
 				.join(' ');
 			
-			// MODIFIED: Updated to horizontal layout matching items
 			return `
                 <div class="card bg-base-200 shadow-md p-4 flex flex-row gap-4 items-start border border-primary">
 					<img src="${imageUrl}" alt="${car.name}" class="w-[175px] aspect-[3/4] bg-base-300 rounded flex-shrink-0 object-contain" />
@@ -131,7 +128,6 @@ export function renderCars(contentArea) {
 				.map(upg => `<div class="tooltip" data-tip="${upg.description}"><span class="badge badge-secondary">${upg.name}</span></div>`)
 				.join(' ');
 			
-			// MODIFIED: Updated to horizontal layout matching items
 			return `
 				<div class="card bg-base-300 shadow-md p-4 flex flex-row gap-4 items-start border border-base-300">
 					<img src="${imageUrl}" alt="${carData.name}" class="w-[175px] aspect-[3/4] bg-base-300 rounded flex-shrink-0 object-contain" />

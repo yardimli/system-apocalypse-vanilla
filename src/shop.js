@@ -5,13 +5,47 @@ import { handleBuyBuilding } from './buildings.js';
 import { initiateCarPurchase } from './cars.js';
 
 /**
- * Finds an entity (item) by its ID from the game data.
+ * Helper to get the correct image URL from the new card_images structure.
+ * @param {object} entity - The entity containing card_images or a fallback image.
+ * @returns {string} The formatted image URL.
+ */
+function getImageUrl(entity) {
+	if (entity && entity.card_images && Array.isArray(entity.card_images)) {
+		const normalImage = entity.card_images.find(img => img.state === 'normal') || entity.card_images[0];
+		if (normalImage) {
+			let folderPath = normalImage.image_folder.replace(/^public/, '');
+			if (!folderPath.startsWith('/')) {
+				folderPath = '/' + folderPath;
+			}
+			return `${folderPath}/thumbnails/${normalImage.image_file_name}`;
+		}
+	}
+	return entity?.image || '';
+}
+
+/**
+ * Calculates the total price of a skill based on its required cards.
+ * @param {object} skill - The skill object.
+ * @returns {number} The calculated price.
+ */
+function getSkillPrice(skill) {
+	if (!skill.cards_needed || !Array.isArray(skill.cards_needed)) return 0;
+	return skill.cards_needed.reduce((total, cardName) => {
+		const card = gameData.cards.find(c => c.name === cardName);
+		return total + (card ? (card.price || 0) : 0);
+	}, 0);
+}
+
+/**
+ * Finds an entity (item or card) by its ID from the game data.
  * @param {string} id - The ID of the entity to find.
  * @returns {object|null} The found entity or null.
  */
 function findEntityById (id) {
 	if (!id) return null;
-	return gameData.items.find(i => i.id === id);
+	let entity = gameData.items.find(i => i.id === id);
+	if (!entity) entity = gameData.cards.find(c => c.card_id === id);
+	return entity;
 }
 
 // Helper function to get an element by its ID, used by the event handler.
@@ -45,6 +79,15 @@ export function handleShopAndPurchaseClicks (e) {
 		return true; // Handled, re-render needed
 	}
 	
+	const buyCardBtn = e.target.closest('[data-buy-card-id]');
+	if (buyCardBtn) {
+		const heroId = parseInt(buyCardBtn.dataset.heroId, 10);
+		const cardId = buyCardBtn.dataset.buyCardId;
+		handleBuyCard(heroId, cardId);
+		renderShopModal({ heroId });
+		return true; // Handled, re-render needed
+	}
+	
 	const buySkillBtn = e.target.closest('[data-buy-skill-id]');
 	if (buySkillBtn) {
 		const heroId = parseInt(buySkillBtn.dataset.heroId, 10);
@@ -57,7 +100,6 @@ export function handleShopAndPurchaseClicks (e) {
 	const buyUpgradeBtn = e.target.closest('[data-buy-upgrade-id]');
 	if (buyUpgradeBtn) {
 		const upgradeId = buyUpgradeBtn.dataset.buyUpgradeId;
-		// MODIFIED: Check if the purchase is for a hero or a building
 		const heroId = buyUpgradeBtn.dataset.heroId ? parseInt(buyUpgradeBtn.dataset.heroId, 10) : null;
 		const buildingId = buyUpgradeBtn.dataset.buildingId ? parseInt(buyUpgradeBtn.dataset.buildingId, 10) : null;
 		
@@ -91,8 +133,6 @@ export function handleShopAndPurchaseClicks (e) {
 	const buyCarBtn = e.target.closest('[data-buy-car-id]');
 	if (buyCarBtn) {
 		initiateCarPurchase(buyCarBtn.dataset.buyCarId);
-		// This action just opens a modal, no immediate game state change that requires a full re-render.
-		// Returning true is safer in case other things need to update.
 		return true;
 	}
 	
@@ -106,29 +146,56 @@ export function handleShopAndPurchaseClicks (e) {
  */
 export function handleBuyItem (heroId, itemId) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
-	const shopEntry = gameData.system_shop.find(item => item.itemId === itemId);
 	const itemData = findEntityById(itemId);
 	
-	if (!hero || !shopEntry || !itemData) {
+	if (!hero || !itemData) {
 		addToLog('Shop Error: Hero or item not found.');
 		return;
 	}
 	
-	if (hero.tokens < shopEntry.price) {
+	const price = itemData.price || 0;
+	if (hero.tokens < price) {
 		addToLog(`does not have enough tokens to buy ${itemData.name}.`, hero.id);
 		return;
 	}
 	
 	// Process transaction
-	hero.tokens -= shopEntry.price;
+	hero.tokens -= price;
 	hero.inventory[itemId] = (hero.inventory[itemId] || 0) + 1;
 	
-	addToLog(`bought ${itemData.name} for ${shopEntry.price} tokens.`, hero.id);
+	addToLog(`bought ${itemData.name} for ${price} tokens.`, hero.id);
 	
 	// If the bought item was equippable, run auto-equip logic
 	if (itemData.equipSlot) {
 		autoEquipBestGear(hero);
 	}
+}
+
+/**
+ * Handles a hero buying a card from the System Shop.
+ * @param {number} heroId - The ID of the hero buying the card.
+ * @param {string} cardId - The ID of the card to buy.
+ */
+export function handleBuyCard (heroId, cardId) {
+	const hero = gameState.heroes.find(h => h.id === heroId);
+	const cardData = gameData.cards.find(c => c.card_id === cardId);
+	
+	if (!hero || !cardData) {
+		addToLog('Shop Error: Hero or card not found.');
+		return;
+	}
+	
+	const price = cardData.price || 0;
+	if (hero.tokens < price) {
+		addToLog(`does not have enough tokens to buy ${cardData.name}.`, hero.id);
+		return;
+	}
+	
+	// Process transaction
+	hero.tokens -= price;
+	hero.inventory[cardId] = (hero.inventory[cardId] || 0) + 1;
+	
+	addToLog(`bought ${cardData.name} for ${price} tokens.`, hero.id);
 }
 
 /**
@@ -138,15 +205,15 @@ export function handleBuyItem (heroId, itemId) {
  */
 export function handleBuySkill (heroId, skillId) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
-	const shopEntry = gameData.system_shop.find(item => item.skillId === skillId);
 	const skillData = gameData.skills.find(s => s.id === skillId);
 	
-	if (!hero || !shopEntry || !skillData) {
+	if (!hero || !skillData) {
 		addToLog('Shop Error: Hero or skill not found.');
 		return;
 	}
 	
-	if (hero.tokens < shopEntry.price) {
+	const price = getSkillPrice(skillData);
+	if (hero.tokens < price) {
 		addToLog(`does not have enough tokens to learn ${skillData.name}.`, hero.id);
 		return;
 	}
@@ -157,10 +224,10 @@ export function handleBuySkill (heroId, skillId) {
 	}
 	
 	// Process transaction
-	hero.tokens -= shopEntry.price;
+	hero.tokens -= price;
 	hero.skills.push({ id: skillId });
 	
-	addToLog(`learned ${skillData.name} for ${shopEntry.price} tokens.`, hero.id);
+	addToLog(`learned ${skillData.name} for ${price} tokens.`, hero.id);
 }
 
 /**
@@ -187,7 +254,7 @@ export function handleSellItem (heroId, itemId) {
 		return;
 	}
 	
-	const sellPrice = itemData.sellPrice || 0;
+	const sellPrice = itemData.sellPrice || Math.floor((itemData.price || 0) / 2);
 	
 	// Process transaction
 	hero.inventory[itemId]--;
@@ -215,6 +282,7 @@ export function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 	}
 	
 	const isCarUpgrade = upgrade.id.startsWith('CAR_');
+	const cost = upgrade.price || upgrade.cost || 0;
 	
 	// Case 1: A building is buying an upgrade for itself.
 	if (buildingId) {
@@ -224,8 +292,8 @@ export function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 			return;
 		}
 		
-		if (gameState.city.tokens < upgrade.cost) {
-			addToLog(`The city doesn't have enough tokens to buy ${upgrade.name} for ${building.name}. (Need ${upgrade.cost})`, null);
+		if (gameState.city.tokens < cost) {
+			addToLog(`The city doesn't have enough tokens to buy ${upgrade.name} for ${building.name}. (Need ${cost})`, null);
 			return;
 		}
 		
@@ -235,7 +303,7 @@ export function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 		}
 		
 		// Process transaction
-		gameState.city.tokens -= upgrade.cost;
+		gameState.city.tokens -= cost;
 		building.upgrades.push(upgradeId);
 		
 		// Apply one-time effects
@@ -244,7 +312,6 @@ export function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 			if (effect.type === 'add_shield') {
 				building.maxShieldHp = (building.maxShieldHp || 0) + effect.value;
 				building.shieldHp = (building.shieldHp || 0) + effect.value;
-				// NEW: Logic to rename the first building that gets a shield.
 				if (!gameState.city.firstShieldInstalled) {
 					gameState.city.firstShieldInstalled = true;
 					const aegisHero = gameState.heroes.find(h => h.class === 'Aegis');
@@ -254,13 +321,12 @@ export function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 						addToLog(`As the first shielded safezone, ${oldName} has been renamed to ${building.name}!`, null);
 					}
 				}
-				// END NEW
 			} else if (effect.type === 'increase_max_hp') {
 				building.maxHp += effect.value;
 				building.hp += effect.value;
 			}
 		}
-		addToLog(`${building.name} purchased the ${upgrade.name} upgrade for ${upgrade.cost} tokens! (Paid by city)`, null);
+		addToLog(`${building.name} purchased the ${upgrade.name} upgrade for ${cost} tokens! (Paid by city)`, null);
 		return;
 	}
 	
@@ -272,8 +338,8 @@ export function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 			return;
 		}
 		
-		if (hero.tokens < upgrade.cost) {
-			addToLog(`doesn't have enough tokens to buy ${upgrade.name}. (Need ${upgrade.cost})`, hero.id);
+		if (hero.tokens < cost) {
+			addToLog(`doesn't have enough tokens to buy ${upgrade.name}. (Need ${cost})`, hero.id);
 			return;
 		}
 		
@@ -302,53 +368,13 @@ export function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 				return;
 			}
 			
-			hero.tokens -= upgrade.cost;
+			hero.tokens -= cost;
 			targetAsset.upgrades.push(upgradeId);
-			addToLog(`purchased ${upgrade.name} for ${targetAsset.name} for ${upgrade.cost} tokens!`, hero.id);
+			addToLog(`purchased ${upgrade.name} for ${targetAsset.name} for ${cost} tokens!`, hero.id);
 		} else {
 			addToLog('Heroes can no longer purchase building upgrades directly. The building must purchase it with its own tokens.', hero.id);
 		}
 	}
-}
-
-/**
- * Handles a hero buying a car, making them the sole owner and occupant.
- * @param {number} heroId - The ID of the hero buying the car.
- * @param {string} carId - The ID of the car to buy.
- */
-export function handleBuyCar (heroId, carId) {
-	const hero = gameState.heroes.find(h => h.id === heroId);
-	const carData = gameData.cars.find(c => c.id === carId);
-	const carState = gameState.city.cars.find(c => c.id === carId);
-	
-	if (!hero || !carData || !carState) {
-		addToLog('Shop Error: Hero or car not found for purchase.');
-		return;
-	}
-	
-	// Check if the hero already owns a car.
-	const alreadyOwnsCar = gameState.city.cars.some(c => c.ownerId === heroId);
-	if (alreadyOwnsCar) {
-		addToLog(`already owns a car and cannot buy another.`, hero.id);
-		return;
-	}
-	
-	if (carState.ownerId) {
-		addToLog(`${carData.name} is already owned.`);
-		return;
-	}
-	
-	if (hero.tokens < carData.price) {
-		addToLog(`cannot afford the ${carData.name}. (Needs ${carData.price} Tokens)`, hero.id);
-		return;
-	}
-	
-	// Process transaction
-	hero.tokens -= carData.price;
-	carState.ownerId = hero.id;
-	hero.carId = carState.id;
-	
-	addToLog(`purchased the ${carData.name} for ${carData.price} tokens and is now the driver!`, hero.id);
 }
 
 /**
@@ -371,15 +397,16 @@ export function renderShopModal ({ heroId, buildingId, defaultTab = 'items' }) {
 	
 	const header = getEl('shop-modal-header');
 	const itemsContent = getEl('shop-modal-items-content');
-	const skillsContent = getEl('shop-modal-skills-content');
+	const cardsContent = getEl('shop-modal-cards-content');
+	const martialSkillsContent = getEl('shop-modal-martial-skills-content');
+	const magicSkillsContent = getEl('shop-modal-magic-skills-content');
 	const inventoryContent = getEl('shop-modal-inventory-content');
 	const buildingUpgradesContent = getEl('shop-modal-building-upgrades-content');
 	const carUpgradesContent = getEl('shop-modal-car-upgrades-content');
 	
-	if (!header || !itemsContent || !skillsContent || !inventoryContent || !buildingUpgradesContent || !carUpgradesContent) return;
+	if (!header || !itemsContent || !cardsContent || !martialSkillsContent || !magicSkillsContent || !inventoryContent || !buildingUpgradesContent || !carUpgradesContent) return;
 	
 	// 1. Update Header
-	// MODIFIED: Show city tokens for building context, hero tokens for hero context.
 	const tokensToShow = isBuildingContext ? gameState.city.tokens : contextEntity.tokens;
 	header.innerHTML = `
         <div class="flex justify-between items-center">
@@ -392,7 +419,6 @@ export function renderShopModal ({ heroId, buildingId, defaultTab = 'items' }) {
 	const activeGroup = isBuildingContext ? 'building' : 'hero';
 	modal.querySelectorAll('[data-tab-group]').forEach(el => {
 		const groups = el.dataset.tabGroup.split(' ');
-		// A tab/panel is visible if its group list includes the active group
 		el.style.display = groups.includes(activeGroup) ? '' : 'none';
 	});
 	
@@ -401,7 +427,6 @@ export function renderShopModal ({ heroId, buildingId, defaultTab = 'items' }) {
 	if (tabInput && tabInput.style.display !== 'none') {
 		tabInput.checked = true;
 	} else {
-		// Fallback to the first visible tab if default is hidden or invalid
 		const firstVisibleTab = modal.querySelector('input[role="tab"]:not([style*="display: none"])');
 		if (firstVisibleTab) firstVisibleTab.checked = true;
 	}
@@ -409,16 +434,15 @@ export function renderShopModal ({ heroId, buildingId, defaultTab = 'items' }) {
 	// 4. Render Content
 	if (isBuildingContext) {
 		const building = contextEntity;
-		// Building context: only render building upgrades
 		buildingUpgradesContent.innerHTML = gameData.building_upgrades.map(upgrade => {
-			// MODIFIED: Check against city's token balance.
-			const canAfford = gameState.city.tokens >= upgrade.cost;
+			const cost = upgrade.price || upgrade.cost || 0;
+			const canAfford = gameState.city.tokens >= cost;
 			const hasUpgrade = building.upgrades.includes(upgrade.id);
 			return `
 				<div class="bg-base-300/50 rounded p-2 flex flex-col gap-1">
 					<div class="flex justify-between items-center gap-2">
 						<span class="font-bold text-sm truncate" title="${upgrade.name}">${upgrade.name}</span>
-						<span class="badge badge-warning flex-shrink-0">${upgrade.cost} T</span>
+						<span class="badge badge-warning flex-shrink-0">${cost} T</span>
 					</div>
 					<p class="text-xs mt-1 flex-grow">${upgrade.description || ''}</p>
 					<button class="btn btn-sm btn-accent w-full mt-1" data-buy-upgrade-id="${upgrade.id}" data-building-id="${building.id}" ${!canAfford || hasUpgrade ? 'disabled' : ''}>
@@ -428,14 +452,10 @@ export function renderShopModal ({ heroId, buildingId, defaultTab = 'items' }) {
 			`;
 		}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No building upgrades for sale.</p>';
 	} else {
-		// Hero context: render all hero-related tabs
 		const hero = contextEntity;
 		
-		const shopItems = gameData.system_shop.filter(si => si.itemId);
-		itemsContent.innerHTML = shopItems.map(shopItem => {
-			const entity = findEntityById(shopItem.itemId);
-			if (!entity) return '';
-			
+		// Items
+		itemsContent.innerHTML = gameData.items.map(entity => {
 			let canUse = true;
 			if (entity.type === 'Armor' && entity.armorType && !hero.allowedArmorTypes.includes(entity.armorType)) canUse = false;
 			if ((entity.type === 'Weapon' || entity.type === 'Shield') && entity.weaponType && !hero.allowedWeaponTypes.includes(entity.weaponType)) canUse = false;
@@ -449,16 +469,18 @@ export function renderShopModal ({ heroId, buildingId, defaultTab = 'items' }) {
 			else if (entity.spellPower) details = `Spell Power: x${entity.spellPower}`;
 			else if (entity.effect) details = `Effect: ${entity.effect.type === 'heal_hp' ? `+${entity.effect.value} HP` : `+${entity.effect.value} MP`}`;
 			
-			const canAfford = hero.tokens >= shopItem.price;
+			const price = entity.price || 0;
+			const canAfford = hero.tokens >= price;
+			const imageUrl = getImageUrl(entity);
 			
 			return `
 				<div class="bg-base-300/50 rounded p-2 flex gap-2">
-					<div class="flex-shrink-0"><img src="${entity.image}" alt="${entity.name}" class="w-[50px] h-[50px] object-contain bg-base-100 rounded" /></div>
+					<div class="flex-shrink-0"><img src="${imageUrl}" alt="${entity.name}" class="w-[100px] aspect-[3/4] bg-base-300 rounded flex-shrink-0" /></div>
 					<div class="flex-grow flex flex-col justify-between gap-1 min-w-0">
 						<div>
 							<div class="flex justify-between items-center gap-2">
 								<span class="font-bold text-sm truncate" title="${entity.name}">${entity.name}</span>
-								<span class="badge badge-warning flex-shrink-0">${shopItem.price} T</span>
+								<span class="badge badge-warning flex-shrink-0">${price} T</span>
 							</div>
 							<div class="text-[10px] text-gray-400 italic">${details}</div>
 							<p class="text-xs mt-1">${entity.description || ''}</p>
@@ -469,45 +491,76 @@ export function renderShopModal ({ heroId, buildingId, defaultTab = 'items' }) {
 			`;
 		}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No items for sale.</p>';
 		
-		const shopSkills = gameData.system_shop.filter(si => si.skillId);
-		skillsContent.innerHTML = shopSkills.map(shopItem => {
-			const entity = gameData.skills.find(s => s.id === shopItem.skillId);
-			if (!entity || (entity.class && entity.class !== hero.class)) return '';
-			
-			const details = `Req: Lvl ${entity.levelRequirement} | Cost: ${entity.mpCost || entity.rageCost || 0} ${entity.rageCost ? 'Rage' : 'MP'}`;
-			const canAfford = hero.tokens >= shopItem.price;
-			const hasSkill = hero.skills.some(s => s.id === shopItem.skillId);
-			
+		// Cards
+		cardsContent.innerHTML = gameData.cards.map(card => {
+			const price = card.price || 0;
+			const canAfford = hero.tokens >= price;
+			const imageUrl = getImageUrl(card);
 			return `
 				<div class="bg-base-300/50 rounded p-2 flex gap-2">
-					<div class="w-[50px] h-[50px] flex-shrink-0 flex items-center justify-center bg-base-100 rounded"><span class="text-2xl">📜</span></div>
+					<div class="flex-shrink-0"><img src="${imageUrl}" alt="${card.name}" class="w-[100px] aspect-[3/4] bg-base-300 rounded flex-shrink-0" /></div>
 					<div class="flex-grow flex flex-col justify-between gap-1 min-w-0">
 						<div>
 							<div class="flex justify-between items-center gap-2">
-								<span class="font-bold text-sm truncate" title="${entity.name}">${entity.name}</span>
-								<span class="badge badge-warning flex-shrink-0">${shopItem.price} T</span>
+								<span class="font-bold text-sm truncate" title="${card.name}">${card.name}</span>
+								<span class="badge badge-warning flex-shrink-0">${price} T</span>
 							</div>
-							<div class="text-[10px] text-gray-400 italic">${details}</div>
-							<p class="text-xs mt-1">${entity.description || ''}</p>
+							<div class="text-[10px] text-gray-400 italic">Tier ${card.cardTier}</div>
+							<p class="text-xs mt-1">${card.description || ''}</p>
 						</div>
-						<button class="btn btn-sm btn-accent w-full mt-1" data-buy-skill-id="${entity.id}" data-hero-id="${hero.id}" ${!canAfford || hasSkill ? 'disabled' : ''}>${hasSkill ? 'Learned' : 'Buy'}</button>
+						<button class="btn btn-sm btn-accent w-full mt-1" data-buy-card-id="${card.card_id}" data-hero-id="${hero.id}" ${!canAfford ? 'disabled' : ''}>Buy</button>
 					</div>
 				</div>
 			`;
-		}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No skills for sale.</p>';
+		}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No cards for sale.</p>';
+		
+		// Skills Helper
+		const renderSkillList = (skillList) => skillList.map(skill => {
+			if (skill.class && skill.class !== hero.class) return '';
+			const price = getSkillPrice(skill);
+			const canAfford = hero.tokens >= price;
+			const hasSkill = hero.skills.some(s => s.id === skill.id);
+			const imageUrl = getImageUrl(skill);
+			const details = `Req: Lvl ${skill.levelRequirement} | Cost: ${skill.mpCost || skill.rageCost || 0} ${skill.rageCost ? 'Rage' : 'MP'}`;
+			
+			return `
+				<div class="bg-base-300/50 rounded p-2 flex gap-2">
+					<div class="flex-shrink-0"><img src="${imageUrl}" alt="${skill.name}" class="w-[100px] aspect-[3/4] bg-base-300 rounded flex-shrink-0" /></div>
+					<div class="flex-grow flex flex-col justify-between gap-1 min-w-0">
+						<div>
+							<div class="flex justify-between items-center gap-2">
+								<span class="font-bold text-sm truncate" title="${skill.name}">${skill.name}</span>
+								<span class="badge badge-warning flex-shrink-0">${price} T</span>
+							</div>
+							<div class="text-[10px] text-gray-400 italic">${details}</div>
+							<p class="text-xs mt-1">${skill.description || ''}</p>
+						</div>
+						<button class="btn btn-sm btn-accent w-full mt-1" data-buy-skill-id="${skill.id}" data-hero-id="${hero.id}" ${!canAfford || hasSkill ? 'disabled' : ''}>${hasSkill ? 'Learned' : 'Buy'}</button>
+					</div>
+				</div>
+			`;
+		}).join('');
+		
+		martialSkillsContent.innerHTML = renderSkillList(gameData.martial_skills) || '<p class="text-xs italic text-center text-gray-500 col-span-full">No martial skills for sale.</p>';
+		magicSkillsContent.innerHTML = renderSkillList(gameData.magic_skills) || '<p class="text-xs italic text-center text-gray-500 col-span-full">No magic skills for sale.</p>';
 		
 		buildingUpgradesContent.innerHTML = '<p class="text-xs italic text-center text-gray-500 col-span-full p-4">Building upgrades must be purchased by the building itself from the Buildings tab.</p>';
 		
 		carUpgradesContent.innerHTML = gameData.car_upgrades.map(upgrade => {
-			const canAfford = hero.tokens >= upgrade.cost;
+			const cost = upgrade.price || upgrade.cost || 0;
+			const canAfford = hero.tokens >= cost;
+			const imageUrl = getImageUrl(upgrade);
 			return `
-				<div class="bg-base-300/50 rounded p-2 flex flex-col gap-1">
-					<div class="flex justify-between items-center gap-2">
-						<span class="font-bold text-sm truncate" title="${upgrade.name}">${upgrade.name}</span>
-						<span class="badge badge-warning flex-shrink-0">${upgrade.cost} T</span>
+				<div class="bg-base-300/50 rounded p-2 flex gap-2">
+					<div class="flex-shrink-0"><img src="${imageUrl}" alt="${upgrade.name}" class="w-[100px] aspect-[3/4] bg-base-300 rounded flex-shrink-0" /></div>
+					<div class="flex-grow flex flex-col justify-between gap-1 min-w-0">
+						<div class="flex justify-between items-center gap-2">
+							<span class="font-bold text-sm truncate" title="${upgrade.name}">${upgrade.name}</span>
+							<span class="badge badge-warning flex-shrink-0">${cost} T</span>
+						</div>
+						<p class="text-xs mt-1 flex-grow">${upgrade.description || ''}</p>
+						<button class="btn btn-sm btn-accent w-full mt-1" data-buy-upgrade-id="${upgrade.id}" data-hero-id="${hero.id}" ${!canAfford ? 'disabled' : ''}>Buy & Apply</button>
 					</div>
-					<p class="text-xs mt-1 flex-grow">${upgrade.description || ''}</p>
-					<button class="btn btn-sm btn-accent w-full mt-1" data-buy-upgrade-id="${upgrade.id}" data-hero-id="${hero.id}" ${!canAfford ? 'disabled' : ''}>Buy & Apply</button>
 				</div>
 			`;
 		}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No car upgrades for sale.</p>';
@@ -522,11 +575,13 @@ export function renderShopModal ({ heroId, buildingId, defaultTab = 'items' }) {
 				const equippedCount = Object.values(hero.equipment).filter(eqId => eqId === itemId).length;
 				const canSell = totalQty > equippedCount;
 				const isAnyEquipped = equippedCount > 0;
+				const sellPrice = entity.sellPrice || Math.floor((entity.price || 0) / 2);
+				const imageUrl = getImageUrl(entity);
 				
 				return `
 					<div class="bg-base-300/50 rounded p-2 flex gap-2">
-						<div class="relative w-[50px] h-[50px] flex-shrink-0">
-							<img src="${entity.image}" alt="${entity.name}" class="w-full h-full object-contain bg-base-100 rounded" />
+						<div class="relative w-[100px] aspect-[3/4] flex-shrink-0">
+							<img src="${imageUrl}" alt="${entity.name}" class="w-full h-full object-contain bg-base-100 rounded" />
 							<span class="absolute bottom-0 right-0 bg-black bg-opacity-60 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-tl-md">${totalQty}</span>
 							${isAnyEquipped ? '<span class="absolute top-1 left-1 badge badge-primary badge-xs" title="Equipped">E</span>' : ''}
 						</div>
@@ -534,9 +589,9 @@ export function renderShopModal ({ heroId, buildingId, defaultTab = 'items' }) {
 							<div>
 								<div class="flex justify-between items-center gap-2">
 									<span class="font-bold text-sm truncate" title="${entity.name}">${entity.name}</span>
-									<span class="badge badge-warning flex-shrink-0">${entity.sellPrice} T</span>
+									<span class="badge badge-warning flex-shrink-0">${sellPrice} T</span>
 								</div>
-								<div class="text-[10px] text-gray-400 italic">${entity.type} - Lvl ${entity.level}</div>
+								<div class="text-[10px] text-gray-400 italic">${entity.type || 'Card'} - Lvl ${entity.level || entity.cardTier || 1}</div>
 							</div>
 							<div>
 								<button class="btn btn-sm btn-error w-full mt-1" data-sell-item-id="${itemId}" data-hero-id="${hero.id}" ${!canSell ? 'disabled' : ''}>Sell</button>

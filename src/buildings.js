@@ -103,7 +103,6 @@ export function handleBuyBuilding(buildingId) {
 	building.state = 'functional';
 	building.maxHp = 1000;
 	building.hp = 1000;
-	// MODIFIED: Buildings are now purchased without shields. Shields must be added via upgrades.
 	building.maxShieldHp = 0;
 	building.shieldHp = 0;
 	building.isSafezone = true;
@@ -118,7 +117,6 @@ export function handleBuyBuilding(buildingId) {
 export function renderBuildings(contentArea) {
 	let grid = getEl('buildings-grid');
 	if (!grid) {
-		// MODIFIED: Changed grid columns to lg:grid-cols-3 to accommodate horizontal cards
 		contentArea.innerHTML = `<div id="buildings-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>`;
 		grid = getEl('buildings-grid');
 	}
@@ -145,7 +143,6 @@ export function renderBuildings(contentArea) {
 			grid.appendChild(cardWrapper);
 			card = cardWrapper;
 			
-			// MODIFIED: Updated to horizontal layout matching items and cars
 			if (isPlayerOwned) {
 				card.innerHTML = `
                     <div class="card bg-base-200 shadow-md p-4 flex flex-row gap-4 items-start border border-primary h-full">
@@ -192,7 +189,6 @@ export function renderBuildings(contentArea) {
 		// Granularly update the card's content
 		const cardContent = card.firstElementChild;
 		
-		// NEW: Image logic using card_images array
 		const imgEl = cardContent.querySelector('[data-building-image]');
 		if (imgEl) {
 			let targetState = 'normal';

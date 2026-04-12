@@ -210,8 +210,7 @@ export function renderItemsOverview (contentArea) {
 		// Description is handled separately for formatting
 		const descriptionHtml = item.description ? `<p class="text-xs italic text-gray-400 mt-2">${item.description}</p>` : '';
 		
-		// NEW: Extract image from card_images structure if available, fallback to item.image
-		let imageUrl = item.image;
+		let imageUrl = '';
 		if (item.card_images && Array.isArray(item.card_images)) {
 			const normalImage = item.card_images.find(img => img.state === 'normal');
 			if (normalImage) {
@@ -224,7 +223,6 @@ export function renderItemsOverview (contentArea) {
 			}
 		}
 		
-		// MODIFIED: Updated the card layout to be horizontal (flex-row) with the image on the left (3:4 aspect ratio, 100px width)
 		return `
 			<div class="card bg-base-200 shadow-md p-4 flex flex-row gap-4 items-start">
 				<img src="${imageUrl}" alt="${item.name}" class="w-[175px] aspect-[3/4] bg-base-300 rounded flex-shrink-0" />

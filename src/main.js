@@ -1,8 +1,6 @@
 import { gameState, gameData } from './state.js';
-// MODIFIED: Renamed function imports to reflect the new casting logic.
 import { startCombatAction, startAegisAction, executeCombatEffect, executeAegisEffect } from './hero-actions.js';
 import { addToLog, parseRange } from './utils.js';
-import { renderSandbox, applySandboxChanges } from './sandbox.js';
 import { handleUseConsumable } from './inventory.js';
 import { handleShopAndPurchaseClicks, renderShopModal } from './shop.js';
 import { renderHeroes, autoEquipBestGear, renderSkillsPanel } from './heroes.js';
@@ -12,8 +10,7 @@ import { renderHeader, renderTabs, renderCity, renderLog, renderItemsOverview, r
 import { renderCars, initiateCarPurchase } from './cars.js';
 import { renderMissionControl, handleStartMission, handleFlee, processMissionTick, handleStartAttackMission, manageCombatAssignments, handleMonsterDefeat } from './missions.js';
 
-// MODIFIED: Removed 'City' tab.
-const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'Items', 'Log', 'Sandbox'];
+const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'Items', 'Log'];
 let activeTab = 'Heroes';
 
 // --- DOM ELEMENTS ---
@@ -39,7 +36,6 @@ function renderContent (alpha) {
                     </div>
                 `;
 			}
-			// MODIFIED: Pass alpha to renderMissionControl for smooth progress rendering.
 			renderMissionControl(alpha);
 			renderPartyCombat();
 			renderPartyLog();
@@ -55,15 +51,11 @@ function renderContent (alpha) {
 		case 'Monsters':
 			renderMonsters(contentArea);
 			break;
-		// MODIFIED: Removed 'City' case. The renderCity function is now unused.
 		case 'Items':
 			renderItemsOverview(contentArea);
 			break;
 		case 'Log':
 			renderLog(contentArea);
-			break;
-		case 'Sandbox':
-			renderSandbox(contentArea);
 			break;
 	}
 }
@@ -104,7 +96,7 @@ function processGameTick () {
 	
 	manageCombatAssignments();
 	
-	// NEW: Process completed skill casts at the beginning of the hero loop.
+	// Process completed skill casts at the beginning of the hero loop.
 	gameState.heroes.forEach(hero => {
 		if (hero.casting && gameState.time >= hero.casting.castEndTime) {
 			const skill = gameData.skills.find(s => s.id === hero.casting.skillId);
@@ -148,7 +140,7 @@ function processGameTick () {
 			}
 		}
 		
-		// MODIFIED: Added check for hero.location to prevent rage decay while in a building.
+		// Added check for hero.location to prevent rage decay while in a building.
 		if (hero.class === 'Vanguard' && !hero.targetMonsterId && hero.rage.current > 0 && hero.location === 'field') {
 			hero.rage.current = Math.max(0, hero.rage.current - 10);
 		}
@@ -201,7 +193,7 @@ function processGameTick () {
 			}
 		}
 		
-		// MODIFIED: Auto-cast logic now checks if the hero is already casting.
+		// Auto-cast logic now checks if the hero is already casting.
 		if (hero.autoCastSkillId && hero.hp.current > 0 && !hero.casting) {
 			const skillId = hero.autoCastSkillId;
 			const skill = gameData.skills.find(s => s.id === skillId);
@@ -254,7 +246,7 @@ function processGameTick () {
 		}
 	});
 	
-	// MODIFIED: Process building population effects (HP regen and token generation for the city).
+	// Process building population effects (HP regen and token generation for the city).
 	let totalCityPopulation = 0;
 	gameState.city.buildings.forEach(building => {
 		if (building.owner === 'player' && building.population > 0) {
@@ -265,12 +257,11 @@ function processGameTick () {
 			}
 		}
 	});
-	// NEW: Calculate and add city-wide income based on total population.
+	// Calculate and add city-wide income based on total population.
 	if (totalCityPopulation > 0) {
 		const incomeThisTick = totalCityPopulation * gameState.city.tokensPerPopulationPerTick;
 		gameState.city.tokens += incomeThisTick;
 	}
-	// END MODIFIED
 	
 	processMonsterActions();
 	
@@ -315,27 +306,29 @@ function gameLoop (currentTime) {
 
 async function init () {
 	try {
-		// MODIFIED: Added buildings.json to the list of files to fetch.
-		const [items, skills, monsters, systemShop, buildingUpgrades, carUpgrades, cars, buildings] = await Promise.all([
+		const [items, magicSkills, martialSkills, cards, monsters, buildingUpgrades, carUpgrades, cars, buildings] = await Promise.all([
 			fetch('/data/items.json').then(res => res.json()),
-			fetch('/data/skills.json').then(res => res.json()),
+			fetch('/data/new_magic_skills.json').then(res => res.json()),
+			fetch('/data/new_martial_skills.json').then(res => res.json()),
+			fetch('/data/new_cards.json').then(res => res.json()),
 			fetch('/data/monsters.json').then(res => res.json()),
-			fetch('/data/system_shop.json').then(res => res.json()),
 			fetch('/data/building_upgrades.json').then(res => res.json()),
 			fetch('/data/car_upgrades.json').then(res => res.json()),
 			fetch('/data/cars.json').then(res => res.json()),
-			fetch('/data/buildings.json').then(res => res.json()) // NEW: Fetch buildings data.
+			fetch('/data/buildings.json').then(res => res.json())
 		]);
 		gameData.items = items;
-		gameData.skills = skills;
+		gameData.magic_skills = magicSkills;
+		gameData.martial_skills = martialSkills;
+		gameData.skills = [...magicSkills, ...martialSkills]; // Combine for combat logic
+		gameData.cards = cards;
 		gameData.monsters = monsters;
-		gameData.system_shop = systemShop;
 		gameData.building_upgrades = buildingUpgrades;
 		gameData.car_upgrades = carUpgrades;
 		gameData.cars = cars;
-		gameData.buildings = buildings; // NEW: Store raw building data.
+		gameData.buildings = buildings;
 		
-		// NEW: Populate game state with buildings from the new JSON file.
+		// Populate game state with buildings from the new JSON file.
 		gameState.city.buildings = gameData.buildings.map(buildingData => ({
 			...buildingData, // Spread properties from JSON file.
 			owner: null, // Add dynamic properties not in the file.
@@ -367,7 +360,6 @@ async function init () {
 		});
 		addToLog('[SYSTEM]: Initial vehicles have been assigned to the starting heroes.');
 		
-		// MODIFIED: Now uses the pre-loaded building data instead of random selection.
 		const potentialSafezoneBuildings = gameState.city.buildings.filter(b => b.state === 'functional');
 		
 		let firstBaseId = null;
@@ -384,7 +376,7 @@ async function init () {
 			firstBaseId = building.id;
 		}
 		
-		// MODIFIED: Ensure all heroes start in the single base.
+		// Ensure all heroes start in the single base.
 		if (firstBaseId) {
 			gameState.heroes.forEach(hero => {
 				hero.location = firstBaseId;
@@ -451,12 +443,11 @@ async function init () {
 		const openShopForHeroBtn = e.target.closest('[data-open-shop-for-hero]');
 		if (openShopForHeroBtn) {
 			const heroId = parseInt(openShopForHeroBtn.dataset.openShopForHero, 10);
-			renderShopModal({ heroId }); // MODIFIED: Pass an options object.
+			renderShopModal({ heroId });
 			if (document.activeElement) document.activeElement.blur();
 			return;
 		}
 		
-		// NEW: Add handler for opening the shop for a building.
 		const openShopForBuildingBtn = e.target.closest('[data-open-shop-for-building]');
 		if (openShopForBuildingBtn) {
 			const buildingId = parseInt(openShopForBuildingBtn.dataset.openShopForBuilding, 10);
@@ -464,9 +455,7 @@ async function init () {
 			if (document.activeElement) document.activeElement.blur();
 			return;
 		}
-		// END NEW
 		
-		// NEW: Add handler for renaming a building.
 		const renameBuildingBtn = e.target.closest('[data-rename-building-id]');
 		if (renameBuildingBtn) {
 			const buildingId = parseInt(renameBuildingBtn.dataset.renameBuildingId, 10);
@@ -481,7 +470,6 @@ async function init () {
 			}
 			return;
 		}
-		// END NEW
 		
 		const autoCastBtn = e.target.closest('[data-autocast-skill-id]');
 		if (autoCastBtn) {
@@ -574,14 +562,8 @@ async function init () {
 			if (logContainer) logContainer.classList.toggle('hidden');
 			return;
 		}
-		
-		if (e.target.id === 'sandbox-apply') {
-			applySandboxChanges();
-			renderContent(0);
-		}
 	});
 	
-	// MODIFIED: Start the new requestAnimationFrame game loop instead of setInterval.
 	requestAnimationFrame(gameLoop);
 }
 

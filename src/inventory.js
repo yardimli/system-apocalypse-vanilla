@@ -16,12 +16,11 @@ export function handleUseConsumable(heroId, itemId) {
 		return false;
 	}
 	
-	// NEW: Check for class restrictions on consumables
+	// Check for class restrictions on consumables
 	if (itemData.class && !itemData.class.includes(hero.class)) {
 		addToLog(`cannot use ${itemData.name} due to class restrictions.`, hero.id);
 		return false;
 	}
-	// END NEW
 	
 	const { type, value } = itemData.effect;
 	let used = false;

@@ -119,9 +119,8 @@ export function startCombatAction (heroId, skillId) {
 	if (!monster) return;
 	
 	const mpCost = skill.mpCost || 0;
-	const rageCost = skill.rageCost || 0; // NEW: Get rage cost for validation.
+	const rageCost = skill.rageCost || 0;
 	
-	// MODIFIED: Add a proper resource check that includes Rage for Vanguards.
 	if (hero.class === 'Vanguard') {
 		if (skill.actionType === 'taunt' && (!hero.rage || hero.rage.current < rageCost)) {
 			return; // Not enough rage for Challenge, so abort.

@@ -196,7 +196,6 @@ export function renderHeroes () {
 	});
 };
 
-// MODIFIED: Function now accepts an `alpha` parameter for smooth interpolation.
 export function renderSkillsPanel (alpha = 0) {
 	const container = getEl('skills-panel-container');
 	if (!container) return;
@@ -219,7 +218,7 @@ export function renderSkillsPanel (alpha = 0) {
 			.map(hs => gameData.skills.find(s => s.id === hs.id))
 			.filter(Boolean);
 		
-		const isHeroCasting = !!hero.casting; // NEW: Check if the hero is casting any skill to disable all other skill buttons.
+		const isHeroCasting = !!hero.casting;
 		
 		learnedSkills.forEach(skillData => {
 			const skillRowDomId = `skill-row-${hero.id}-${skillData.id}`;
@@ -290,7 +289,6 @@ export function renderSkillsPanel (alpha = 0) {
 				hasResources = hero.mp && hero.mp.current >= mpCost;
 			}
 			
-			// NEW: Combat skills should only be usable when in combat (i.e., has a target).
 			let canUseInCurrentState = true;
 			if (skillData.actionType === 'attack' || skillData.actionType === 'taunt') {
 				canUseInCurrentState = !!hero.targetMonsterId;
@@ -320,7 +318,6 @@ export function renderSkillsPanel (alpha = 0) {
 					let progressPercent = 0;
 					let inProgress = false;
 					
-					// MODIFIED: Smooth progress calculation
 					if (isCastingThisSkill) {
 						const castTime = skillData.castTime;
 						const castEndTime = hero.casting.castEndTime;
@@ -338,7 +335,6 @@ export function renderSkillsPanel (alpha = 0) {
 						inProgress = true;
 					}
 					
-					// MODIFIED: Use isHeroCasting to disable all of the hero's skills while one is being cast.
 					button.disabled = isHeroCasting || isOnCooldown || !meetsLevelReq || !hasResources || !canUseInCurrentState;
 					button.style.width = '110px';
 					button.style.setProperty('--cooldown-percent', `${progressPercent}%`);
@@ -357,7 +353,6 @@ export function renderSkillsPanel (alpha = 0) {
 				let progressPercent = 0;
 				let inProgress = false;
 				
-				// MODIFIED: Smooth progress calculation
 				if (isCastingThisSkill) {
 					const castTime = skillData.castTime;
 					const castEndTime = hero.casting.castEndTime;
@@ -375,7 +370,6 @@ export function renderSkillsPanel (alpha = 0) {
 					inProgress = true;
 				}
 				
-				// MODIFIED: Use isHeroCasting to disable all of the hero's skills while one is being cast.
 				button.disabled = isHeroCasting || isOnCooldown || !meetsLevelReq || !hasResources || !canUseInCurrentState;
 				button.style.setProperty('--cooldown-percent', `${progressPercent}%`);
 				button.classList.toggle('cooldown-progress', inProgress);

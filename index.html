@@ -30,7 +30,6 @@
 		</div>
 		
 		<div role="tablist" class="tabs tabs-lifted mt-4 flex-grow min-h-0">
-			<!-- MODIFIED: Added IDs and data-tab-group attributes for easier control -->
 			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Items" id="shop-tab-items" data-tab-group="hero" checked />
 			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none" data-tab-group="hero">
 				<div id="shop-modal-items-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -38,17 +37,34 @@
 				</div>
 			</div>
 			
+			<!-- NEW: Cards Tab -->
+			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Cards" id="shop-tab-cards" data-tab-group="hero" />
+			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none" data-tab-group="hero">
+				<div id="shop-modal-cards-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+					<!-- Cards for sale will be injected here -->
+				</div>
+			</div>
+			
+			<!-- NEW: Martial Skills Tab -->
+			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Martial Skills" id="shop-tab-martial-skills" data-tab-group="hero" />
+			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none" data-tab-group="hero">
+				<div id="shop-modal-martial-skills-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+					<!-- Martial Skills for sale will be injected here -->
+				</div>
+			</div>
+			
+			<!-- NEW: Magic Skills Tab -->
+			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Magic Skills" id="shop-tab-magic-skills" data-tab-group="hero" />
+			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none" data-tab-group="hero">
+				<div id="shop-modal-magic-skills-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+					<!-- Magic Skills for sale will be injected here -->
+				</div>
+			</div>
+			
 			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Inventory" id="shop-tab-inventory" data-tab-group="hero" />
 			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none" data-tab-group="hero">
 				<div id="shop-modal-inventory-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<!-- Hero inventory will be injected here -->
-				</div>
-			</div>
-			
-			<input type="radio" name="shop_tabs" role="tab" class="tab" aria-label="Skills" id="shop-tab-skills" data-tab-group="hero" />
-			<div role="tabpanel" class="tab-content bg-base-100 overflow-y-auto rounded-none" data-tab-group="hero">
-				<div id="shop-modal-skills-content" class="grid grid-cols-1 md:grid-cols-2 gap-2">
-					<!-- Skills for sale will be injected here -->
 				</div>
 			</div>
 			

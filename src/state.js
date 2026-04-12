@@ -1,4 +1,3 @@
-// MODIFIED: Removed the procedural building generation loop.
 const initialCars = [];
 
 export const gameState = {
@@ -11,7 +10,6 @@ export const gameState = {
 	nextMonsterId: 1,
 	party: {
 		missionState: 'idle',
-		// MODIFIED: Replaced time/progress-based tracking with distance.
 		missionDistance: 0,
 		previousMissionDistance: 0,
 		missionTargetDistance: 0,
@@ -20,12 +18,11 @@ export const gameState = {
 		targetMonsterId: null
 	},
 	city: {
-		// NEW: Add city-wide token balance and income rate.
+		// Add city-wide token balance and income rate.
 		tokens: 1000, // Starting capital for the city.
 		tokensPerPopulationPerTick: 0.1, // Each citizen generates this many tokens per tick.
-		firstShieldInstalled: false, // NEW: Flag to track the first shield upgrade.
-		// END NEW
-		buildings: [], // MODIFIED: Initialized as empty; will be populated from JSON.
+		firstShieldInstalled: false, // Flag to track the first shield upgrade.
+		buildings: [],
 		cars: initialCars
 	},
 	activeMonsters:[],
@@ -34,11 +31,9 @@ export const gameState = {
 			id: 1,
 			name: 'Ava',
 			class: 'Aegis',
-			// NEW: Added properties for equipment restrictions.
 			isMagicUser: true,
 			allowedArmorTypes: ['Cloth'],
 			allowedWeaponTypes: ['Wand', 'Bow'],
-			// END NEW
 			level: 1,
 			xp: { current: 0, max: 100 },
 			hp: { current: 150, max: 150 },
@@ -53,7 +48,7 @@ export const gameState = {
 			carId: null,
 			survivorsCarried: 0,
 			targetMonsterId: null,
-			location: 1, // MODIFIED: Start inside the base.
+			location: 1,
 			tokens: 100,
 			skills:[
 				{ id: 'AEG004' }
@@ -76,11 +71,9 @@ export const gameState = {
 			id: 2,
 			name: 'Jax',
 			class: 'Striker',
-			// NEW: Added properties for equipment restrictions.
 			isMagicUser: true,
 			allowedArmorTypes: ['Cloth', 'Leather'],
 			allowedWeaponTypes: ['Wand', 'Bow'],
-			// END NEW
 			level: 1,
 			xp: { current: 0, max: 100 },
 			hp: { current: 100, max: 100 },
@@ -95,7 +88,7 @@ export const gameState = {
 			carId: null,
 			survivorsCarried: 0,
 			targetMonsterId: null,
-			location: 1, // MODIFIED: Start inside the base.
+			location: 1,
 			tokens: 100,
 			skills: [{ id: 'STR001' }],
 			autoCastSkillId: 'STR001',
@@ -114,11 +107,9 @@ export const gameState = {
 			id: 3,
 			name: 'Roc',
 			class: 'Vanguard',
-			// NEW: Added properties for equipment restrictions.
 			isMagicUser: false,
 			allowedArmorTypes: ['Cloth', 'Leather', 'Chainmail', 'Plate'],
 			allowedWeaponTypes: ['Sword', 'Shield'],
-			// END NEW
 			level: 1,
 			xp: { current: 0, max: 250 },
 			hp: { current: 250, max: 250 },
@@ -130,7 +121,7 @@ export const gameState = {
 			carId: null,
 			survivorsCarried: 0,
 			targetMonsterId: null,
-			location: 1, // MODIFIED: Start inside the base.
+			location: 1,
 			tokens: 100,
 			skills: [{ id: 'VAN001' }, { id: 'VAN003' }],
 			autoCastSkillId: 'VAN003',
@@ -154,11 +145,13 @@ export const gameState = {
 
 export const gameData = {
 	items: [],
+	magic_skills: [],
+	martial_skills: [],
 	skills: [],
+	cards: [],
 	monsters:[],
-	system_shop: [],
 	building_upgrades: [],
 	car_upgrades: [],
 	cars: [],
-	buildings: [] // NEW: Added to hold raw building data.
+	buildings: []
 };
