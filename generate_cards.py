@@ -8,50 +8,42 @@ import requests # Used to download the image
 # --- Main Configuration ---
 
 # This is a list of tasks to run.
+# output_dir has been removed since paths are now defined in the JSON.
 TASKS = [
     {
         "json_filename": "public/data/building_upgrades.json",
-        "output_dir": "public/images/new_building_upgrades",
         "start_prompt": "a building upgrade card for the item for a litrpg game. The cards should only have image no text or stats."
     },
     {
         "json_filename": "public/data/buildings.json",
-        "output_dir": "public/images/new_buildings",
         "start_prompt": "a building card for the item for a litrpg game. The cards should only have image no text or stats."
     },
     {
         "json_filename": "public/data/monsters.json",
-        "output_dir": "public/images/new_monsters",
         "start_prompt": "a monster card for the item for a litrpg game. The cards should only have image no text or stats."
     },
     {
         "json_filename": "public/data/cars.json",
-        "output_dir": "public/images/new_cars",
         "start_prompt": "a card for the item for a litrpg game, the time period is modern times after year 2020. The cards should only have image no text or stats."
     },
     {
         "json_filename": "public/data/car_upgrades.json",
-        "output_dir": "public/images/new_car_upgrades",
         "start_prompt": "a card for the item for a litrpg game, the time period is modern times after year 2020. The cards should only have image no text or stats."
     },
     {
         "json_filename": "public/data/items.json",
-        "output_dir": "public/images/new_items",
         "start_prompt": "a game card for an item in a litrpg game."
     },
     {
         "json_filename": "public/data/new_magic_skills.json",
-        "output_dir": "public/images/new_magic_skills",
         "start_prompt": "a card for the skill for a litrpg game, the time period is modern times after year 2020. The cards should only have image no text or stats."
     },
     {
         "json_filename": "public/data/new_martial_skills.json",
-        "output_dir": "public/images/new_martial_skills",
         "start_prompt": "a card for the skill for a litrpg game, the time period is modern times after year 2020. The cards should only have image no text or stats."
     },
     {
         "json_filename": "public/data/new_cards.json",
-        "output_dir": "public/images/new_cards",
         "start_prompt": "a game card for an item in a litrpg game."
     },
 ]
@@ -99,14 +91,11 @@ def process_task(task_config):
 
     # --- 1. Unpack configuration for this task ---
     json_filename = task_config.get("json_filename")
-    output_dir = task_config.get("output_dir")
     start_prompt = task_config.get("start_prompt")
 
-    if not all([json_filename, output_dir, start_prompt]):
-        print("Error: Task configuration is missing a required key (json_filename, output_dir, or start_prompt). Skipping.")
+    if not all([json_filename, start_prompt]):
+        print("Error: Task configuration is missing a required key (json_filename or start_prompt). Skipping.")
         return
-
-    os.makedirs(output_dir, exist_ok=True)
 
     try:
         with open(json_filename, 'r') as f:
@@ -124,56 +113,60 @@ def process_task(task_config):
     # --- 2. Loop through each entry in the JSON file ---
     for entry in data_entries:
         name = entry.get("name", "Unknown")
-        entry_id = entry.get("id", "0000")
-        safe_name = name.replace(' ', '_').replace('/', '')
+        card_images = entry.get("card_images", [])
+
+        if not card_images:
+            print(f"Skipping '{name}': No 'card_images' array found.")
+            continue
 
         image_jobs = []
+        normal_job = None
+        other_jobs = []
 
-        # Check if the entry has an array of states
-        if "card_images" in entry and isinstance(entry["card_images"], list):
-            normal_job = None
-            other_jobs = []
+        # Parse the card_images array
+        for img_data in card_images:
+            state = img_data.get("state", "unknown").lower()
+            desc = img_data.get("description", "No description available.")
+            img_filename = img_data.get("image_file_name", "").lower()
+            img_folder = img_data.get("image_folder", "")
 
-            for img_data in entry["card_images"]:
-                state = img_data.get("state", "unknown")
-                desc = img_data.get("description", "No description available.")
-                job_dict = {
-                    "state_label": state,
-                    "filename_suffix": f"_{state}",
-                    "description": desc,
-                    "is_edit": state != "normal"
-                }
+            if not img_filename or not img_folder:
+                print(f"Warning: Missing 'image_file_name' or 'image_folder' for '{name}' (State: {state}). Skipping this state.")
+                continue
 
-                # Separate normal to guarantee it is processed FIRST
-                if state == "normal":
-                    normal_job = job_dict
-                else:
-                    other_jobs.append(job_dict)
+            output_path = os.path.join(img_folder, img_filename)
 
-            if normal_job:
-                image_jobs.append(normal_job)
-            image_jobs.extend(other_jobs)
-
-        else:
-            # Fallback to single image logic
-            desc = entry.get("card_image_description", "No description available.")
-            image_jobs.append({
-                "state_label": "default",
-                "filename_suffix": "", # No state added to filename for single descriptions
+            job_dict = {
+                "state_label": state,
                 "description": desc,
-                "is_edit": False
-            })
+                "image_folder": img_folder,
+                "output_path": output_path,
+                "is_edit": state != "normal"
+            }
+
+            # Separate normal to guarantee it is processed FIRST
+            if state == "normal":
+                normal_job = job_dict
+            else:
+                other_jobs.append(job_dict)
+
+        if normal_job:
+            image_jobs.append(normal_job)
+        image_jobs.extend(other_jobs)
+
+        # Keep track of the normal image path for edits
+        normal_output_path = normal_job["output_path"] if normal_job else None
 
         # --- 3. Process each required image for the current entry ---
         for job in image_jobs:
-            suffix = job["filename_suffix"]
             description = job["description"]
             state_label = job["state_label"]
             is_edit = job["is_edit"]
+            img_folder = job["image_folder"]
+            output_path = job["output_path"]
 
-            # Construct filename and check for existence
-            safe_filename = f"{entry_id}_{safe_name}{suffix}.png"
-            output_path = os.path.join(output_dir, safe_filename)
+            # Ensure the target directory exists
+            os.makedirs(img_folder, exist_ok=True)
 
             if os.path.exists(output_path):
                 print(f"Skipping '{name}' (State: {state_label}): File already exists at {output_path}")
@@ -194,16 +187,12 @@ The final image should only be the card itself against a white background.
 
             try:
                 if is_edit:
-                    # Look for the 'normal' state image locally
-                    normal_filename = f"{entry_id}_{safe_name}_normal.png"
-                    normal_path = os.path.join(output_dir, normal_filename)
-
-                    if not os.path.exists(normal_path):
-                        print(f"Error: Base 'normal' image not found at '{normal_path}'. Cannot generate edit for state '{state_label}'. Skipping.")
+                    if not normal_output_path or not os.path.exists(normal_output_path):
+                        print(f"Error: Base 'normal' image not found at '{normal_output_path}'. Cannot generate edit for state '{state_label}'. Skipping.")
                         continue
 
                     print("Converting normal base image to Data URI...")
-                    base_image_data_uri = get_base64_data_uri(normal_path)
+                    base_image_data_uri = get_base64_data_uri(normal_output_path)
 
                     print(f"Subscribing to {FAL_EDIT_MODEL_ID} for edit...")
                     result = fal_client.subscribe(
@@ -216,7 +205,7 @@ The final image should only be the card itself against a white background.
                         on_queue_update=on_queue_update,
                     )
                 else:
-                    # Standard Text-to-Image Generation (Normal state or standard items)
+                    # Standard Text-to-Image Generation (Normal state)
                     print(f"Subscribing to {FAL_MODEL_ID} for text-to-image...")
                     result = fal_client.subscribe(
                         FAL_MODEL_ID,
@@ -240,7 +229,7 @@ The final image should only be the card itself against a white background.
 
             print("-" * 30)
 
-    print(f"All entries for '{json_filename}' processed. Files are in '{output_dir}'.")
+    print(f"All entries for '{json_filename}' processed.")
 
 
 def main():

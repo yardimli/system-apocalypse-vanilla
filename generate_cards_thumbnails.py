@@ -5,42 +5,34 @@ from PIL import Image
 # --- Main Configuration ---
 
 # This is a list of tasks to run.
+# output_dir has been removed since paths are now defined in the JSON.
 TASKS = [
     {
         "json_filename": "public/data/building_upgrades.json",
-        "output_dir": "public/images/new_building_upgrades",
     },
     {
         "json_filename": "public/data/buildings.json",
-        "output_dir": "public/images/new_buildings",
     },
     {
         "json_filename": "public/data/monsters.json",
-        "output_dir": "public/images/new_monsters",
     },
     {
         "json_filename": "public/data/cars.json",
-        "output_dir": "public/images/new_cars",
     },
     {
         "json_filename": "public/data/car_upgrades.json",
-        "output_dir": "public/images/new_car_upgrades",
     },
     {
         "json_filename": "public/data/items.json",
-        "output_dir": "public/images/new_items",
     },
     {
         "json_filename": "public/data/new_magic_skills.json",
-        "output_dir": "public/images/new_magic_skills",
     },
     {
         "json_filename": "public/data/new_martial_skills.json",
-        "output_dir": "public/images/new_martial_skills",
     },
     {
         "json_filename": "public/data/new_cards.json",
-        "output_dir": "public/images/new_cards",
     },
 ]
 
@@ -51,15 +43,10 @@ def process_task(task_config):
 
     # --- 1. Unpack configuration for this task ---
     json_filename = task_config.get("json_filename")
-    output_dir = task_config.get("output_dir")
 
-    if not all([json_filename, output_dir]):
-        print("Error: Task configuration is missing a required key (json_filename or output_dir). Skipping.")
+    if not json_filename:
+        print("Error: Task configuration is missing a required key (json_filename). Skipping.")
         return
-
-    # Create the thumbnails subfolder
-    thumbnails_dir = os.path.join(output_dir, "thumbnails")
-    os.makedirs(thumbnails_dir, exist_ok=True)
 
     try:
         with open(json_filename, 'r') as f:
@@ -77,51 +64,43 @@ def process_task(task_config):
     # --- 2. Loop through each entry in the JSON file ---
     for entry in data_entries:
         name = entry.get("name", "Unknown")
-        entry_id = entry.get("id", "0000")
-        safe_name = name.replace(' ', '_').replace('/', '')
+        card_images = entry.get("card_images", [])
 
-        image_jobs = []
-
-        # Check if the entry has an array of states
-        if "card_images" in entry and isinstance(entry["card_images"], list):
-            for img_data in entry["card_images"]:
-                state = img_data.get("state", "unknown")
-                image_jobs.append({
-                    "state_label": state,
-                    "filename_suffix": f"_{state}"
-                })
-        else:
-            # Fallback to single image logic
-            image_jobs.append({
-                "state_label": "default",
-                "filename_suffix": ""
-            })
+        if not card_images:
+            # Silently skip entries without card_images
+            continue
 
         # --- 3. Process each expected image for the current entry ---
-        for job in image_jobs:
-            suffix = job["filename_suffix"]
-            state_label = job["state_label"]
+        for img_data in card_images:
+            state = img_data.get("state", "unknown").lower()
+            img_filename = img_data.get("image_file_name", "").lower()
+            img_folder = img_data.get("image_folder", "")
 
-            # Construct filenames
-            original_filename = f"{entry_id}_{safe_name}{suffix}.png"
-            # Force the thumbnail filename to be entirely lowercase
-            thumbnail_filename = original_filename.lower()
+            if not img_filename or not img_folder:
+                print(f"Warning: Missing 'image_file_name' or 'image_folder' for '{name}' (State: {state}). Skipping.")
+                continue
 
-            original_image_path = os.path.join(output_dir, original_filename)
-            thumbnail_image_path = os.path.join(thumbnails_dir, thumbnail_filename)
+            # Construct paths based on the JSON data
+            original_image_path = os.path.join(img_folder, img_filename)
+
+            # Create the thumbnails subfolder inside the target image folder
+            thumbnails_dir = os.path.join(img_folder, "thumbnails")
+            os.makedirs(thumbnails_dir, exist_ok=True)
+
+            thumbnail_image_path = os.path.join(thumbnails_dir, img_filename)
 
             # Check if the original image exists
             if not os.path.exists(original_image_path):
                 # Silently skip or print a debug message if the source image doesn't exist yet
-                # print(f"Missing original image for '{name}' (State: {state_label}) at {original_image_path}")
+                # print(f"Missing original image for '{name}' (State: {state}) at {original_image_path}")
                 continue
 
             # Check if thumbnail already exists to save processing time
             if os.path.exists(thumbnail_image_path):
-                print(f"Skipping '{name}' (State: {state_label}): Thumbnail already exists.")
+                print(f"Skipping '{name}' (State: {state}): Thumbnail already exists.")
                 continue
 
-            print(f"Creating thumbnail for: '{name}' (State: {state_label})...")
+            print(f"Creating thumbnail for: '{name}' (State: {state})...")
 
             try:
                 # Open the original image
@@ -139,9 +118,9 @@ def process_task(task_config):
                     print(f" -> Saved thumbnail to {thumbnail_image_path}")
 
             except Exception as e:
-                print(f"An error occurred while resizing '{name}' (State: {state_label}): {e}")
+                print(f"An error occurred while resizing '{name}' (State: {state}): {e}")
 
-    print(f"All entries for '{json_filename}' processed. Thumbnails are in '{thumbnails_dir}'.")
+    print(f"All entries for '{json_filename}' processed.")
 
 
 def main():

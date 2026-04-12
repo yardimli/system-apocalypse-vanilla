@@ -13,7 +13,7 @@
         "state": "normal",
         "description": "Increases the building's maximum HP by 50.",
         "image_file_name": "upg_walls_1_reinforce_walls_normal.png",
-        "image_folder": "public/images/new_buildings"
+        "image_folder": "public/images/new_building_upgrades"
       }
     ]
   },
@@ -31,7 +31,7 @@
         "state": "normal",
         "description": "Adds a basic shield generator to the building with 100 max shield HP.",
         "image_file_name": "upg_shield_1_basic_shield_normal.png",
-        "image_folder": "public/images/new_buildings"
+        "image_folder": "public/images/new_building_upgrades"
       }
     ]
   },
@@ -49,7 +49,7 @@
         "state": "normal",
         "description": "Slightly increases the HP/MP regeneration bonus for heroes inside.",
         "image_file_name": "upg_regen_aura_1_soothing_ambiance_normal.png",
-        "image_folder": "public/images/new_buildings"
+        "image_folder": "public/images/new_building_upgrades"
       }
     ]
   }

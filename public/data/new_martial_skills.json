@@ -545,7 +545,7 @@
       {
         "state": "normal",
         "description": "A simple, polished bronze border. A keen-eyed female warrior studies a colossal, armored dragon. As she watches, a single, glowing red weak point appears in the gaps of the dragon's scales on its chest. Her own eyes narrow with focus as she prepares her next attack, while her party members distract the beast.",
-        "image_file_name": "mar017_coup_de_grâce_normal.png",
+        "image_file_name": "mar017_coup_de_grace_normal.png",
         "image_folder": "public/images/new_martial_skills"
       }
     ]
