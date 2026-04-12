@@ -6,9 +6,16 @@
     "cost": 50,
     "effect": {
       "type": "increase_occupant_damage_bonus",
-      "value": 0.10
+      "value": 0.1
     },
-    "card_image_description": "A border of dark metal with red and black diagonal hazard stripes. The image is a close-up of a massive, black steel bumper with heavy-duty welds and a bullbar being bolted onto the front of a vehicle."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of dark metal with red and black diagonal hazard stripes. The image is a close-up of a massive, black steel bumper with heavy-duty welds and a bullbar being bolted onto the front of a vehicle.",
+        "image_file_name": "car_dmg_1_reinforced_bumper_normal.png",
+        "image_folder": "public/images/new_car_upgrades"
+      }
+    ]
   },
   {
     "id": "CAR_DMG_2",
@@ -19,7 +26,14 @@
       "type": "increase_occupant_damage_bonus",
       "value": 0.15
     },
-    "card_image_description": "A border of dark metal with red and black diagonal hazard stripes. The image is a close-up shot of a rugged, off-road tire where large, sharp metal spikes have been bolted through the tread, looking menacing."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of dark metal with red and black diagonal hazard stripes. The image is a close-up shot of a rugged, off-road tire where large, sharp metal spikes have been bolted through the tread, looking menacing.",
+        "image_file_name": "car_dmg_2_spiked_wheels_normal.png",
+        "image_folder": "public/images/new_car_upgrades"
+      }
+    ]
   },
   {
     "id": "CAR_DMG_3",
@@ -28,9 +42,16 @@
     "cost": 250,
     "effect": {
       "type": "increase_occupant_damage_bonus",
-      "value": 0.20
+      "value": 0.2
     },
-    "card_image_description": "A border of dark metal with red and black diagonal hazard stripes. The image shows a heavy machine gun on a swivel mount in a workshop, with a belt of ammunition feeding into it, ready for installation."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of dark metal with red and black diagonal hazard stripes. The image shows a heavy machine gun on a swivel mount in a workshop, with a belt of ammunition feeding into it, ready for installation.",
+        "image_file_name": "car_dmg_3_mounted_machine_gun_normal.png",
+        "image_folder": "public/images/new_car_upgrades"
+      }
+    ]
   },
   {
     "id": "CAR_DMG_4",
@@ -41,7 +62,14 @@
       "type": "increase_occupant_damage_bonus",
       "value": 0.25
     },
-    "card_image_description": "A border of dark metal with red and black diagonal hazard stripes. The image shows a sleek, futuristic laser cannon on a turret. Coils along the barrel glow with intense red energy, and heat haze shimmers around the muzzle."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of dark metal with red and black diagonal hazard stripes. The image shows a sleek, futuristic laser cannon on a turret. Coils along the barrel glow with intense red energy, and heat haze shimmers around the muzzle.",
+        "image_file_name": "car_dmg_4_charged_laser_cannon_normal.png",
+        "image_folder": "public/images/new_car_upgrades"
+      }
+    ]
   },
   {
     "id": "CAR_DMG_5",
@@ -50,9 +78,16 @@
     "cost": 1000,
     "effect": {
       "type": "increase_occupant_damage_bonus",
-      "value": 0.30
+      "value": 0.3
     },
-    "card_image_description": "A border of dark metal with red and black diagonal hazard stripes. The image shows a row of large-caliber bullets laid out on a table. The tips of the projectiles are glowing with a bright, crackling blue energy."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of dark metal with red and black diagonal hazard stripes. The image shows a row of large-caliber bullets laid out on a table. The tips of the projectiles are glowing with a bright, crackling blue energy.",
+        "image_file_name": "car_dmg_5_system-enhanced_munitions_normal.png",
+        "image_folder": "public/images/new_car_upgrades"
+      }
+    ]
   },
   {
     "id": "CAR_MIT_1",
@@ -63,7 +98,14 @@
       "type": "increase_occupant_mitigation_bonus",
       "value": 0.05
     },
-    "card_image_description": "A border of heavy, bolted blue steel plates. The image shows several thick, overlapping plates of dark, scarred steel being riveted onto the side of a car door."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of heavy, bolted blue steel plates. The image shows several thick, overlapping plates of dark, scarred steel being riveted onto the side of a car door.",
+        "image_file_name": "car_mit_1_armor_plating_normal.png",
+        "image_folder": "public/images/new_car_upgrades"
+      }
+    ]
   },
   {
     "id": "CAR_MIT_2",
@@ -72,9 +114,16 @@
     "cost": 80,
     "effect": {
       "type": "increase_occupant_mitigation_bonus",
-      "value": 0.10
+      "value": 0.1
     },
-    "card_image_description": "A border of heavy, bolted blue steel plates. The image is a cross-section of a car window, showing multiple thick layers of glass and polymer. A bullet is embedded halfway through, stopped from penetrating."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of heavy, bolted blue steel plates. The image is a cross-section of a car window, showing multiple thick layers of glass and polymer. A bullet is embedded halfway through, stopped from penetrating.",
+        "image_file_name": "car_mit_2_bulletproof_glass_normal.png",
+        "image_folder": "public/images/new_car_upgrades"
+      }
+    ]
   },
   {
     "id": "CAR_MIT_3",
@@ -85,7 +134,14 @@
       "type": "increase_occupant_mitigation_bonus",
       "value": 0.15
     },
-    "card_image_description": "A border of heavy, bolted blue steel plates. The image is a close-up of several brick-like modules of Explosive Reactive Armor (ERA) bolted onto the side of a vehicle. One brick has a scorch mark on it."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of heavy, bolted blue steel plates. The image is a close-up of several brick-like modules of Explosive Reactive Armor (ERA) bolted onto the side of a vehicle. One brick has a scorch mark on it.",
+        "image_file_name": "car_mit_3_reactive_armor_normal.png",
+        "image_folder": "public/images/new_car_upgrades"
+      }
+    ]
   },
   {
     "id": "CAR_MIT_4",
@@ -94,9 +150,16 @@
     "cost": 400,
     "effect": {
       "type": "increase_occupant_mitigation_bonus",
-      "value": 0.20
+      "value": 0.2
     },
-    "card_image_description": "A border of heavy, bolted blue steel plates. The image shows a high-tech, circular device with glowing blue components mounted on a vehicle's roof, emitting a faint, shimmering, dome-shaped energy field."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of heavy, bolted blue steel plates. The image shows a high-tech, circular device with glowing blue components mounted on a vehicle's roof, emitting a faint, shimmering, dome-shaped energy field.",
+        "image_file_name": "car_mit_4_energy_shield_emitter_normal.png",
+        "image_folder": "public/images/new_car_upgrades"
+      }
+    ]
   },
   {
     "id": "CAR_MIT_5",
@@ -107,6 +170,13 @@
       "type": "increase_occupant_mitigation_bonus",
       "value": 0.25
     },
-    "card_image_description": "A border of heavy, bolted blue steel plates. The image shows a powerful, advanced emitter projecting a solid, bright blue hexagonal energy field that visibly deflects incoming red energy bolts."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of heavy, bolted blue steel plates. The image shows a powerful, advanced emitter projecting a solid, bright blue hexagonal energy field that visibly deflects incoming red energy bolts.",
+        "image_file_name": "car_mit_5_aegis_barrier_field_normal.png",
+        "image_folder": "public/images/new_car_upgrades"
+      }
+    ]
   }
 ]

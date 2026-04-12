@@ -23,7 +23,14 @@
       "Rune of Force",
       "Echo of Pain"
     ],
-    "card_image_description": "A simple, polished bronze border. A lithe female rogue with twin daggers lunges forward. One dagger flashes in a silver streak, striking a snarling goblin. In the background, a heavily armored male warrior holds a shield, and a robed mage prepares a spell."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. A lithe female rogue with twin daggers lunges forward. One dagger flashes in a silver streak, striking a snarling goblin. In the background, a heavily armored male warrior holds a shield, and a robed mage prepares a spell.",
+        "image_file_name": "mar001_quick_strike_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR002",
@@ -49,7 +56,14 @@
       "Rune of Force",
       "Whisper of Wind"
     ],
-    "card_image_description": "A simple, polished bronze border. A focused female archer with braided hair kneels, drawing her bowstring taut. The view is from behind her shoulder, looking down the arrow's glowing shaft at a distant, hulking ogre. A female healer in white robes stands nearby, her hands glowing softly."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. A focused female archer with braided hair kneels, drawing her bowstring taut. The view is from behind her shoulder, looking down the arrow's glowing shaft at a distant, hulking ogre. A female healer in white robes stands nearby, her hands glowing softly.",
+        "image_file_name": "mar002_aimed_shot_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR003",
@@ -75,7 +89,14 @@
       "Rune of Force",
       "Echo of Pain"
     ],
-    "card_image_description": "A simple, polished bronze border. A muscular female warrior hefts a greatsword high above her head. The massive blade glows with gathered force, about to crash down on a lumbering stone golem. A male mage is visible behind her, chanting with his staff raised."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. A muscular female warrior hefts a greatsword high above her head. The massive blade glows with gathered force, about to crash down on a lumbering stone golem. A male mage is visible behind her, chanting with his staff raised.",
+        "image_file_name": "mar003_heavy_blow_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR004",
@@ -101,7 +122,14 @@
       "Thought of Cunning",
       "Drop of Venom"
     ],
-    "card_image_description": "A simple, polished bronze border. A female warrior darts low, her shortsword a blur as it slashes across the back of a fleeing wolf-like beast's leg. A red, slowing aura visibly emanates from the wound. Her party, a male tank and a female healer, are seen engaging another beast nearby."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. A female warrior darts low, her shortsword a blur as it slashes across the back of a fleeing wolf-like beast's leg. A red, slowing aura visibly emanates from the wound. Her party, a male tank and a female healer, are seen engaging another beast nearby.",
+        "image_file_name": "mar004_hamstring_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR005",
@@ -126,7 +154,14 @@
       "Spark of Haste",
       "Stone of Endurance"
     ],
-    "card_image_description": "A simple, polished bronze border. A female knight in polished steel armor holds her longsword in a defensive two-handed grip. A massive troll's crude club swings down, and she meets it with her blade, creating a brilliant explosion of white sparks at the point of impact."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. A female knight in polished steel armor holds her longsword in a defensive two-handed grip. A massive troll's crude club swings down, and she meets it with her blade, creating a brilliant explosion of white sparks at the point of impact.",
+        "image_file_name": "mar005_parry_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR006",
@@ -152,7 +187,14 @@
       "Echo of Pain",
       "Echo of Pain"
     ],
-    "card_image_description": "A simple, polished bronze border. In a wide, powerful arc, a female barbarian swings a massive battle-axe. The silver blur of the weapon connects simultaneously with two armored hobgoblins standing shoulder-to-shoulder. In the background, a male archer nocks another arrow."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. In a wide, powerful arc, a female barbarian swings a massive battle-axe. The silver blur of the weapon connects simultaneously with two armored hobgoblins standing shoulder-to-shoulder. In the background, a male archer nocks another arrow.",
+        "image_file_name": "mar006_cleave_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR007",
@@ -178,7 +220,14 @@
       "Drop of Venom",
       "Thought of Cunning"
     ],
-    "card_image_description": "A simple, polished bronze border. A female ranger looses an arrow from her darkwood bow. The arrow flies through the air, its head glowing with a sickly green light and leaving a trail of venomous vapor as it speeds towards a giant, multi-eyed spider."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. A female ranger looses an arrow from her darkwood bow. The arrow flies through the air, its head glowing with a sickly green light and leaving a trail of venomous vapor as it speeds towards a giant, multi-eyed spider.",
+        "image_file_name": "mar007_serpent_sting_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR008",
@@ -203,7 +252,14 @@
       "Spark of Haste",
       "Glyph of Fury"
     ],
-    "card_image_description": "A simple, polished bronze border. A nimble female rogue, a blur of motion, plunges both of her daggers deep into the back of a staggered, monstrous beast. A visceral spray of crimson light erupts from the wounds. A heavily armored male tank stands in front of the beast, holding its attention."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. A nimble female rogue, a blur of motion, plunges both of her daggers deep into the back of a staggered, monstrous beast. A visceral spray of crimson light erupts from the wounds. A heavily armored male tank stands in front of the beast, holding its attention.",
+        "image_file_name": "mar008_eviscerate_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR009",
@@ -229,7 +285,14 @@
       "Rune of Force",
       "Glyph of Connection"
     ],
-    "card_image_description": "A simple, polished bronze border. A female archer stands firm, her bow fully drawn. She releases the string, and three glowing arrows fan out from the bow in a cone of light, each one streaking towards a different winged gargoyle perched on a ruin."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. A female archer stands firm, her bow fully drawn. She releases the string, and three glowing arrows fan out from the bow in a cone of light, each one streaking towards a different winged gargoyle perched on a ruin.",
+        "image_file_name": "mar009_multi-shot_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR010",
@@ -254,7 +317,14 @@
       "Rune of Force",
       "Symbol of Command"
     ],
-    "card_image_description": "A simple, polished bronze border. A powerfully-built female warrior brings a colossal warmaul down upon a heavily-armored, demonic knight. On impact, the demon's chestplate visibly cracks and shatters, sending fragments of dark metal flying. A female healer behind her is surrounded by a protective aura."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. A powerfully-built female warrior brings a colossal warmaul down upon a heavily-armored, demonic knight. On impact, the demon's chestplate visibly cracks and shatters, sending fragments of dark metal flying. A female healer behind her is surrounded by a protective aura.",
+        "image_file_name": "mar010_sundering_smash_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR011",
@@ -279,7 +349,14 @@
       "Spirit Shard",
       "Echo of Pain"
     ],
-    "card_image_description": "A border of shimmering, crimson light. A female warrior stands amidst the chaos of battle, her body tensed. Her eyes glow with a sharp, focused red light, and a faint crimson aura of pure battle focus surrounds her. Around her, her party—a male mage and a male tank—are locked in combat with shadowy wraiths."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of shimmering, crimson light. A female warrior stands amidst the chaos of battle, her body tensed. Her eyes glow with a sharp, focused red light, and a faint crimson aura of pure battle focus surrounds her. Around her, her party—a male mage and a male tank—are locked in combat with shadowy wraiths.",
+        "image_file_name": "mar011_battle_trance_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR012",
@@ -304,7 +381,14 @@
       "Spark of Haste",
       "Rune of Warding"
     ],
-    "card_image_description": "A simple, polished bronze border. With a deft and precise movement, a female duelist uses the crossguard of her rapier to hook and twist the massive axe out of an orc warlord's grasp. The axe is shown spinning through the air, momentarily catching the light."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. With a deft and precise movement, a female duelist uses the crossguard of her rapier to hook and twist the massive axe out of an orc warlord's grasp. The axe is shown spinning through the air, momentarily catching the light.",
+        "image_file_name": "mar012_disarm_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR013",
@@ -329,7 +413,14 @@
       "Whisper of Wind",
       "Whisper of Wind"
     ],
-    "card_image_description": "A simple, polished bronze border. A female warrior with two shortswords becomes a whirlwind of silver light and motion at the center of a group of grotesque ghouls. Countless slash marks appear on all the surrounding monsters simultaneously as her body becomes a graceful, impossible-to-hit blur."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. A female warrior with two shortswords becomes a whirlwind of silver light and motion at the center of a group of grotesque ghouls. Countless slash marks appear on all the surrounding monsters simultaneously as her body becomes a graceful, impossible-to-hit blur.",
+        "image_file_name": "mar013_blade_dance_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR014",
@@ -354,7 +445,14 @@
       "Rune of Force",
       "Thought of Cunning"
     ],
-    "card_image_description": "A simple, polished bronze border. A female crossbow expert fires a thick, heavy bolt from her siege-like crossbow. The bolt strikes the ground at the feet of a charging, minotaur-like beast, erupting in magical chains of light that bind its legs to the earth, halting it in its tracks."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. A female crossbow expert fires a thick, heavy bolt from her siege-like crossbow. The bolt strikes the ground at the feet of a charging, minotaur-like beast, erupting in magical chains of light that bind its legs to the earth, halting it in its tracks.",
+        "image_file_name": "mar014_pinning_shot_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR015",
@@ -379,7 +477,14 @@
       "Echo of Pain",
       "Symbol of Command"
     ],
-    "card_image_description": "A simple, polished bronze border. A towering female warrior, wielding a grim, double-headed executioner's axe, stands over a massive, wounded manticore that has fallen to one knee. She raises the axe high, its blade cloaked in dark energy, preparing for the final, brutal strike."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. A towering female warrior, wielding a grim, double-headed executioner's axe, stands over a massive, wounded manticore that has fallen to one knee. She raises the axe high, its blade cloaked in dark energy, preparing for the final, brutal strike.",
+        "image_file_name": "mar015_executioner's_chop_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR016",
@@ -404,7 +509,14 @@
       "Spark of Haste",
       "Eye of the Frost-Storm"
     ],
-    "card_image_description": "A border with flowing, engraved lines that pulse with energy. A female archer kneels, one hand pointing towards the sky as her bow glows with immense power. High above a horde of zombies, a magical sigil appears, from which a continuous, unending shower of glowing arrows rains down. Her party holds the line against any zombies that get too close."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border with flowing, engraved lines that pulse with energy. A female archer kneels, one hand pointing towards the sky as her bow glows with immense power. High above a horde of zombies, a magical sigil appears, from which a continuous, unending shower of glowing arrows rains down. Her party holds the line against any zombies that get too close.",
+        "image_file_name": "mar016_volley_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR017",
@@ -429,7 +541,14 @@
       "Echo of Pain",
       "Glyph of Fury"
     ],
-    "card_image_description": "A simple, polished bronze border. A keen-eyed female warrior studies a colossal, armored dragon. As she watches, a single, glowing red weak point appears in the gaps of the dragon's scales on its chest. Her own eyes narrow with focus as she prepares her next attack, while her party members distract the beast."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. A keen-eyed female warrior studies a colossal, armored dragon. As she watches, a single, glowing red weak point appears in the gaps of the dragon's scales on its chest. Her own eyes narrow with focus as she prepares her next attack, while her party members distract the beast.",
+        "image_file_name": "mar017_coup_de_grâce_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR018",
@@ -454,7 +573,14 @@
       "Apocalyptic Rune",
       "Rune of Force"
     ],
-    "card_image_description": "A simple, polished bronze border. A female titan in heavy plate armor slams her massive hammer into the cavern floor. The ground cracks and erupts before her, sending a powerful, cone-shaped shockwave of rock and dust hurtling towards a group of stunned, insectoid monsters."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. A female titan in heavy plate armor slams her massive hammer into the cavern floor. The ground cracks and erupts before her, sending a powerful, cone-shaped shockwave of rock and dust hurtling towards a group of stunned, insectoid monsters.",
+        "image_file_name": "mar018_earthshatter_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR019",
@@ -479,7 +605,14 @@
       "Symbol of Command",
       "Spark of Haste"
     ],
-    "card_image_description": "A simple, polished bronze border. A female sharpshooter aims her ornate crossbow at a huge, heavily wounded chimera. A brilliant, crimson energy gathers at the tip of the bolt just as she fires. The bolt becomes a streak of red light, aimed directly at the beast's heart."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, polished bronze border. A female sharpshooter aims her ornate crossbow at a huge, heavily wounded chimera. A brilliant, crimson energy gathers at the tip of the bolt just as she fires. The bolt becomes a streak of red light, aimed directly at the beast's heart.",
+        "image_file_name": "mar019_kill_shot_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   },
   {
     "id": "MAR020",
@@ -504,6 +637,13 @@
       "Glyph of Fury",
       "Aegis of the World-Warden"
     ],
-    "card_image_description": "A border with flowing, engraved lines that pulse with energy. A female master swordswoman stands before a towering demon lord, her two katanas a mere blur. The demon is completely encased in a cage of impossibly fast, silver sword strikes, each one creating a flash of light on its body. She is a still point in the center of a storm of her own making, while her awestruck party watches from behind."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border with flowing, engraved lines that pulse with energy. A female master swordswoman stands before a towering demon lord, her two katanas a mere blur. The demon is completely encased in a cage of impossibly fast, silver sword strikes, each one creating a flash of light on its body. She is a still point in the center of a storm of her own making, while her awestruck party watches from behind.",
+        "image_file_name": "mar020_storm_of_a_thousand_cuts_normal.png",
+        "image_folder": "public/images/new_martial_skills"
+      }
+    ]
   }
 ]

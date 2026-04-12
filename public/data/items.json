@@ -11,7 +11,14 @@
     },
     "level": 1,
     "sellPrice": 15,
-    "card_image_description": "A clean, white border with a thin, red inner line, resembling modern medical packaging. In the center, a sterile white metal box with a red cross symbol is open, revealing neatly arranged bandages and a syringe."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A clean, white border with a thin, red inner line, resembling modern medical packaging. In the center, a sterile white metal box with a red cross symbol is open, revealing neatly arranged bandages and a syringe.",
+        "image_file_name": "itm002_medical_supplies_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ITM003",
@@ -21,7 +28,14 @@
     "description": "A fragment of a monster's essence, valuable to the System.",
     "level": 1,
     "sellPrice": 5,
-    "card_image_description": "A dark, jagged border that flickers with red digital static. In the center, a crystalline shard of dark purple rock pulses with a faint, malevolent red light."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A dark, jagged border that flickers with red digital static. In the center, a crystalline shard of dark purple rock pulses with a faint, malevolent red light.",
+        "image_file_name": "itm003_monster_core_shard_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ITM005",
@@ -33,10 +47,20 @@
       "type": "heal_mp",
       "value": 25
     },
-    "class": ["Aegis", "Striker"],
+    "class": [
+      "Aegis",
+      "Striker"
+    ],
     "level": 1,
     "sellPrice": 10,
-    "card_image_description": "A clean, white border with a thin, blue inner line, resembling modern energy product packaging. In the center, a silver foil wrapper is partially torn open to reveal a dense, nutrient bar that is a vibrant, glowing blue."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A clean, white border with a thin, blue inner line, resembling modern energy product packaging. In the center, a silver foil wrapper is partially torn open to reveal a dense, nutrient bar that is a vibrant, glowing blue.",
+        "image_file_name": "itm005_energy_bar_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ITM006",
@@ -50,7 +74,14 @@
     },
     "level": 1,
     "sellPrice": 1,
-    "card_image_description": "A simple, brushed aluminum border with small rivets in the corners. In the center, a clear glass bottle with a cork stopper is filled with pristine, sparkling water."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple, brushed aluminum border with small rivets in the corners. In the center, a clear glass bottle with a cork stopper is filled with pristine, sparkling water.",
+        "image_file_name": "itm006_clean_water_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ITM008",
@@ -60,7 +91,14 @@
     "description": "A rare fragment of the System itself.",
     "level": 2,
     "sellPrice": 50,
-    "card_image_description": "A border made of a glowing blue, hexagonal data-grid pattern. In the center, a perfectly geometric, translucent crystal refracts light into a rainbow of digital patterns."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border made of a glowing blue, hexagonal data-grid pattern. In the center, a perfectly geometric, translucent crystal refracts light into a rainbow of digital patterns.",
+        "image_file_name": "itm008_system_shard_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ITM009",
@@ -74,7 +112,14 @@
     },
     "level": 1,
     "sellPrice": 40,
-    "card_image_description": "A clean, white border with a thin, red inner line, resembling modern medical packaging. In the center, a durable red canvas bag with a white cross emblem is unzipped to show neatly packed rolls of gauze and medical tools."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A clean, white border with a thin, red inner line, resembling modern medical packaging. In the center, a durable red canvas bag with a white cross emblem is unzipped to show neatly packed rolls of gauze and medical tools.",
+        "image_file_name": "itm009_first_aid_kit_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ITM013",
@@ -86,10 +131,20 @@
       "type": "heal_mp",
       "value": 50
     },
-    "class": ["Aegis", "Striker"],
+    "class": [
+      "Aegis",
+      "Striker"
+    ],
     "level": 2,
     "sellPrice": 25,
-    "card_image_description": "A clean, white border with a thin, blue inner line, resembling modern energy product packaging. In the center, a fist-sized, uncut blue crystal floats just above a surface, emitting a soft, blue glow."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A clean, white border with a thin, blue inner line, resembling modern energy product packaging. In the center, a fist-sized, uncut blue crystal floats just above a surface, emitting a soft, blue glow.",
+        "image_file_name": "itm013_mana_crystal_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ITM014",
@@ -99,7 +154,14 @@
     "description": "An unstable piece of monster data.",
     "level": 2,
     "sellPrice": 40,
-    "card_image_description": "A dark, jagged border that flickers with red digital static. In the center, a flickering, glitching shard of black glass is covered in red, pixelated static."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A dark, jagged border that flickers with red digital static. In the center, a flickering, glitching shard of black glass is covered in red, pixelated static.",
+        "image_file_name": "itm014_corrupted_data_fragment_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ITM015",
@@ -109,7 +171,14 @@
     "description": "A flawless crystal used in high-end items.",
     "level": 3,
     "sellPrice": 150,
-    "card_image_description": "A border made of a glowing blue, hexagonal data-grid pattern. In the center, a perfectly cut, diamond-like crystal shines with a brilliant, pure white light."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border made of a glowing blue, hexagonal data-grid pattern. In the center, a perfectly cut, diamond-like crystal shines with a brilliant, pure white light.",
+        "image_file_name": "itm015_pure_energy_crystal_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ITM016",
@@ -123,7 +192,14 @@
     },
     "level": 1,
     "sellPrice": 8,
-    "card_image_description": "A clean, white border with a thin, red inner line, resembling modern medical packaging. In the center, a small, open clay pot contains a thick, green, herbal paste."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A clean, white border with a thin, red inner line, resembling modern medical packaging. In the center, a small, open clay pot contains a thick, green, herbal paste.",
+        "image_file_name": "itm016_lesser_healing_salve_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ITM017",
@@ -135,10 +211,20 @@
       "type": "heal_mp",
       "value": 80
     },
-    "class": ["Aegis", "Striker"],
+    "class": [
+      "Aegis",
+      "Striker"
+    ],
     "level": 1,
     "sellPrice": 6,
-    "card_image_description": "A clean, white border with a thin, blue inner line, resembling modern energy product packaging. In the center, a small, corked glass vial is filled with a swirling, light-blue liquid that glows faintly."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A clean, white border with a thin, blue inner line, resembling modern energy product packaging. In the center, a small, corked glass vial is filled with a swirling, light-blue liquid that glows faintly.",
+        "image_file_name": "itm017_lesser_mana_vial_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ITM018",
@@ -152,7 +238,14 @@
     },
     "level": 2,
     "sellPrice": 30,
-    "card_image_description": "A clean, white border with a thin, red inner line, resembling modern medical packaging. In the center, a classic, teardrop-shaped glass flask is filled with a bubbling, vibrant red liquid."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A clean, white border with a thin, red inner line, resembling modern medical packaging. In the center, a classic, teardrop-shaped glass flask is filled with a bubbling, vibrant red liquid.",
+        "image_file_name": "itm018_standard_healing_potion_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ITM019",
@@ -164,10 +257,20 @@
       "type": "heal_mp",
       "value": 200
     },
-    "class": ["Aegis", "Striker"],
+    "class": [
+      "Aegis",
+      "Striker"
+    ],
     "level": 2,
     "sellPrice": 20,
-    "card_image_description": "A clean, white border with a thin, blue inner line, resembling modern energy product packaging. In the center, a round flask is filled with a deep blue liquid containing tiny, star-like motes of light."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A clean, white border with a thin, blue inner line, resembling modern energy product packaging. In the center, a round flask is filled with a deep blue liquid containing tiny, star-like motes of light.",
+        "image_file_name": "itm019_standard_mana_potion_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ITM020",
@@ -181,7 +284,14 @@
     },
     "level": 3,
     "sellPrice": 75,
-    "card_image_description": "A clean, white border with a thin, red inner line, resembling modern medical packaging. In the center, an ornate, crystal decanter is filled with a radiant, crimson liquid that pulses with light."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A clean, white border with a thin, red inner line, resembling modern medical packaging. In the center, an ornate, crystal decanter is filled with a radiant, crimson liquid that pulses with light.",
+        "image_file_name": "itm020_greater_healing_potion_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ITM021",
@@ -193,10 +303,20 @@
       "type": "heal_mp",
       "value": 400
     },
-    "class": ["Aegis", "Striker"],
+    "class": [
+      "Aegis",
+      "Striker"
+    ],
     "level": 3,
     "sellPrice": 60,
-    "card_image_description": "A clean, white border with a thin, blue inner line, resembling modern energy product packaging. In the center, a tall, elegant glass bottle contains a swirling, deep violet liquid that resembles a miniature galaxy."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A clean, white border with a thin, blue inner line, resembling modern energy product packaging. In the center, a tall, elegant glass bottle contains a swirling, deep violet liquid that resembles a miniature galaxy.",
+        "image_file_name": "itm021_greater_mana_potion_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ARM001",
@@ -209,7 +329,14 @@
     "level": 1,
     "sellPrice": 10,
     "description": "Basic cloth armor providing minimal protection.",
-    "card_image_description": "A simple border with the texture of coarse, stitched grey canvas. In the center, a simple, sleeveless tunic made of patched brown cloth is displayed on a wooden armor stand."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple border with the texture of coarse, stitched grey canvas. In the center, a simple, sleeveless tunic made of patched brown cloth is displayed on a wooden armor stand.",
+        "image_file_name": "arm001_cloth_armor_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ARM002",
@@ -222,7 +349,14 @@
     "level": 2,
     "sellPrice": 50,
     "description": "Sturdy leather armor offering moderate protection.",
-    "card_image_description": "A border with the texture of dark brown, stitched leather. In the center, a set of worn but well-maintained boiled leather armor is mounted on a stand."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border with the texture of dark brown, stitched leather. In the center, a set of worn but well-maintained boiled leather armor is mounted on a stand.",
+        "image_file_name": "arm002_leather_armor_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ARM003",
@@ -235,7 +369,14 @@
     "level": 3,
     "sellPrice": 150,
     "description": "Interlocking metal rings providing good protection against slashing attacks.",
-    "card_image_description": "A border showing a clean, interlocking pattern of steel chainmail rings. In the center, a long-sleeved hauberk of steel rings is draped over an armor stand, gleaming dully."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border showing a clean, interlocking pattern of steel chainmail rings. In the center, a long-sleeved hauberk of steel rings is draped over an armor stand, gleaming dully.",
+        "image_file_name": "arm003_chainmail_armor_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ARM004",
@@ -248,7 +389,14 @@
     "level": 4,
     "sellPrice": 400,
     "description": "Heavy plate armor offering excellent physical protection.",
-    "card_image_description": "A border of heavy, brushed steel plates joined by rivets. In the center, a full suit of polished steel plate armor stands stoically as if ready for battle."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of heavy, brushed steel plates joined by rivets. In the center, a full suit of polished steel plate armor stands stoically as if ready for battle.",
+        "image_file_name": "arm004_plate_armor_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ARM005",
@@ -261,7 +409,14 @@
     "level": 5,
     "sellPrice": 1000,
     "description": "Advanced powered armor used by Aegis heroes, offering superior protection.",
-    "card_image_description": "A futuristic border of interlocking white and blue geometric plates with glowing seams. In the center, a suit of white and blue powered armor stands in a high-tech bay, with glowing energy lines along its limbs."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A futuristic border of interlocking white and blue geometric plates with glowing seams. In the center, a suit of white and blue powered armor stands in a high-tech bay, with glowing energy lines along its limbs.",
+        "image_file_name": "arm005_aegis_power_armor_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ARM002_V",
@@ -274,7 +429,14 @@
     "level": 2,
     "sellPrice": 90,
     "description": "Leather armor reinforced with metal studs for better defense.",
-    "card_image_description": "A border with the texture of dark brown, stitched leather, studded with small iron rivets. In the center, a black leather cuirass is reinforced with rows of polished iron rivets."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border with the texture of dark brown, stitched leather, studded with small iron rivets. In the center, a black leather cuirass is reinforced with rows of polished iron rivets.",
+        "image_file_name": "arm002_v_reinforced_leather_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ARM003_V",
@@ -287,7 +449,14 @@
     "level": 3,
     "sellPrice": 250,
     "description": "Chainmail hardened through a special process, increasing its durability.",
-    "card_image_description": "A border showing a clean, interlocking pattern of dark, hardened steel chainmail rings. In the center, a suit of dark, almost black chainmail with thick rings gives off a faint, bluish sheen."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border showing a clean, interlocking pattern of dark, hardened steel chainmail rings. In the center, a suit of dark, almost black chainmail with thick rings gives off a faint, bluish sheen.",
+        "image_file_name": "arm003_v_hardened_chainmail_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "ARM004_V",
@@ -300,7 +469,14 @@
     "level": 4,
     "sellPrice": 600,
     "description": "Expertly crafted plate armor, lighter and stronger than the standard version.",
-    "card_image_description": "A border of polished, ornate steel plates with elegant golden inlay. In the center, a suit of ornate, fluted plate armor features intricate gold filigree along its edges."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of polished, ornate steel plates with elegant golden inlay. In the center, a suit of ornate, fluted plate armor features intricate gold filigree along its edges.",
+        "image_file_name": "arm004_v_masterwork_plate_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "WAND001",
@@ -309,13 +485,23 @@
     "type": "Weapon",
     "weaponType": "Wand",
     "equipSlot": "mainHand",
-    "class": ["Striker", "Aegis"],
+    "class": [
+      "Striker",
+      "Aegis"
+    ],
     "spellPower": 2,
     "level": 1,
     "sellPrice": 25,
     "magicUserOnly": true,
     "description": "A simple wooden wand for novice magic users.",
-    "card_image_description": "A border of light, unpolished wood with simple twine wrappings. In the center, a short, crooked wand of ash wood has a small quartz crystal bound to its tip."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of light, unpolished wood with simple twine wrappings. In the center, a short, crooked wand of ash wood has a small quartz crystal bound to its tip.",
+        "image_file_name": "wand001_apprentice's_wand_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "WAND002",
@@ -324,13 +510,23 @@
     "type": "Weapon",
     "weaponType": "Wand",
     "equipSlot": "mainHand",
-    "class": ["Striker", "Aegis"],
+    "class": [
+      "Striker",
+      "Aegis"
+    ],
     "spellPower": 3,
     "level": 2,
     "sellPrice": 100,
     "magicUserOnly": true,
     "description": "A well-balanced wand for an experienced magic user.",
-    "card_image_description": "A border of polished oak with thin, inlaid silver wire. In the center, a straight, polished oak wand has a silver band at its base and a focused crystal at the tip that glows faintly."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of polished oak with thin, inlaid silver wire. In the center, a straight, polished oak wand has a silver band at its base and a focused crystal at the tip that glows faintly.",
+        "image_file_name": "wand002_adept's_wand_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "WAND003",
@@ -339,13 +535,23 @@
     "type": "Weapon",
     "weaponType": "Wand",
     "equipSlot": "mainHand",
-    "class": ["Striker", "Aegis"],
+    "class": [
+      "Striker",
+      "Aegis"
+    ],
     "spellPower": 5,
     "level": 3,
     "sellPrice": 350,
     "magicUserOnly": true,
     "description": "A powerful scepter that greatly amplifies a user's magic.",
-    "card_image_description": "A border of dark, polished ebony with glowing purple runes carved into it. In the center, a long, ornate scepter is topped with a large, glowing amethyst orb held in a golden setting."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of dark, polished ebony with glowing purple runes carved into it. In the center, a long, ornate scepter is topped with a large, glowing amethyst orb held in a golden setting.",
+        "image_file_name": "wand003_mage's_scepter_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "SWD001",
@@ -359,7 +565,14 @@
     "level": 1,
     "sellPrice": 25,
     "description": "A basic, rusted shortsword. Better than nothing.",
-    "card_image_description": "A simple border of pitted, rust-colored iron. In the center, a shortsword with a fraying leather hilt has patches of orange rust dotting its pitted blade."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple border of pitted, rust-colored iron. In the center, a shortsword with a fraying leather hilt has patches of orange rust dotting its pitted blade.",
+        "image_file_name": "swd001_rusted_shortsword_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "SWD002",
@@ -373,7 +586,14 @@
     "level": 2,
     "sellPrice": 120,
     "description": "A reliable longsword made of forged steel.",
-    "card_image_description": "A border of clean, forged steel resembling the crossguard of a sword. In the center, a classic arming sword with a polished steel blade rests on a weapon rack."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of clean, forged steel resembling the crossguard of a sword. In the center, a classic arming sword with a polished steel blade rests on a weapon rack.",
+        "image_file_name": "swd002_steel_longsword_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "SWD003",
@@ -387,7 +607,14 @@
     "level": 3,
     "sellPrice": 400,
     "description": "A massive greatsword made from a lightweight and durable titanium alloy.",
-    "card_image_description": "A border of dark grey, modern titanium alloy with sharp, geometric angles. In the center, a huge, two-handed greatsword with a modern design and a dark grey blade is displayed."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of dark grey, modern titanium alloy with sharp, geometric angles. In the center, a huge, two-handed greatsword with a modern design and a dark grey blade is displayed.",
+        "image_file_name": "swd003_titanium_greatsword_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "SHD001",
@@ -401,7 +628,14 @@
     "level": 1,
     "sellPrice": 20,
     "description": "A small, light wooden shield for parrying.",
-    "card_image_description": "A border of dark wooden planks held together by a riveted iron band. In the center, a small, round shield made of wooden planks has a simple iron boss in the middle."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of dark wooden planks held together by a riveted iron band. In the center, a small, round shield made of wooden planks has a simple iron boss in the middle.",
+        "image_file_name": "shd001_wooden_buckler_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "SHD002",
@@ -415,7 +649,14 @@
     "level": 2,
     "sellPrice": 110,
     "description": "A large, sturdy iron shield offering significant protection.",
-    "card_image_description": "A border of heavy, overlapping iron plates with large rivets. In the center, a large, teardrop-shaped shield made of riveted iron plates leans against a stone wall, scuffed from battle."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of heavy, overlapping iron plates with large rivets. In the center, a large, teardrop-shaped shield made of riveted iron plates leans against a stone wall, scuffed from battle.",
+        "image_file_name": "shd002_iron_kite_shield_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "SHD003",
@@ -429,7 +670,14 @@
     "level": 3,
     "sellPrice": 380,
     "description": "A high-tech energy barrier projector, the pinnacle of Vanguard defensive gear.",
-    "card_image_description": "A border composed of a shimmering, translucent blue hexagonal energy pattern. In the center, a sleek, forearm-mounted device projects a large, hexagonal, translucent blue energy field."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border composed of a shimmering, translucent blue hexagonal energy pattern. In the center, a sleek, forearm-mounted device projects a large, hexagonal, translucent blue energy field.",
+        "image_file_name": "shd003_aegis_barrier_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "BOW001",
@@ -438,12 +686,22 @@
     "type": "Weapon",
     "weaponType": "Bow",
     "equipSlot": "mainHand",
-    "class": ["Striker", "Aegis"],
+    "class": [
+      "Striker",
+      "Aegis"
+    ],
     "damage": "6-9",
     "level": 2,
     "sellPrice": 100,
     "description": "A basic but reliable wooden bow. Does not use magic.",
-    "card_image_description": "A simple border with the texture of light-colored yew wood. In the center, a classic yew longbow with a linen bowstring rests against a straw target dummy."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A simple border with the texture of light-colored yew wood. In the center, a classic yew longbow with a linen bowstring rests against a straw target dummy.",
+        "image_file_name": "bow001_simple_bow_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "BOW002",
@@ -452,22 +710,42 @@
     "type": "Weapon",
     "weaponType": "Bow",
     "equipSlot": "mainHand",
-    "class": ["Striker", "Aegis"],
+    "class": [
+      "Striker",
+      "Aegis"
+    ],
     "damage": "13-18",
     "level": 3,
     "sellPrice": 350,
     "description": "A composite bow with a stronger pull, for skilled archers.",
-    "card_image_description": "A border of dark, laminated wood with a modern, composite texture. In the center, a powerful recurve bow made of laminated layers of wood and horn is displayed."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of dark, laminated wood with a modern, composite texture. In the center, a powerful recurve bow made of laminated layers of wood and horn is displayed.",
+        "image_file_name": "bow002_advanced_bow_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   },
   {
     "id": "AMMO001",
     "name": "Arrows (100)",
     "image": "/images/bows/ammO001.png",
-    "class": ["Striker", "Aegis"],
+    "class": [
+      "Striker",
+      "Aegis"
+    ],
     "type": "Consumable",
     "description": "A bundle of 100 simple arrows. Can be sold.",
     "level": 1,
     "sellPrice": 20,
-    "card_image_description": "A border with the texture of dark, ballistic nylon fabric. In the center, a leather quiver is filled to the brim with arrows that have steel tips and grey feather fletching."
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border with the texture of dark, ballistic nylon fabric. In the center, a leather quiver is filled to the brim with arrows that have steel tips and grey feather fletching.",
+        "image_file_name": "ammo001_arrows_(100)_normal.png",
+        "image_folder": "public/images/new_items"
+      }
+    ]
   }
 ]

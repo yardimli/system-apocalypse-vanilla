@@ -11,7 +11,15 @@
     "tokens": 15,
     "speed": 10,
     "worldSpawnRatio": 0.005,
-    "card_image_description": "A border of cracked concrete and rusted rebar. In the center, a lean, dog-like creature constructed from mismatched pieces of scrap metal—license plates for armor, exhaust pipes for legs, and glowing red LEDs for eyes—snarls aggressively in a junkyard setting."
+    "description": "A lean, dog-like scrap metal creature.",
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of cracked concrete and rusted rebar. In the center, a lean, dog-like creature constructed from mismatched pieces of scrap metal—license plates for armor, exhaust pipes for legs, and glowing red LEDs for eyes—snarls aggressively in a junkyard setting.",
+        "image_file_name": "mon001_scrap_hound_normal.png",
+        "image_folder": "public/images/new_monsters"
+      }
+    ]
   },
   {
     "id": "MON002",
@@ -25,7 +33,15 @@
     "tokens": 25,
     "speed": 6,
     "worldSpawnRatio": 0.004,
-    "card_image_description": "A border of cracked concrete and rusted rebar. In the center, a hulking, humanoid figure made of fused, rusted car bodies and construction debris lumbers through a ruined city street, one arm ending in a twisted girder."
+    "description": "A hulking humanoid figure made of fused, rusted car bodies and debris.",
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of cracked concrete and rusted rebar. In the center, a hulking, humanoid figure made of fused, rusted car bodies and construction debris lumbers through a ruined city street, one arm ending in a twisted girder.",
+        "image_file_name": "mon002_rust_golem_normal.png",
+        "image_folder": "public/images/new_monsters"
+      }
+    ]
   },
   {
     "id": "MON003",
@@ -39,7 +55,15 @@
     "tokens": 20,
     "speed": 15,
     "worldSpawnRatio": 0.003,
-    "card_image_description": "A border of cracked concrete and rusted rebar. In the center, a sleek, panther-like beast made of glossy black metal, with glowing pink and blue neon tubes tracing its musculature, is crouched low on a skyscraper rooftop at night, ready to pounce."
+    "description": "A sleek, panther-like beast of glossy black metal with glowing neon tubes.",
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of cracked concrete and rusted rebar. In the center, a sleek, panther-like beast made of glossy black metal, with glowing pink and blue neon tubes tracing its musculature, is crouched low on a skyscraper rooftop at night, ready to pounce.",
+        "image_file_name": "mon003_neon_stalker_normal.png",
+        "image_folder": "public/images/new_monsters"
+      }
+    ]
   },
   {
     "id": "MON004",
@@ -53,7 +77,15 @@
     "tokens": 40,
     "speed": 12,
     "worldSpawnRatio": 0.003,
-    "card_image_description": "A border of dark, hexagonal carbon fiber plating. In the center, a large, powerful wolf whose natural form is augmented with cybernetics. One leg is a silver piston, its jaw is reinforced with steel, and its eyes glow with a menacing blue light as it stalks through a high-tech facility."
+    "description": "A large, powerful wolf augmented with deadly cybernetics.",
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of dark, hexagonal carbon fiber plating. In the center, a large, powerful wolf whose natural form is augmented with cybernetics. One leg is a silver piston, its jaw is reinforced with steel, and its eyes glow with a menacing blue light as it stalks through a high-tech facility.",
+        "image_file_name": "mon004_cyber_wolf_normal.png",
+        "image_folder": "public/images/new_monsters"
+      }
+    ]
   },
   {
     "id": "MON005",
@@ -67,7 +99,15 @@
     "tokens": 100,
     "speed": 5,
     "worldSpawnRatio": 0.002,
-    "card_image_description": "A border of dark, hexagonal carbon fiber plating. In the center, a 30-foot-tall bipedal mech, painted in olive drab military colors, stands amidst the wreckage of buildings. It has a boxy torso, a single red optical sensor for a head, and its arms are equipped with a minigun and a rocket pod."
+    "description": "A towering bipedal military mech armed with a minigun and rockets.",
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of dark, hexagonal carbon fiber plating. In the center, a 30-foot-tall bipedal mech, painted in olive drab military colors, stands amidst the wreckage of buildings. It has a boxy torso, a single red optical sensor for a head, and its arms are equipped with a minigun and a rocket pod.",
+        "image_file_name": "mon005_titan_mech_normal.png",
+        "image_folder": "public/images/new_monsters"
+      }
+    ]
   },
   {
     "id": "MON006",
@@ -81,7 +121,15 @@
     "tokens": 130,
     "speed": 8,
     "worldSpawnRatio": 0.002,
-    "card_image_description": "A border of dark, hexagonal carbon fiber plating. In the center, a ghostly, semi-translucent humanoid figure composed of swirling, unstable blue and white plasma floats menacingly in a dark power plant, its form crackling with raw energy."
+    "description": "A ghostly, semi-translucent figure composed of swirling plasma.",
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of dark, hexagonal carbon fiber plating. In the center, a ghostly, semi-translucent humanoid figure composed of swirling, unstable blue and white plasma floats menacingly in a dark power plant, its form crackling with raw energy.",
+        "image_file_name": "mon006_plasma_wraith_normal.png",
+        "image_folder": "public/images/new_monsters"
+      }
+    ]
   },
   {
     "id": "MON007",
@@ -95,7 +143,15 @@
     "tokens": 200,
     "speed": 10,
     "worldSpawnRatio": 0.001,
-    "card_image_description": "A border of jagged, dark obsidian with glowing, corrupted red circuits. In the center, a massive, quadrupedal beast that is a terrifying fusion of alien biology and advanced technology roars over the burning husk of a tank. It has chitinous armor plates, multiple glowing red eyes, and metallic talons."
+    "description": "A terrifying quadrupedal beast fusing alien biology and technology.",
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of jagged, dark obsidian with glowing, corrupted red circuits. In the center, a massive, quadrupedal beast that is a terrifying fusion of alien biology and advanced technology roars over the burning husk of a tank. It has chitinous armor plates, multiple glowing red eyes, and metallic talons.",
+        "image_file_name": "mon007_apex_predator_normal.png",
+        "image_folder": "public/images/new_monsters"
+      }
+    ]
   },
   {
     "id": "MON008",
@@ -109,6 +165,14 @@
     "tokens": 300,
     "speed": 4,
     "worldSpawnRatio": 0.001,
-    "card_image_description": "A border of jagged, dark obsidian with glowing, corrupted red circuits. In the center, a colossal, demonic-looking machine that dwarfs buildings stands in a fiery cityscape. Its chassis is black and red, covered in spikes and glowing vents, and it wields a massive energy scythe."
+    "description": "A colossal, demonic-looking machine wielding a massive energy scythe.",
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A border of jagged, dark obsidian with glowing, corrupted red circuits. In the center, a colossal, demonic-looking machine that dwarfs buildings stands in a fiery cityscape. Its chassis is black and red, covered in spikes and glowing vents, and it wields a massive energy scythe.",
+        "image_file_name": "mon008_doom_bringer_normal.png",
+        "image_folder": "public/images/new_monsters"
+      }
+    ]
   }
 ]
