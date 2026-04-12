@@ -48,12 +48,10 @@ export function renderHeader () {
 	
 	updateTextIfChanged(headerContainer.querySelector('[data-stat="population"]'), totalPop);
 	
-	// NEW: Update city token and income displays.
 	const cityTokens = Math.floor(gameState.city.tokens);
 	const incomePerDay = (totalPop * gameState.city.tokensPerPopulationPerTick * 10).toFixed(1);
 	updateTextIfChanged(headerContainer.querySelector('[data-stat="city-tokens"]'), cityTokens);
 	updateTextIfChanged(headerContainer.querySelector('[data-stat="city-income"]'), `+${incomePerDay}`);
-	// END NEW
 	
 	const speed = gameState.gameSettings.speedMultiplier;
 	const speedControls = headerContainer.querySelector('#speed-controls');
@@ -180,7 +178,8 @@ export function renderItemsOverview (contentArea) {
 		contentArea.innerHTML = `
 			<div class="flex flex-col gap-4">
 				<h2 class="text-2xl font-bold">Items Overview</h2>
-				<div id="items-overview-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+				<!-- MODIFIED: Changed lg:grid-cols-4 to lg:grid-cols-3 to give the new horizontal cards more space -->
+				<div id="items-overview-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
 			</div>
 		`;
 		grid = getEl('items-overview-grid');
@@ -211,13 +210,30 @@ export function renderItemsOverview (contentArea) {
 		// Description is handled separately for formatting
 		const descriptionHtml = item.description ? `<p class="text-xs italic text-gray-400 mt-2">${item.description}</p>` : '';
 		
+		// NEW: Extract image from card_images structure if available, fallback to item.image
+		let imageUrl = item.image;
+		if (item.card_images && Array.isArray(item.card_images)) {
+			const normalImage = item.card_images.find(img => img.state === 'normal');
+			if (normalImage) {
+				// Remove 'public' from the beginning of the folder path if it exists
+				let folderPath = normalImage.image_folder.replace(/^public/, '');
+				if (!folderPath.startsWith('/')) {
+					folderPath = '/' + folderPath;
+				}
+				imageUrl = `${folderPath}/${normalImage.image_file_name}`;
+			}
+		}
+		
+		// MODIFIED: Updated the card layout to be horizontal (flex-row) with the image on the left (3:4 aspect ratio, 100px width)
 		return `
-			<div class="card bg-base-200 shadow-md p-4 flex flex-col items-center">
-				<h3 class="font-bold text-lg text-center">${item.name} (${item.id})</h3>
-				<img src="${item.image}" alt="${item.name}" class="w-[100px] h-[100px] object-contain my-4 bg-base-300 rounded" />
-				<div class="text-sm w-full">
-					${details.join('<br>')}
-					${descriptionHtml}
+			<div class="card bg-base-200 shadow-md p-4 flex flex-row gap-4 items-start">
+				<img src="${imageUrl}" alt="${item.name}" class="w-[100px] aspect-[3/4] bg-base-300 rounded flex-shrink-0" />
+				<div class="flex flex-col flex-grow min-w-0">
+					<h3 class="font-bold text-lg truncate" title="${item.name}">${item.name} (${item.id})</h3>
+					<div class="text-sm w-full mt-2">
+						${details.join('<br>')}
+						${descriptionHtml}
+					</div>
 				</div>
 			</div>
 		`;
