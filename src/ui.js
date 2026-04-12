@@ -220,7 +220,7 @@ export function renderItemsOverview (contentArea) {
 				if (!folderPath.startsWith('/')) {
 					folderPath = '/' + folderPath;
 				}
-				imageUrl = `${folderPath}/${normalImage.image_file_name}`;
+				imageUrl = `${folderPath}/thumbnails/${normalImage.image_file_name}`;
 			}
 		}
 		

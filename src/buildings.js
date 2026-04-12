@@ -208,7 +208,7 @@ export function renderBuildings(contentArea) {
 					if (!folderPath.startsWith('/')) {
 						folderPath = '/' + folderPath;
 					}
-					imageUrl = `${folderPath}/${imgData.image_file_name}`;
+					imageUrl = `${folderPath}/thumbnails/${imgData.image_file_name}`;
 				}
 			} else {
 				// Fallback to old logic if card_images is missing
