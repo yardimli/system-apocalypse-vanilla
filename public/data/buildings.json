@@ -2,7 +2,7 @@
   {
     "id": 1,
     "type": "bld01",
-    "name": "Abandoned Apartment",
+    "name": "Apartment",
     "state": "damaged",
     "hp": 50,
     "maxHp": 100,
@@ -10,12 +10,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 5,
-    "maxPopulation": 24
+    "maxPopulation": 24,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A warm bronze card border etched with interlocking brick motifs frames the artwork. The illustration shows a sturdy, multi-story brick apartment building in its prime. Windows gleam with warm light, a neatly painted fire escape runs down the side, and a welcoming main entrance is flanked by potted plants."
+      },
+      {
+        "state": "shielded",
+        "description": "The original artwork is altered to include a translucent, hexagonal energy barrier enveloping the building, its blue grid-lines pulsing softly against the brickwork."
+      },
+      {
+        "state": "damaged",
+        "description": "The original illustration is altered to show the building bearing heavy damage. The once-gleaming windows are shattered by blast waves, the fire escape is twisted, and scorch marks from both magic and ballistics mar the brickwork."
+      },
+      {
+        "state": "ruined",
+        "description": "Collapsed remains of the apartment. The roof has caved in, blackened structural beams are visible."
+      }
+    ]
   },
   {
     "id": 2,
     "type": "bld02",
-    "name": "Old Warehouse",
+    "name": "Warehouse",
     "state": "functional",
     "hp": 100,
     "maxHp": 100,
@@ -23,12 +41,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 10,
-    "maxPopulation": 50
+    "maxPopulation": 50,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A heavy gunmetal card border bolted with industrial rivets frames the artwork. The illustration showcases a vast, bustling corrugated metal warehouse. A massive, open roll-up garage door reveals a brightly lit, organized interior filled with stacked crates, while clean, high windows let in beams of sunlight."
+      },
+      {
+        "state": "shielded",
+        "description": "The original image is enhanced by a shimmering, golden energy barrier, overlaying a digital honeycomb pattern over the facility."
+      },
+      {
+        "state": "damaged",
+        "description": "The original artwork is modified to depict a battered state. The massive roll-up door is now jammed and sparking, the clean metal siding is heavily dented by impacts, and the high windows are completely blown out."
+      },
+      {
+        "state": "ruined",
+        "description": "The original illustration is replaced by the twisted, rusted skeleton of the warehouse. The metal roof has collapsed inward, crushing the organized inventory beneath."
+      }
+    ]
   },
   {
     "id": 3,
     "type": "bld03",
-    "name": "Derelict Office",
+    "name": "Office",
     "state": "ruined",
     "hp": 0,
     "maxHp": 100,
@@ -36,12 +72,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 0,
-    "maxPopulation": 30
+    "maxPopulation": 30,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A sleek brushed steel card border accented by sharp, geometric lines frames the artwork. The illustration portrays a modern mid-rise office building with a gleaming glass facade reflecting a bright blue sky. A busy revolving door spins at the base under a brightly lit, pristine corporate logo."
+      },
+      {
+        "state": "shielded",
+        "description": "The original illustration is updated to show an advanced, hard-light energy barrier surrounding the tower, refracting incoming light into a prism of digital, cyberpunk-style colors."
+      },
+      {
+        "state": "damaged",
+        "description": "The original image is altered to portray the building heavily damaged. Huge sections of the gleaming glass facade are blown out to expose ruined cubicles, and the corporate logo now dangles precariously by sparking electrical wires."
+      },
+      {
+        "state": "ruined",
+        "description": "The original scene is completely devastated, showing a gutted mid-rise office building. The structure is reduced to a blackened concrete and steel husk, fires smolder in the lower levels."
+      }
+    ]
   },
   {
     "id": 4,
     "type": "bld04",
-    "name": "Crumbling Tenement",
+    "name": "Tenement",
     "state": "damaged",
     "hp": 40,
     "maxHp": 100,
@@ -49,12 +103,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 3,
-    "maxPopulation": 20
+    "maxPopulation": 20,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A warm bronze card border etched with interlocking brick motifs frames the artwork. The illustration depicts a vibrant, densely packed multi-family tenement block built from clean red brick. Clotheslines flutter with fresh laundry between windows, and residents can be seen chatting on well-maintained fire escapes."
+      },
+      {
+        "state": "shielded",
+        "description": "The original artwork is modified with a soft, semi-transparent energy barrier arching over the roofline, projecting ancient runic wards mixed with modern defense tech to protect the block."
+      },
+      {
+        "state": "damaged",
+        "description": "The original image is altered to depict a battered tenement block. The clean red brick is chipped and pockmarked with bullet holes and spell blasts, the clotheslines are snapped, and the fire escapes sag dangerously."
+      },
+      {
+        "state": "ruined",
+        "description": "Half the structure has been sheared away like a dollhouse, exposing charred interiors where residents once lived, while a thick layer of ash and fading mana particles covers the debris. All the windows are broken."
+      }
+    ]
   },
   {
     "id": 5,
     "type": "bld05",
-    "name": "Empty Supermarket",
+    "name": "Supermarket",
     "state": "functional",
     "hp": 100,
     "maxHp": 100,
@@ -62,12 +134,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 10,
-    "maxPopulation": 100
+    "maxPopulation": 100,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A sleek brushed steel card border accented by sharp, geometric lines frames the artwork. The illustration shows a vibrant single-story supermarket with a wide, spotless glass storefront and inviting automatic doors. A brightly illuminated grocery sign hangs proudly above, with shiny, neatly stacked shopping carts waiting by the entrance."
+      },
+      {
+        "state": "shielded",
+        "description": "The original image is enhanced to feature a glowing, neon-tinted energy barrier surrounding the building."
+      },
+      {
+        "state": "damaged",
+        "description": "The original illustration is altered to show a looted and damaged supermarket. The spotless glass storefront is completely shattered, automatic doors are violently wedged open, and the once-neat shopping carts are overturned and strewn chaotically across the cracked pavement."
+      },
+      {
+        "state": "ruined",
+        "description": "The original scene is completely altered to show a collapsed supermarket. The roof has caved in atop the aisles, the grocery sign lies shattered on the ground."
+      }
+    ]
   },
   {
     "id": 6,
     "type": "bld06",
-    "name": "Forsaken Factory",
+    "name": "Factory",
     "state": "ruined",
     "hp": 0,
     "maxHp": 100,
@@ -75,12 +165,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 0,
-    "maxPopulation": 120
+    "maxPopulation": 120,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A heavy gunmetal card border bolted with industrial rivets frames the artwork. The illustration features a sprawling, active industrial factory complex. Tall smokestacks vent steady plumes of white steam, and rows of pristine, paned windows illuminate the productive machinery operating within the dark brick structure."
+      },
+      {
+        "state": "shielded",
+        "description": "The original artwork is updated to show a dense, magenta energy barrier matrix weaving through the smokestacks and forming an angled roof-like shield, protecting the heavy industry with interlocking magical wards."
+      },
+      {
+        "state": "damaged",
+        "description": "The original image is modified to feature a battle-scarred factory. Several of the tall smokestacks have snapped in half, masonry is blown out from the walls, and the pristine windows are shattered by nearby explosive impacts."
+      },
+      {
+        "state": "ruined",
+        "description": "The structure is twisted metal and pulverized brick. The chimneys have collapsed, the exterior is charred and crumbling, and the interior machinery is exposed and heavily damaged."
+      }
+    ]
   },
   {
     "id": 7,
     "type": "bld07",
-    "name": "Ruined Clinic",
+    "name": "Clinic",
     "state": "ruined",
     "hp": 0,
     "maxHp": 100,
@@ -88,12 +196,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 0,
-    "maxPopulation": 44
+    "maxPopulation": 44,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A pristine white and silver card border embossed with faint medical cross insignias frames the artwork. The illustration displays a clean, modern two-story medical clinic with an immaculate white facade. A bright red cross symbol is prominently displayed near the welcoming main entrance, alongside a well-lit, fully operational ambulance bay."
+      },
+      {
+        "state": "shielded",
+        "description": "The original illustration is altered to include a soothing, pulsing green energy barrier wrapping around the building in a cylinder of restorative hard-light, projecting giant ethereal shields to ensure the safety of the patients."
+      },
+      {
+        "state": "damaged",
+        "description": "The original artwork is modified to display a battle-scarred medical clinic. The immaculate white facade is stained with soot and cracked, the red cross symbol is partially melted, and the ambulance bay doors are dented by heavy debris."
+      },
+      {
+        "state": "ruined",
+        "description": "The original scene is reduced to devastating ruins. Where the clinic once stood, only the foundation and a few reinforced pillars remain, surrounded by heaps of shattered concrete."
+      }
+    ]
   },
   {
     "id": 8,
     "type": "bld08",
-    "name": "Shattered Library",
+    "name": "Library",
     "state": "damaged",
     "hp": 60,
     "maxHp": 100,
@@ -101,12 +227,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 8,
-    "maxPopulation": 90
+    "maxPopulation": 90,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "An ornate brass card border inscribed with elegant academic scrollwork frames the artwork. The illustration depicts a grand, classical-style library in perfect condition. Imposing stone columns support a flawless facade with large, gleaming arched windows, while sweeping stone steps lead up to heavy, beautifully polished wooden doors."
+      },
+      {
+        "state": "shielded",
+        "description": "The original image is enhanced with a energy barrier interlocked with modern geometric grid lines."
+      },
+      {
+        "state": "damaged",
+        "description": "The original artwork is altered to depict a battered facade. Several of the imposing stone columns are chipped by weapons fire, the arched windows are shattered, and the beautifully polished wooden doors are splintered and hanging off their hinges."
+      },
+      {
+        "state": "ruined",
+        "description": "The normal illustration is transformed into tragic ruins. The grand roof has completely collapsed, crushing the stone columns, and burnt, glowing pages of magical and mundane texts flutter through the air around the blackened rubble."
+      }
+    ]
   },
   {
     "id": 9,
     "type": "bld09",
-    "name": "Vacant School",
+    "name": "School",
     "state": "functional",
     "hp": 100,
     "maxHp": 100,
@@ -114,12 +258,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 10,
-    "maxPopulation": 85
+    "maxPopulation": 85,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "An ornate brass card border inscribed with elegant academic scrollwork frames the artwork. The illustration presents a charming, traditional red-brick schoolhouse with a pristine bell tower on its gabled roof. A flag flies high on the front yard's flagpole, overlooking a freshly paved playground filled with vibrant recess equipment."
+      },
+      {
+        "state": "shielded",
+        "description": "The original image is updated to show a bright, multi-colored energy barrier shielding the whole building."
+      },
+      {
+        "state": "damaged",
+        "description": "The original illustration is altered to present a damaged schoolhouse. The pristine bell tower has partially collapsed, the flagpole is bent at a sharp angle by an explosion, and the playground equipment is overturned and scorched."
+      },
+      {
+        "state": "ruined",
+        "description": "The schoolhouse is unusable, with part of the walls collapsed and the roof caved in. The flagpole is snapped, and the playground equipment is twisted and broken. The bell tower is broken and on the ground."
+      }
+    ]
   },
   {
     "id": 10,
     "type": "bld01",
-    "name": "Abandoned Apartment",
+    "name": "Apartment",
     "state": "ruined",
     "hp": 0,
     "maxHp": 100,
@@ -127,12 +289,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 0,
-    "maxPopulation": 24
+    "maxPopulation": 24,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A warm bronze card border etched with interlocking brick motifs frames the artwork. The illustration shows a sturdy, multi-story brick apartment building in its prime. Windows gleam with warm light, a neatly painted fire escape runs down the side, and a welcoming main entrance is flanked by potted plants."
+      },
+      {
+        "state": "shielded",
+        "description": "The original artwork is altered to include a translucent, hexagonal energy barrier enveloping the building, its blue grid-lines pulsing softly against the brickwork."
+      },
+      {
+        "state": "damaged",
+        "description": "The original illustration is altered to show the building bearing heavy damage. The once-gleaming windows are shattered by blast waves, the fire escape is twisted, and scorch marks from both magic and ballistics mar the brickwork."
+      },
+      {
+        "state": "ruined",
+        "description": "The original scene is completely transformed to display the collapsed remains of the apartment. The roof has entirely caved in, leaving a smoldering pile of rubble and blackened structural beams where the building once stood, with faint system-error sparks flickering in the dust."
+      }
+    ]
   },
   {
     "id": 11,
     "type": "bld02",
-    "name": "Old Warehouse",
+    "name": "Warehouse",
     "state": "damaged",
     "hp": 30,
     "maxHp": 100,
@@ -140,12 +320,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 2,
-    "maxPopulation": 50
+    "maxPopulation": 50,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A heavy gunmetal card border bolted with industrial rivets frames the artwork. The illustration showcases a vast, bustling corrugated metal warehouse. A massive, open roll-up garage door reveals a brightly lit, organized interior filled with stacked crates, while clean, high windows let in beams of sunlight."
+      },
+      {
+        "state": "shielded",
+        "description": "The original image is enhanced by a shimmering, golden energy barrier shaped as a dome projecting from the roof, overlaying a digital honeycomb pattern over the facility."
+      },
+      {
+        "state": "damaged",
+        "description": "The original artwork is modified to depict a battered state. The massive roll-up door is now jammed and sparking, the clean metal siding is heavily dented by impacts, and the high windows are completely blown out."
+      },
+      {
+        "state": "ruined",
+        "description": "The original illustration is replaced by the twisted, rusted skeleton of the warehouse. The metal roof has collapsed inward, crushing the organized inventory beneath."
+      }
+    ]
   },
   {
     "id": 12,
     "type": "bld03",
-    "name": "Derelict Office",
+    "name": "Office",
     "state": "damaged",
     "hp": 70,
     "maxHp": 100,
@@ -153,12 +351,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 6,
-    "maxPopulation": 30
+    "maxPopulation": 30,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A sleek brushed steel card border accented by sharp, geometric lines frames the artwork. The illustration portrays a modern mid-rise office building with a gleaming glass facade reflecting a bright blue sky. A busy revolving door spins at the base under a brightly lit, pristine corporate logo."
+      },
+      {
+        "state": "shielded",
+        "description": "The original illustration is updated to show an advanced, hard-light energy barrier surrounding the tower, refracting incoming light into a prism of digital, cyberpunk-style colors."
+      },
+      {
+        "state": "damaged",
+        "description": "The building is heavily damaged. Huge sections of the gleaming glass facade are blown out to expose ruined cubicles."
+      },
+      {
+        "state": "ruined",
+        "description": "The original scene is completely devastated, showing a gutted mid-rise office building. The structure is reduced to a blackened concrete and steel husk, fires smolder in the lower levels."
+      }
+    ]
   },
   {
     "id": 13,
     "type": "bld04",
-    "name": "Crumbling Tenement",
+    "name": "Tenement",
     "state": "ruined",
     "hp": 0,
     "maxHp": 100,
@@ -166,12 +382,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 0,
-    "maxPopulation": 20
+    "maxPopulation": 20,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A warm bronze card border etched with interlocking brick motifs frames the artwork. The illustration depicts a vibrant, densely packed multi-family tenement block built from clean red brick. Clotheslines flutter with fresh laundry between windows, and residents can be seen chatting on well-maintained fire escapes."
+      },
+      {
+        "state": "shielded",
+        "description": "The original artwork is modified with a soft, semi-transparent energy barrier over the building."
+      },
+      {
+        "state": "damaged",
+        "description": "The original image is altered to depict a battered tenement block. The clean red brick is chipped and pockmarked with bullet holes and spell blasts, the clotheslines are snapped, and the fire escapes sag dangerously."
+      },
+      {
+        "state": "ruined",
+        "description": "The normal illustration is transformed to show the tenement block destroyed. Half the structure has been sheared away like a dollhouse, exposing charred interiors where residents once lived, while a thick layer of ash and fading mana particles covers the debris."
+      }
+    ]
   },
   {
     "id": 14,
     "type": "bld05",
-    "name": "Empty Supermarket",
+    "name": "Supermarket",
     "state": "damaged",
     "hp": 55,
     "maxHp": 100,
@@ -179,12 +413,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 4,
-    "maxPopulation": 100
+    "maxPopulation": 100,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A sleek brushed steel card border accented by sharp, geometric lines frames the artwork. The illustration shows a vibrant single-story supermarket with a wide, spotless glass storefront and inviting automatic doors. Neatly stacked shopping carts waiting by the entrance."
+      },
+      {
+        "state": "shielded",
+        "description": "The original image is enhanced to feature a glowing, neon-tinted energy barrier surrounding the buidling."
+      },
+      {
+        "state": "damaged",
+        "description": "The original illustration is altered to show a looted and damaged supermarket. The spotless glass storefront is completely shattered, automatic doors are violently wedged open, and the once-neat shopping carts are overturned and strewn chaotically across the cracked pavement."
+      },
+      {
+        "state": "ruined",
+        "description": "The supermarket roof has caved in. All glass is shattered, and the shopping carts are twisted and broken."
+      }
+    ]
   },
   {
     "id": 15,
     "type": "bld06",
-    "name": "Forsaken Factory",
+    "name": "Factory",
     "state": "damaged",
     "hp": 80,
     "maxHp": 100,
@@ -192,12 +444,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 9,
-    "maxPopulation": 120
+    "maxPopulation": 120,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A heavy gunmetal card border bolted with industrial rivets frames the artwork. The illustration features a sprawling, active industrial factory complex. Tall smokestacks vent steady plumes of white steam, and rows of pristine, paned windows illuminate the productive machinery operating within the dark brick structure."
+      },
+      {
+        "state": "shielded",
+        "description": "The original artwork is updated to show a dense, magenta energy barrier matrix weaving through the smokestacks and forming an angled roof-like shield, protecting the heavy industry with interlocking magical wards."
+      },
+      {
+        "state": "damaged",
+        "description": "The original image is modified to feature a battle-scarred factory. Several of the tall smokestacks have snapped in half, masonry is blown out from the walls, and the pristine windows are shattered by nearby explosive impacts."
+      },
+      {
+        "state": "ruined",
+        "description": "The walls are heavily damaged, with large sections of brick blown out and the roof partially collapsed. The chimneys have snapped."
+      }
+    ]
   },
   {
     "id": 16,
     "type": "bld07",
-    "name": "Ruined Clinic",
+    "name": "Clinic",
     "state": "ruined",
     "hp": 0,
     "maxHp": 100,
@@ -205,12 +475,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 0,
-    "maxPopulation": 44
+    "maxPopulation": 44,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "A pristine white and silver card border embossed with faint medical cross insignias frames the artwork. The illustration displays a clean, modern two-story medical clinic with an immaculate white facade. A bright red cross symbol is prominently displayed near the welcoming main entrance, alongside a well-lit, fully operational ambulance bay."
+      },
+      {
+        "state": "shielded",
+        "description": "The original illustration is altered to include a soothing, pulsing green energy barrier wrapping around the building"
+      },
+      {
+        "state": "damaged",
+        "description": "The original artwork is modified to display a battle-scarred medical clinic. The immaculate white facade is stained with soot and cracked, the red cross symbol is partially melted, and the ambulance bay doors are dented by heavy debris."
+      },
+      {
+        "state": "ruined",
+        "description": "The original scene is reduced to devastating ruins."
+      }
+    ]
   },
   {
     "id": 17,
     "type": "bld08",
-    "name": "Shattered Library",
+    "name": "Library",
     "state": "ruined",
     "hp": 0,
     "maxHp": 100,
@@ -218,12 +506,30 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 0,
-    "maxPopulation": 90
+    "maxPopulation": 90,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "An ornate brass card border inscribed with elegant academic scrollwork frames the artwork. The illustration depicts a grand, classical-style library in perfect condition. Imposing stone columns support a flawless facade with large, gleaming arched windows, while sweeping stone steps lead up to heavy, beautifully polished wooden doors."
+      },
+      {
+        "state": "shielded",
+        "description": "The original image is enhanced with a energy barrier."
+      },
+      {
+        "state": "damaged",
+        "description": "The original artwork is altered to depict a battered facade. Several of the imposing stone columns are chipped by weapons fire, the arched windows are shattered, and the beautifully polished wooden doors are splintered and hanging off their hinges."
+      },
+      {
+        "state": "ruined",
+        "description": "The normal illustration is transformed into tragic ruins. The grand roof has completely collapsed, crushing the stone columns, and burnt, glowing pages of magical and mundane texts flutter through the air around the blackened rubble."
+      }
+    ]
   },
   {
     "id": 18,
     "type": "bld09",
-    "name": "Vacant School",
+    "name": "School",
     "state": "damaged",
     "hp": 25,
     "maxHp": 100,
@@ -231,6 +537,24 @@
     "maxShieldHp": 0,
     "upgrades": [],
     "population": 1,
-    "maxPopulation": 85
+    "maxPopulation": 85,
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "An ornate brass card border inscribed with elegant academic scrollwork frames the artwork. The illustration presents a charming, traditional red-brick schoolhouse with a pristine bell tower on its gabled roof. A flag flies high on the front yard's flagpole, overlooking a freshly paved playground filled with vibrant recess equipment."
+      },
+      {
+        "state": "shielded",
+        "description": "The original image is updated to show a bright, multi-colored energy barrier projecting from a central node on the bell tower, acting as a high-tech magical umbrella or canopy over the school grounds."
+      },
+      {
+        "state": "damaged",
+        "description": "The original illustration is altered to present a damaged schoolhouse. The pristine bell tower has collapsed, the flagpole is bent at a sharp angle by an explosion, and the playground equipment is scorched."
+      },
+      {
+        "state": "ruined",
+        "description": "The original scene is completely replaced by a demolished schoolhouse. The walls have crumbled, ash-covered playground."
+      }
+    ]
   }
 ]

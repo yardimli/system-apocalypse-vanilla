@@ -10,7 +10,8 @@
       "value": 100
     },
     "level": 1,
-    "sellPrice": 15
+    "sellPrice": 15,
+    "card_image_description": "A clean, white border with a thin, red inner line, resembling modern medical packaging. In the center, a sterile white metal box with a red cross symbol is open, revealing neatly arranged bandages and a syringe."
   },
   {
     "id": "ITM003",
@@ -19,7 +20,8 @@
     "type": "Junk",
     "description": "A fragment of a monster's essence, valuable to the System.",
     "level": 1,
-    "sellPrice": 5
+    "sellPrice": 5,
+    "card_image_description": "A dark, jagged border that flickers with red digital static. In the center, a crystalline shard of dark purple rock pulses with a faint, malevolent red light."
   },
   {
     "id": "ITM005",
@@ -33,7 +35,8 @@
     },
     "class": ["Aegis", "Striker"],
     "level": 1,
-    "sellPrice": 10
+    "sellPrice": 10,
+    "card_image_description": "A clean, white border with a thin, blue inner line, resembling modern energy product packaging. In the center, a silver foil wrapper is partially torn open to reveal a dense, nutrient bar that is a vibrant, glowing blue."
   },
   {
     "id": "ITM006",
@@ -46,7 +49,8 @@
       "value": 10
     },
     "level": 1,
-    "sellPrice": 1
+    "sellPrice": 1,
+    "card_image_description": "A simple, brushed aluminum border with small rivets in the corners. In the center, a clear glass bottle with a cork stopper is filled with pristine, sparkling water."
   },
   {
     "id": "ITM008",
@@ -55,7 +59,8 @@
     "type": "Junk",
     "description": "A rare fragment of the System itself.",
     "level": 2,
-    "sellPrice": 50
+    "sellPrice": 50,
+    "card_image_description": "A border made of a glowing blue, hexagonal data-grid pattern. In the center, a perfectly geometric, translucent crystal refracts light into a rainbow of digital patterns."
   },
   {
     "id": "ITM009",
@@ -68,7 +73,8 @@
       "value": 250
     },
     "level": 1,
-    "sellPrice": 40
+    "sellPrice": 40,
+    "card_image_description": "A clean, white border with a thin, red inner line, resembling modern medical packaging. In the center, a durable red canvas bag with a white cross emblem is unzipped to show neatly packed rolls of gauze and medical tools."
   },
   {
     "id": "ITM013",
@@ -82,7 +88,8 @@
     },
     "class": ["Aegis", "Striker"],
     "level": 2,
-    "sellPrice": 25
+    "sellPrice": 25,
+    "card_image_description": "A clean, white border with a thin, blue inner line, resembling modern energy product packaging. In the center, a fist-sized, uncut blue crystal floats just above a surface, emitting a soft, blue glow."
   },
   {
     "id": "ITM014",
@@ -91,7 +98,8 @@
     "type": "Junk",
     "description": "An unstable piece of monster data.",
     "level": 2,
-    "sellPrice": 40
+    "sellPrice": 40,
+    "card_image_description": "A dark, jagged border that flickers with red digital static. In the center, a flickering, glitching shard of black glass is covered in red, pixelated static."
   },
   {
     "id": "ITM015",
@@ -100,7 +108,8 @@
     "type": "Junk",
     "description": "A flawless crystal used in high-end items.",
     "level": 3,
-    "sellPrice": 150
+    "sellPrice": 150,
+    "card_image_description": "A border made of a glowing blue, hexagonal data-grid pattern. In the center, a perfectly cut, diamond-like crystal shines with a brilliant, pure white light."
   },
   {
     "id": "ITM016",
@@ -113,7 +122,8 @@
       "value": 50
     },
     "level": 1,
-    "sellPrice": 8
+    "sellPrice": 8,
+    "card_image_description": "A clean, white border with a thin, red inner line, resembling modern medical packaging. In the center, a small, open clay pot contains a thick, green, herbal paste."
   },
   {
     "id": "ITM017",
@@ -127,7 +137,8 @@
     },
     "class": ["Aegis", "Striker"],
     "level": 1,
-    "sellPrice": 6
+    "sellPrice": 6,
+    "card_image_description": "A clean, white border with a thin, blue inner line, resembling modern energy product packaging. In the center, a small, corked glass vial is filled with a swirling, light-blue liquid that glows faintly."
   },
   {
     "id": "ITM018",
@@ -140,7 +151,8 @@
       "value": 200
     },
     "level": 2,
-    "sellPrice": 30
+    "sellPrice": 30,
+    "card_image_description": "A clean, white border with a thin, red inner line, resembling modern medical packaging. In the center, a classic, teardrop-shaped glass flask is filled with a bubbling, vibrant red liquid."
   },
   {
     "id": "ITM019",
@@ -154,7 +166,8 @@
     },
     "class": ["Aegis", "Striker"],
     "level": 2,
-    "sellPrice": 20
+    "sellPrice": 20,
+    "card_image_description": "A clean, white border with a thin, blue inner line, resembling modern energy product packaging. In the center, a round flask is filled with a deep blue liquid containing tiny, star-like motes of light."
   },
   {
     "id": "ITM020",
@@ -167,7 +180,8 @@
       "value": 500
     },
     "level": 3,
-    "sellPrice": 75
+    "sellPrice": 75,
+    "card_image_description": "A clean, white border with a thin, red inner line, resembling modern medical packaging. In the center, an ornate, crystal decanter is filled with a radiant, crimson liquid that pulses with light."
   },
   {
     "id": "ITM021",
@@ -181,7 +195,8 @@
     },
     "class": ["Aegis", "Striker"],
     "level": 3,
-    "sellPrice": 60
+    "sellPrice": 60,
+    "card_image_description": "A clean, white border with a thin, blue inner line, resembling modern energy product packaging. In the center, a tall, elegant glass bottle contains a swirling, deep violet liquid that resembles a miniature galaxy."
   },
   {
     "id": "ARM001",
@@ -193,7 +208,8 @@
     "damageMitigation": "1-2",
     "level": 1,
     "sellPrice": 10,
-    "description": "Basic cloth armor providing minimal protection."
+    "description": "Basic cloth armor providing minimal protection.",
+    "card_image_description": "A simple border with the texture of coarse, stitched grey canvas. In the center, a simple, sleeveless tunic made of patched brown cloth is displayed on a wooden armor stand."
   },
   {
     "id": "ARM002",
@@ -205,7 +221,8 @@
     "damageMitigation": "3-6",
     "level": 2,
     "sellPrice": 50,
-    "description": "Sturdy leather armor offering moderate protection."
+    "description": "Sturdy leather armor offering moderate protection.",
+    "card_image_description": "A border with the texture of dark brown, stitched leather. In the center, a set of worn but well-maintained boiled leather armor is mounted on a stand."
   },
   {
     "id": "ARM003",
@@ -217,7 +234,8 @@
     "damageMitigation": "7-12",
     "level": 3,
     "sellPrice": 150,
-    "description": "Interlocking metal rings providing good protection against slashing attacks."
+    "description": "Interlocking metal rings providing good protection against slashing attacks.",
+    "card_image_description": "A border showing a clean, interlocking pattern of steel chainmail rings. In the center, a long-sleeved hauberk of steel rings is draped over an armor stand, gleaming dully."
   },
   {
     "id": "ARM004",
@@ -229,7 +247,8 @@
     "damageMitigation": "15-25",
     "level": 4,
     "sellPrice": 400,
-    "description": "Heavy plate armor offering excellent physical protection."
+    "description": "Heavy plate armor offering excellent physical protection.",
+    "card_image_description": "A border of heavy, brushed steel plates joined by rivets. In the center, a full suit of polished steel plate armor stands stoically as if ready for battle."
   },
   {
     "id": "ARM005",
@@ -241,7 +260,8 @@
     "damageMitigation": "30-40",
     "level": 5,
     "sellPrice": 1000,
-    "description": "Advanced powered armor used by Aegis heroes, offering superior protection."
+    "description": "Advanced powered armor used by Aegis heroes, offering superior protection.",
+    "card_image_description": "A futuristic border of interlocking white and blue geometric plates with glowing seams. In the center, a suit of white and blue powered armor stands in a high-tech bay, with glowing energy lines along its limbs."
   },
   {
     "id": "ARM002_V",
@@ -253,7 +273,8 @@
     "damageMitigation": "5-8",
     "level": 2,
     "sellPrice": 90,
-    "description": "Leather armor reinforced with metal studs for better defense."
+    "description": "Leather armor reinforced with metal studs for better defense.",
+    "card_image_description": "A border with the texture of dark brown, stitched leather, studded with small iron rivets. In the center, a black leather cuirass is reinforced with rows of polished iron rivets."
   },
   {
     "id": "ARM003_V",
@@ -265,7 +286,8 @@
     "damageMitigation": "10-16",
     "level": 3,
     "sellPrice": 250,
-    "description": "Chainmail hardened through a special process, increasing its durability."
+    "description": "Chainmail hardened through a special process, increasing its durability.",
+    "card_image_description": "A border showing a clean, interlocking pattern of dark, hardened steel chainmail rings. In the center, a suit of dark, almost black chainmail with thick rings gives off a faint, bluish sheen."
   },
   {
     "id": "ARM004_V",
@@ -277,7 +299,8 @@
     "damageMitigation": "20-30",
     "level": 4,
     "sellPrice": 600,
-    "description": "Expertly crafted plate armor, lighter and stronger than the standard version."
+    "description": "Expertly crafted plate armor, lighter and stronger than the standard version.",
+    "card_image_description": "A border of polished, ornate steel plates with elegant golden inlay. In the center, a suit of ornate, fluted plate armor features intricate gold filigree along its edges."
   },
   {
     "id": "WAND001",
@@ -291,7 +314,8 @@
     "level": 1,
     "sellPrice": 25,
     "magicUserOnly": true,
-    "description": "A simple wooden wand for novice magic users."
+    "description": "A simple wooden wand for novice magic users.",
+    "card_image_description": "A border of light, unpolished wood with simple twine wrappings. In the center, a short, crooked wand of ash wood has a small quartz crystal bound to its tip."
   },
   {
     "id": "WAND002",
@@ -305,7 +329,8 @@
     "level": 2,
     "sellPrice": 100,
     "magicUserOnly": true,
-    "description": "A well-balanced wand for an experienced magic user."
+    "description": "A well-balanced wand for an experienced magic user.",
+    "card_image_description": "A border of polished oak with thin, inlaid silver wire. In the center, a straight, polished oak wand has a silver band at its base and a focused crystal at the tip that glows faintly."
   },
   {
     "id": "WAND003",
@@ -319,7 +344,8 @@
     "level": 3,
     "sellPrice": 350,
     "magicUserOnly": true,
-    "description": "A powerful scepter that greatly amplifies a user's magic."
+    "description": "A powerful scepter that greatly amplifies a user's magic.",
+    "card_image_description": "A border of dark, polished ebony with glowing purple runes carved into it. In the center, a long, ornate scepter is topped with a large, glowing amethyst orb held in a golden setting."
   },
   {
     "id": "SWD001",
@@ -332,7 +358,8 @@
     "damage": "3-5",
     "level": 1,
     "sellPrice": 25,
-    "description": "A basic, rusted shortsword. Better than nothing."
+    "description": "A basic, rusted shortsword. Better than nothing.",
+    "card_image_description": "A simple border of pitted, rust-colored iron. In the center, a shortsword with a fraying leather hilt has patches of orange rust dotting its pitted blade."
   },
   {
     "id": "SWD002",
@@ -345,7 +372,8 @@
     "damage": "8-12",
     "level": 2,
     "sellPrice": 120,
-    "description": "A reliable longsword made of forged steel."
+    "description": "A reliable longsword made of forged steel.",
+    "card_image_description": "A border of clean, forged steel resembling the crossguard of a sword. In the center, a classic arming sword with a polished steel blade rests on a weapon rack."
   },
   {
     "id": "SWD003",
@@ -358,7 +386,8 @@
     "damage": "15-22",
     "level": 3,
     "sellPrice": 400,
-    "description": "A massive greatsword made from a lightweight and durable titanium alloy."
+    "description": "A massive greatsword made from a lightweight and durable titanium alloy.",
+    "card_image_description": "A border of dark grey, modern titanium alloy with sharp, geometric angles. In the center, a huge, two-handed greatsword with a modern design and a dark grey blade is displayed."
   },
   {
     "id": "SHD001",
@@ -371,7 +400,8 @@
     "damageMitigation": "2-4",
     "level": 1,
     "sellPrice": 20,
-    "description": "A small, light wooden shield for parrying."
+    "description": "A small, light wooden shield for parrying.",
+    "card_image_description": "A border of dark wooden planks held together by a riveted iron band. In the center, a small, round shield made of wooden planks has a simple iron boss in the middle."
   },
   {
     "id": "SHD002",
@@ -384,7 +414,8 @@
     "damageMitigation": "6-10",
     "level": 2,
     "sellPrice": 110,
-    "description": "A large, sturdy iron shield offering significant protection."
+    "description": "A large, sturdy iron shield offering significant protection.",
+    "card_image_description": "A border of heavy, overlapping iron plates with large rivets. In the center, a large, teardrop-shaped shield made of riveted iron plates leans against a stone wall, scuffed from battle."
   },
   {
     "id": "SHD003",
@@ -397,7 +428,8 @@
     "damageMitigation": "14-20",
     "level": 3,
     "sellPrice": 380,
-    "description": "A high-tech energy barrier projector, the pinnacle of Vanguard defensive gear."
+    "description": "A high-tech energy barrier projector, the pinnacle of Vanguard defensive gear.",
+    "card_image_description": "A border composed of a shimmering, translucent blue hexagonal energy pattern. In the center, a sleek, forearm-mounted device projects a large, hexagonal, translucent blue energy field."
   },
   {
     "id": "BOW001",
@@ -410,7 +442,8 @@
     "damage": "6-9",
     "level": 2,
     "sellPrice": 100,
-    "description": "A basic but reliable wooden bow. Does not use magic."
+    "description": "A basic but reliable wooden bow. Does not use magic.",
+    "card_image_description": "A simple border with the texture of light-colored yew wood. In the center, a classic yew longbow with a linen bowstring rests against a straw target dummy."
   },
   {
     "id": "BOW002",
@@ -423,7 +456,8 @@
     "damage": "13-18",
     "level": 3,
     "sellPrice": 350,
-    "description": "A composite bow with a stronger pull, for skilled archers."
+    "description": "A composite bow with a stronger pull, for skilled archers.",
+    "card_image_description": "A border of dark, laminated wood with a modern, composite texture. In the center, a powerful recurve bow made of laminated layers of wood and horn is displayed."
   },
   {
     "id": "AMMO001",
@@ -433,6 +467,7 @@
     "type": "Consumable",
     "description": "A bundle of 100 simple arrows. Can be sold.",
     "level": 1,
-    "sellPrice": 20
+    "sellPrice": 20,
+    "card_image_description": "A border with the texture of dark, ballistic nylon fabric. In the center, a leather quiver is filled to the brim with arrows that have steel tips and grey feather fletching."
   }
 ]

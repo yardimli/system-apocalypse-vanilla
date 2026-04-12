@@ -7,7 +7,8 @@
     "effect": {
       "type": "increase_occupant_damage_bonus",
       "value": 0.10
-    }
+    },
+    "card_image_description": "A border of dark metal with red and black diagonal hazard stripes. The image is a close-up of a massive, black steel bumper with heavy-duty welds and a bullbar being bolted onto the front of a vehicle."
   },
   {
     "id": "CAR_DMG_2",
@@ -17,7 +18,8 @@
     "effect": {
       "type": "increase_occupant_damage_bonus",
       "value": 0.15
-    }
+    },
+    "card_image_description": "A border of dark metal with red and black diagonal hazard stripes. The image is a close-up shot of a rugged, off-road tire where large, sharp metal spikes have been bolted through the tread, looking menacing."
   },
   {
     "id": "CAR_DMG_3",
@@ -27,7 +29,8 @@
     "effect": {
       "type": "increase_occupant_damage_bonus",
       "value": 0.20
-    }
+    },
+    "card_image_description": "A border of dark metal with red and black diagonal hazard stripes. The image shows a heavy machine gun on a swivel mount in a workshop, with a belt of ammunition feeding into it, ready for installation."
   },
   {
     "id": "CAR_DMG_4",
@@ -37,7 +40,8 @@
     "effect": {
       "type": "increase_occupant_damage_bonus",
       "value": 0.25
-    }
+    },
+    "card_image_description": "A border of dark metal with red and black diagonal hazard stripes. The image shows a sleek, futuristic laser cannon on a turret. Coils along the barrel glow with intense red energy, and heat haze shimmers around the muzzle."
   },
   {
     "id": "CAR_DMG_5",
@@ -47,7 +51,8 @@
     "effect": {
       "type": "increase_occupant_damage_bonus",
       "value": 0.30
-    }
+    },
+    "card_image_description": "A border of dark metal with red and black diagonal hazard stripes. The image shows a row of large-caliber bullets laid out on a table. The tips of the projectiles are glowing with a bright, crackling blue energy."
   },
   {
     "id": "CAR_MIT_1",
@@ -57,7 +62,8 @@
     "effect": {
       "type": "increase_occupant_mitigation_bonus",
       "value": 0.05
-    }
+    },
+    "card_image_description": "A border of heavy, bolted blue steel plates. The image shows several thick, overlapping plates of dark, scarred steel being riveted onto the side of a car door."
   },
   {
     "id": "CAR_MIT_2",
@@ -67,7 +73,8 @@
     "effect": {
       "type": "increase_occupant_mitigation_bonus",
       "value": 0.10
-    }
+    },
+    "card_image_description": "A border of heavy, bolted blue steel plates. The image is a cross-section of a car window, showing multiple thick layers of glass and polymer. A bullet is embedded halfway through, stopped from penetrating."
   },
   {
     "id": "CAR_MIT_3",
@@ -77,7 +84,8 @@
     "effect": {
       "type": "increase_occupant_mitigation_bonus",
       "value": 0.15
-    }
+    },
+    "card_image_description": "A border of heavy, bolted blue steel plates. The image is a close-up of several brick-like modules of Explosive Reactive Armor (ERA) bolted onto the side of a vehicle. One brick has a scorch mark on it."
   },
   {
     "id": "CAR_MIT_4",
@@ -87,7 +95,8 @@
     "effect": {
       "type": "increase_occupant_mitigation_bonus",
       "value": 0.20
-    }
+    },
+    "card_image_description": "A border of heavy, bolted blue steel plates. The image shows a high-tech, circular device with glowing blue components mounted on a vehicle's roof, emitting a faint, shimmering, dome-shaped energy field."
   },
   {
     "id": "CAR_MIT_5",
@@ -97,6 +106,7 @@
     "effect": {
       "type": "increase_occupant_mitigation_bonus",
       "value": 0.25
-    }
+    },
+    "card_image_description": "A border of heavy, bolted blue steel plates. The image shows a powerful, advanced emitter projecting a solid, bright blue hexagonal energy field that visibly deflects incoming red energy bolts."
   }
 ]

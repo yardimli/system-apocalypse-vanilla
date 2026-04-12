@@ -4,139 +4,159 @@
     "name": "Scrappy Sedan",
     "description": "A basic four-door vehicle. It runs, most of the time.",
     "price": 40,
-    "upgrades": []
+    "upgrades": [],
+    "card_image_description": "A border with the texture of cracked, worn asphalt with a faded yellow line. In the center, a faded blue, mid-2010s sedan sits on a deserted street, with mismatched body panels and a spiderweb crack on the windshield."
   },
   {
     "id": "CAR02",
     "name": "Rugged Pickup",
     "description": "An old pickup truck with a decent-sized bed for hauling.",
     "price": 50,
-    "upgrades": []
+    "upgrades": [],
+    "card_image_description": "A border with the texture of cracked, worn asphalt with a faded yellow line. In the center, an old, rust-colored pickup truck from the 90s is parked in a dusty, abandoned lot, its bed filled with scavenged supplies."
   },
   {
     "id": "CAR03",
     "name": "Compact Hatchback",
     "description": "Small, nimble, and fuel-efficient. Not much in a fight.",
     "price": 55,
-    "upgrades": []
+    "upgrades": [],
+    "card_image_description": "A border with the texture of cracked, worn asphalt with a faded yellow line. In the center, a small, bright red hatchback with a few dents is shown navigating a narrow, debris-strewn alleyway."
   },
   {
     "id": "CAR04",
     "name": "Family Van",
     "description": "It used to haul kids to soccer practice. Now it hauls heroes.",
     "price": 25,
-    "upgrades": []
+    "upgrades": [],
+    "card_image_description": "A border with the texture of cracked, worn asphalt with a faded yellow line. In the center, a white minivan with faded bumper stickers has its side door slid open, revealing an interior repurposed for hauling gear."
   },
   {
     "id": "CAR05",
     "name": "Classic Muscle Car",
     "description": "Loud and fast, but guzzles resources. A real attention-grabber.",
     "price": 80,
-    "upgrades": []
+    "upgrades": [],
+    "card_image_description": "A border with the texture of cracked, worn asphalt with a faded yellow line. In the center, a black, late 70s muscle car with a massive engine block sticking out of the hood sits in a dimly lit garage, looking powerful but dusty."
   },
   {
     "id": "CAR06",
     "name": "Sturdy SUV",
     "description": "A reliable all-terrain vehicle with plenty of interior space.",
     "price": 70,
-    "upgrades": []
+    "upgrades": [],
+    "card_image_description": "A border with the texture of cracked, worn asphalt with a faded yellow line. In the center, a dark green, modern SUV with large, all-terrain tires covered in mud fords a shallow stream in a ruined suburban area."
   },
   {
     "id": "CAR07",
     "name": "Beat-up Coupe",
     "description": "A two-door car that's seen better days. It's cheap, at least.",
     "price": 60,
-    "upgrades": []
+    "upgrades": [],
+    "card_image_description": "A border with the texture of cracked, worn asphalt with a faded yellow line. In the center, a silver two-door sports coupe has extensive body damage on one side and a missing headlight."
   },
   {
     "id": "CAR08",
     "name": "Retired Taxi",
     "description": "This car has seen a million miles and is ready for a million more.",
     "price": 30,
-    "upgrades": []
+    "upgrades": [],
+    "card_image_description": "A border with the texture of cracked, worn asphalt with a faded yellow line. In the center, a classic yellow cab with a smashed roof light has peeling paint and faded 'TAXI' lettering on the side."
   },
   {
     "id": "CAR09",
     "name": "Old Mail Truck",
     "description": "Slow and clumsy, but built like a brick. Right-hand drive is a feature.",
     "price": 80,
-    "upgrades": []
+    "upgrades": [],
+    "card_image_description": "A border with the texture of cracked, worn asphalt with a faded yellow line. In the center, a boxy, white mail truck with faded postal service logos is parked awkwardly on a curb, its sliding door slightly ajar."
   },
   {
     "id": "CAR010",
     "name": "Luxury Sedan",
     "description": "A comfortable ride, though its delicate electronics are prone to failure.",
     "price": 50,
-    "upgrades": []
+    "upgrades": [],
+    "card_image_description": "A border with the texture of cracked, worn asphalt with a faded yellow line. In the center, a sleek, black luxury sedan with tinted windows is covered in a layer of grime, and one of its high-tech headlights is flickering."
   },
   {
     "id": "CAR011",
     "name": "Scout Vehicle",
     "description": "A pickup with a reinforced bumper for pushing through debris.",
     "price": 120,
-    "upgrades": ["CAR_DMG_1"]
+    "upgrades": ["CAR_DMG_1"],
+    "card_image_description": "A border of stamped, industrial diamond plate steel. In the center, the rugged pickup truck now has a massive, welded-on steel battering ram on the front bumper, which is heavily scratched and dented."
   },
   {
     "id": "CAR012",
     "name": "Armored Van",
     "description": "A reinforced van, perfect for supply runs in dangerous territory.",
     "price": 150,
-    "upgrades": ["CAR_MIT_1"]
+    "upgrades": ["CAR_MIT_1"],
+    "card_image_description": "A border of stamped, industrial diamond plate steel. In the center, the family van now has crude steel plates bolted over the windows and doors, covered in scratches and small-caliber bullet dings."
   },
   {
     "id": "CAR013",
     "name": "Assault Buggy",
     "description": "A lightweight SUV fitted with spiked wheels for extra traction and damage.",
     "price": 300,
-    "upgrades": ["CAR_DMG_2"]
+    "upgrades": ["CAR_DMG_2"],
+    "card_image_description": "A border of jagged, welded scrap metal plates with exposed welds. In the center, the sturdy SUV has been stripped down, with its doors removed, a roll cage added, and its tires replaced with massive wheels covered in wicked-looking metal spikes."
   },
   {
     "id": "CAR014",
     "name": "Mobile Shield",
     "description": "This sedan has been retrofitted with bulletproof glass.",
     "price": 280,
-    "upgrades": ["CAR_MIT_2"]
+    "upgrades": ["CAR_MIT_2"],
+    "card_image_description": "A border of stamped, industrial diamond plate steel. In the center, the scrappy sedan's windows now have a thick, multi-layered look. A small impact crater is visible on the driver's side window, but it hasn't shattered."
   },
   {
     "id": "CAR015",
     "name": "Patrol Car",
     "description": "A former police cruiser with both armor plating and a reinforced bumper.",
     "price": 350,
-    "upgrades": ["CAR_DMG_1", "CAR_MIT_1"]
+    "upgrades": ["CAR_DMG_1", "CAR_MIT_1"],
+    "card_image_description": "A border of stamped, industrial diamond plate steel. In the center, a black-and-white former police cruiser is shown with a reinforced push-bar on the front and visible armor plating along the doors, all showing signs of heavy use."
   },
   {
     "id": "CAR016",
     "name": "Hunter's SUV",
     "description": "An SUV equipped for monster hunting with spiked wheels and better glass.",
     "price": 450,
-    "upgrades": ["CAR_DMG_2", "CAR_MIT_2"]
+    "upgrades": ["CAR_DMG_2", "CAR_MIT_2"],
+    "card_image_description": "A border of jagged, welded scrap metal plates with exposed welds. In the center, the sturdy SUV is outfitted with both spiked wheels and thick, reinforced glass, looking ready for dangerous off-road encounters."
   },
   {
     "id": "CAR017",
     "name": "Gunner Truck",
     "description": "A pickup truck with a mounted machine gun ready for action.",
     "price": 550,
-    "upgrades": ["CAR_DMG_3"]
+    "upgrades": ["CAR_DMG_3"],
+    "card_image_description": "A border of jagged, welded scrap metal plates with exposed welds. In the center, the rugged pickup now features a heavy machine gun on a swivel mount in the truck bed. Belts of ammunition are draped next to the gun."
   },
   {
     "id": "CAR018",
     "name": "Guardian SUV",
     "description": "An SUV with experimental reactive armor for superior protection.",
     "price": 500,
-    "upgrades": ["CAR_MIT_3"]
+    "upgrades": ["CAR_MIT_3"],
+    "card_image_description": "A border of jagged, welded scrap metal plates with exposed welds. In the center, the sturdy SUV's exterior is covered in bulky, explosive reactive armor (ERA) blocks, giving it a very blocky, military appearance."
   },
   {
     "id": "CAR019",
     "name": "Road Warrior",
     "description": "A muscle car that's been heavily modified with armor and spikes.",
     "price": 600,
-    "upgrades": ["CAR_DMG_2", "CAR_MIT_3"]
+    "upgrades": ["CAR_DMG_2", "CAR_MIT_3"],
+    "card_image_description": "A border of jagged, welded scrap metal plates with exposed welds. In the center, the classic muscle car is transformed, covered in mismatched armor plates and reactive armor blocks, with spikes protruding from the wheels and a skull emblem painted on the hood."
   },
   {
     "id": "CAR020",
     "name": "Command Vehicle",
     "description": "A van equipped with both a machine gun and reactive armor.",
     "price": 800,
-    "upgrades": ["CAR_DMG_3", "CAR_MIT_3"]
+    "upgrades": ["CAR_DMG_3", "CAR_MIT_3"],
+    "card_image_description": "A border of jagged, welded scrap metal plates with exposed welds. In the center, the family van is now an unrecognizable war machine, covered in reactive armor blocks and featuring a remote-controlled machine gun turret and multiple antennas on the roof."
   }
 ]
