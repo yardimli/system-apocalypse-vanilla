@@ -2,36 +2,33 @@ import { gameState, gameData } from './state.js';
 import { addToLog, parseRange } from './utils.js';
 import { recalculateHeroStats } from './heroes.js';
 
-/**
- * Executes the effect of a combat skill after its cast time is complete.
- * This function handles damage, resource consumption, cooldowns, and visual feedback.
- * @param {object} hero - The hero object performing the action.
- * @param {object} skill - The skill data object.
- * @param {object} monster - The target monster object.
- */
 export function executeCombatEffect (hero, skill, monster) {
-	if (!monster || monster.currentHp <= 0) return; // Stop if monster is already dead
+	if (!monster || monster.currentHp <= 0) return;
 	
 	let success = false;
 	const rageCost = skill.rageCost || 0;
 	const hasEnoughRage = hero.rage && hero.rage.current >= rageCost;
 	
-	switch (skill.actionType) {
+	// INFER ACTION TYPE
+	let actionType = skill.actionType;
+	if (!actionType) {
+		if (skill.class === 'Tanking' && skill.name.includes('Taunt')) actionType = 'taunt';
+		else if (skill.damage) actionType = 'attack';
+	}
+	
+	switch (actionType) {
 		case 'attack': {
 			const levelBoost = 1 + (hero.level * 0.1);
-			
-			// Calculate stat multiplier based on class archetype
 			let statMultiplier = 1;
 			if (hero.class === 'Vanguard') {
-				statMultiplier = 1 + (hero.stats.str * 0.02); // 2% Physical Damage per STR
+				statMultiplier = 1 + (hero.stats.str * 0.02);
 			} else if (hero.class === 'Striker') {
-				statMultiplier = 1 + (hero.stats.agi * 0.02); // 2% Ranged Damage per AGI
+				statMultiplier = 1 + (hero.stats.agi * 0.02);
 			} else {
-				statMultiplier = 1 + (hero.stats.int * 0.02); // 2% Magic Damage per INT
+				statMultiplier = 1 + (hero.stats.int * 0.02);
 			}
 			
 			const totalBoost = levelBoost * statMultiplier;
-			
 			let damageDealt;
 			let agroGenerated;
 			
@@ -115,13 +112,6 @@ export function executeCombatEffect (hero, skill, monster) {
 	}
 }
 
-/**
- * Initiates a combat action, checking for cast time.
- * If the skill is instant, its effect is executed immediately.
- * If it has a cast time, the hero's 'casting' state is set.
- * @param {number} heroId - The ID of the hero performing the action.
- * @param {string} skillId - The ID of the skill being used.
- */
 export function startCombatAction (heroId, skillId) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
 	const skill = gameData.skills.find(s => s.id === skillId);
@@ -135,46 +125,47 @@ export function startCombatAction (heroId, skillId) {
 	const mpCost = skill.mpCost || 0;
 	const rageCost = skill.rageCost || 0;
 	
+	// INFER ACTION TYPE
+	let actionType = skill.actionType;
+	if (!actionType) {
+		if (skill.class === 'Tanking' && skill.name.includes('Taunt')) actionType = 'taunt';
+		else if (skill.damage) actionType = 'attack';
+	}
+	
 	if (hero.class === 'Vanguard') {
-		if (skill.actionType === 'taunt' && (!hero.rage || hero.rage.current < rageCost)) {
-			return; // Not enough rage for Challenge, so abort.
+		if (actionType === 'taunt' && (!hero.rage || hero.rage.current < rageCost)) {
+			return;
 		}
 	} else {
-		// For other classes, check MP.
 		if (hero.mp.current < mpCost) {
-			return; // Not enough MP, so abort.
+			return;
 		}
 	}
 	
-	// For instant-cast skills, execute the effect immediately.
 	if (skill.castTime === 0) {
 		executeCombatEffect(hero, skill, monster);
 	} else {
-		// For skills with a cast time, set the hero's casting state.
 		hero.casting = {
 			skillId: skill.id,
 			castEndTime: gameState.time + skill.castTime,
-			options: {} // Store any relevant options for when the cast completes
+			options: {}
 		};
 		addToLog(`begins casting ${skill.name}.`, hero.id);
 	}
 }
 
-/**
- * Executes the effect of an Aegis skill after its cast time is complete.
- * @param {object} hero - The hero object performing the action.
- * @param {object} skill - The skill data object.
- * @param {object} options - Options for the skill, e.g., { targetHeroId }.
- */
 export function executeAegisEffect (hero, skill, options = {}) {
 	let success = false;
 	const levelBoost = 1 + (hero.level * 0.1);
 	
-	// Spirit boosts healing power
-	const statMultiplier = 1 + (hero.stats.spr * 0.02); // 2% Healing per SPR
+	const statMultiplier = 1 + (hero.stats.spr * 0.02);
 	const totalBoost = levelBoost * statMultiplier;
 	
-	switch (skill.actionType) {
+	// INFER ACTION TYPE
+	let actionType = skill.actionType;
+	if (!actionType && skill.class === 'Healing') actionType = 'heal';
+	
+	switch (actionType) {
 		case 'heal':
 			const targetHero = gameState.heroes.find(h => h.id === options.targetHeroId);
 			if (targetHero && targetHero.hp.current < targetHero.hp.max) {
@@ -230,19 +221,13 @@ export function executeAegisEffect (hero, skill, options = {}) {
 			hero.level++;
 			hero.xp.current -= hero.xp.max;
 			hero.xp.max = Math.ceil(hero.xp.max * 1.5);
-			hero.unspentStatPoints += 3; // Grant 3 stat points per level
-			recalculateHeroStats(hero); // Update derived stats
+			hero.unspentStatPoints += 3;
+			recalculateHeroStats(hero);
 			addToLog(`reached Level ${hero.level}! Gained 3 Stat Points.`, hero.id);
 		}
 	}
 }
 
-/**
- * Initiates an Aegis action, checking for cast time.
- * @param {number} heroId - The ID of the hero performing the action.
- * @param {string} skillId - The ID of the skill being used.
- * @param {object} options - Options for the skill, e.g., { targetHeroId }.
- */
 export function startAegisAction (heroId, skillId, options = {}) {
 	const hero = gameState.heroes.find(h => h.id === heroId);
 	const skill = gameData.skills.find(s => s.id === skillId);
@@ -250,11 +235,15 @@ export function startAegisAction (heroId, skillId, options = {}) {
 	const isOnCooldown = (hero.skillCooldowns[skillId] || 0) > gameState.time;
 	if (!hero || !skill || hero.casting || hero.mp.current < skill.mpCost || (skill.levelRequirement && hero.level < skill.levelRequirement) || isOnCooldown) return;
 	
-	if (skill.actionType === 'heal') {
+	// INFER ACTION TYPE
+	let actionType = skill.actionType;
+	if (!actionType && skill.class === 'Healing') actionType = 'heal';
+	
+	if (actionType === 'heal') {
 		const targetHero = gameState.heroes.find(h => h.id === options.targetHeroId);
 		if (!targetHero || targetHero.hp.current >= targetHero.hp.max) {
 			if (targetHero) addToLog(`cannot heal ${targetHero.name}, they are already at full health.`, hero.id);
-			return; // Don't start cast if target is full health
+			return;
 		}
 	}
 	

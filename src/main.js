@@ -220,11 +220,15 @@ function processGameTick () {
 				const isOnCooldown = (hero.skillCooldowns[skillId] || 0) > gameState.time;
 				
 				if (meetsLevelReq && canAutoCast && hasResources && !isOnCooldown) {
-					if (skill.class === 'Aegis') {
+					if (hero.class === 'Aegis') { // Check hero.class instead of skill.class
 						let shouldCast = false;
 						const options = {};
 						
-						if (skill.actionType === 'heal') {
+						// INFER ACTION TYPE
+						let actionType = skill.actionType;
+						if (!actionType && skill.class === 'Healing') actionType = 'heal';
+						
+						if (actionType === 'heal') {
 							const targetId = hero.skillTargets[skillId];
 							const targetHero = gameState.heroes.find(h => h.id === targetId);
 							if (targetHero && targetHero.hp.current < (targetHero.hp.max * 0.85)) {

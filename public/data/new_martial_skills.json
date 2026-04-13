@@ -13,7 +13,7 @@
     "passive": false,
     "weapon": "Any Melee",
     "description": "A swift, basic attack that deals minor physical damage. Generates a small amount of combo points.",
-    "damage": "15-20",
+    "damage": "3-6",
     "agroValue": 18,
     "agroMultiplier": 1.1,
     "autoCastUnlockLevel": 3,

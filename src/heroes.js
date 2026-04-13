@@ -349,27 +349,34 @@ export function renderSkillsPanel (alpha = 0) {
 			const mpCost = skillData.mpCost || 0;
 			const rageCost = skillData.rageCost || 0;
 			
+			// INFER ACTION TYPE FROM JSON DATA
+			let actionType = skillData.actionType;
+			if (!actionType) {
+				if (skillData.class === 'Healing') actionType = 'heal';
+				else if (skillData.class === 'Tanking' && skillData.name.includes('Taunt')) actionType = 'taunt';
+				else if (skillData.damage) actionType = 'attack';
+			}
+			
 			let hasResources;
 			if (hero.class === 'Vanguard') {
-				if (skillData.actionType === 'taunt') {
+				if (actionType === 'taunt') {
 					hasResources = hero.rage && hero.rage.current >= rageCost;
 				} else {
 					hasResources = true;
 				}
 			} else {
-				// Non-vanguards use MP.
 				hasResources = hero.mp && hero.mp.current >= mpCost;
 			}
 			
 			let canUseInCurrentState = true;
-			if (skillData.actionType === 'attack' || skillData.actionType === 'taunt') {
+			if (actionType === 'attack' || actionType === 'taunt') {
 				canUseInCurrentState = !!hero.targetMonsterId;
 			}
 			
 			const shouldFlash = hero.skillFlash && hero.skillFlash.id === skillData.id && gameState.time < hero.skillFlash.clearAtTime;
 			const costText = rageCost > 0 ? `${rageCost} Rage` : (mpCost > 0 ? `${mpCost} MP` : '');
 			
-			if (skillData.actionType === 'heal') {
+			if (actionType === 'heal') {
 				if (!castContainer.querySelector('.btn-group-wrapper')) {
 					const buttonHtml = gameState.heroes.map(targetHero => {
 						const buttonContent = `<span class="relative">${targetHero.name.substring(0, 3)} ${costText ? `(${costText})` : ''}</span>`;
@@ -393,14 +400,12 @@ export function renderSkillsPanel (alpha = 0) {
 					if (isCastingThisSkill) {
 						const castTime = skillData.castTime;
 						const castEndTime = hero.casting.castEndTime;
-						// Calculate remaining time at the start of the tick, then subtract alpha for smooth progress.
 						const remainingCastTime = castEndTime - gameState.time;
 						const smoothRemaining = Math.max(0, remainingCastTime - alpha);
 						const elapsedSmooth = castTime - smoothRemaining;
 						progressPercent = (elapsedSmooth / castTime) * 100;
 						inProgress = true;
 					} else if (isOnCooldown) {
-						// Cooldown bar depletes from 100% to 0%.
 						const remainingCd = cooldownEndTime - gameState.time;
 						const smoothRemaining = Math.max(0, remainingCd - alpha);
 						progressPercent = (smoothRemaining / skillData.cooldown) * 100;
@@ -428,14 +433,12 @@ export function renderSkillsPanel (alpha = 0) {
 				if (isCastingThisSkill) {
 					const castTime = skillData.castTime;
 					const castEndTime = hero.casting.castEndTime;
-					// Calculate remaining time at the start of the tick, then subtract alpha for smooth progress.
 					const remainingCastTime = castEndTime - gameState.time;
 					const smoothRemaining = Math.max(0, remainingCastTime - alpha);
 					const elapsedSmooth = castTime - smoothRemaining;
 					progressPercent = (elapsedSmooth / castTime) * 100;
 					inProgress = true;
 				} else if (isOnCooldown) {
-					// Cooldown bar depletes from 100% to 0%.
 					const remainingCd = cooldownEndTime - gameState.time;
 					const smoothRemaining = Math.max(0, remainingCd - alpha);
 					progressPercent = (smoothRemaining / skillData.cooldown) * 100;
