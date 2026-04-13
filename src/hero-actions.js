@@ -240,11 +240,16 @@ export function startAction (heroId, skillId, options = {}) {
 	}
 	
 	if (actionType === 'heal') {
-		const targetHero = gameState.heroes.find(h => h.id === options.targetHeroId);
+		// MODIFICATION START: Get target from global state instead of options
+		const targetHeroId = gameState.party.healingTargetId;
+		const targetHero = gameState.heroes.find(h => h.id === targetHeroId);
 		if (!targetHero || targetHero.hp.current >= targetHero.hp.max) {
 			if (targetHero) addToLog(`cannot heal ${targetHero.name}, they are already at full health.`, hero.id);
 			return;
 		}
+		// Add the globally selected target to the action options
+		actionOptions.targetHeroId = targetHeroId;
+		// MODIFICATION END
 	}
 	
 	// --- Execution ---

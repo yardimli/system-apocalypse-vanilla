@@ -4,6 +4,21 @@ import { addToLog, updateTextIfChanged, updateHtmlIfChanged, updateProgressIfCha
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
 
+// NEW: Helper to get image URL, adapted from shop.js for reuse here.
+function getImageUrl (entity) {
+	if (entity && entity.card_images && Array.isArray(entity.card_images)) {
+		const normalImage = entity.card_images.find(img => img.state === 'normal') || entity.card_images[0];
+		if (normalImage) {
+			let folderPath = normalImage.image_folder.replace(/^public/, '');
+			if (!folderPath.startsWith('/')) {
+				folderPath = '/' + folderPath;
+			}
+			return `${folderPath}/thumbnails/${normalImage.image_file_name}`;
+		}
+	}
+	return entity?.image || '/images/placeholder.png'; // Fallback for entities without card_images
+}
+
 /**
  * Recalculates derived stats (Max HP, MP, Stamina, Rage, and Regen rates) based on a hero's core stats.
  * @param {object} hero - The hero object to update.
@@ -88,7 +103,8 @@ function findEntityById (id) {
 	return gameData.items.find(i => i.id === id);
 }
 
-export function renderHeroes () {
+// MODIFICATION: Added alpha parameter for smooth animations.
+export function renderHeroes (alpha = 0) {
 	const grid = getEl('heroes-grid');
 	if (!grid) return;
 	const template = getEl('hero-card-template');
@@ -114,6 +130,13 @@ export function renderHeroes () {
 			if (classEl.className !== newClassName) {
 				classEl.className = newClassName;
 			}
+			const isHealingTarget = gameState.party.healingTargetId === hero.id;
+			classEl.classList.toggle('border-2', isHealingTarget);
+			classEl.classList.toggle('border-info', isHealingTarget);
+			classEl.classList.toggle('cursor-pointer', true); // Always show as clickable
+			if (classEl.dataset.heroId !== String(hero.id)) {
+				classEl.dataset.heroId = hero.id;
+			}
 		}
 		
 		const equipmentContainer = card.querySelector('[data-equipment-container]');
@@ -133,7 +156,6 @@ export function renderHeroes () {
 				if (item.card_images && Array.isArray(item.card_images)) {
 					const normalImage = item.card_images.find(img => img.state === 'normal');
 					if (normalImage) {
-						// Remove 'public' from the beginning of the folder path if it exists
 						let folderPath = normalImage.image_folder.replace(/^public/, '');
 						if (!folderPath.startsWith('/')) {
 							folderPath = '/' + folderPath;
@@ -154,7 +176,6 @@ export function renderHeroes () {
 		const equipStateKey = JSON.stringify(hero.equipment);
 		updateHtmlIfChanged(equipmentContainer, equipHtml, equipStateKey);
 		
-		// Render Stats Container
 		const statsContainer = card.querySelector('[data-stats-container]');
 		if (statsContainer) {
 			const statsStateKey = JSON.stringify(hero.stats) + hero.unspentStatPoints;
@@ -192,7 +213,6 @@ export function renderHeroes () {
 		updateTextIfChanged(card.querySelector('[data-hp-label]'), hpText);
 		updateProgressIfChanged(card.querySelector('[data-hp-bar]'), hero.hp.current, hero.hp.max);
 		
-		// NEW: Render Stamina bar
 		const staminaContainer = card.querySelector('[data-stamina-container]');
 		const canUseStamina = hero.skillClasses.some(sc => ['OneHandBlade', 'Ranged', 'TwoHanded'].includes(sc));
 		if (canUseStamina) {
@@ -205,7 +225,6 @@ export function renderHeroes () {
 		}
 		
 		const mpContainer = card.querySelector('[data-mp-container]');
-		// MODIFIED: Determine if a hero uses MP by checking their available skill classes.
 		const canUseMp = hero.skillClasses.some(sc => ['Healing', 'CrowdControl', 'DpsFire', 'DpsFrost', 'DpsElec', 'DpsArcane'].includes(sc));
 		if (canUseMp) {
 			mpContainer.style.display = 'flex';
@@ -217,7 +236,6 @@ export function renderHeroes () {
 		}
 		
 		const rageContainer = card.querySelector('[data-rage-container]');
-		// MODIFIED: Determine if a hero uses Rage by checking their available skill classes.
 		const canUseRage = hero.skillClasses.includes('Tanking');
 		if (canUseRage) {
 			rageContainer.style.display = 'flex';
@@ -290,191 +308,113 @@ export function renderHeroes () {
 			}
 		}
 		updateHtmlIfChanged(statusArea, statusHtml, statusStateKey);
-	});
-};
-
-export function renderSkillsPanel (alpha = 0) {
-	const container = getEl('skills-panel-container');
-	if (!container) return;
-	
-	if (!container.querySelector('#skills-panel-list')) {
-		container.innerHTML = `
-            <div class="card bg-base-200 shadow-md p-4">
-                <h3 class="font-bold text-lg mb-2">Party Skills</h3>
-                <div id="skills-panel-list" class="flex flex-col gap-1"></div>
-            </div>
-        `;
-	}
-	const listContainer = getEl('skills-panel-list');
-	if (!listContainer) return;
-	
-	const activeSkillRowIds = new Set();
-	
-	gameState.heroes.forEach(hero => {
-		const learnedSkills = hero.skills
-			.map(hs => gameData.skills.find(s => s.id === hs.id))
-			.filter(Boolean);
 		
-		const isHeroCasting = !!hero.casting;
-		
-		learnedSkills.forEach(skillData => {
-			const skillRowDomId = `skill-row-${hero.id}-${skillData.id}`;
-			activeSkillRowIds.add(skillRowDomId);
+		const skillsContainer = card.querySelector('[data-skills-container]');
+		if (skillsContainer) {
+			const learnedSkills = hero.skills
+				.map(hs => gameData.skills.find(s => s.id === hs.id))
+				.filter(Boolean);
 			
-			let skillRowEl = getEl(skillRowDomId);
+			const activeSkillIds = new Set(learnedSkills.map(s => s.id));
 			
-			if (!skillRowEl) {
-				const div = document.createElement('div');
-				div.id = skillRowDomId;
-				div.innerHTML = `
-					<div class="flex items-center justify-between p-2 bg-base-100 rounded gap-4">
-						<div class="w-20 font-bold text-primary truncate" title="${hero.name}">${hero.name}</div>
-						<div class="flex-grow flex items-center gap-2 min-w-0">
-							<div class="flex-grow truncate" title="${skillData.description}">
-								<span class="font-bold text-sm">${skillData.name}</span>
-								<span class="text-gray-400 italic text-xs ml-2">${skillData.description}</span>
+			learnedSkills.forEach(skillData => {
+				const skillCardId = `skill-card-${hero.id}-${skillData.id}`;
+				let skillCard = getEl(skillCardId);
+				
+				const isCastingThisSkill = hero.casting && hero.casting.skillId === skillData.id;
+				const cooldownEndTime = hero.skillCooldowns[skillData.id] || 0;
+				const isOnCooldown = gameState.time < cooldownEndTime;
+				const isHeroCasting = !!hero.casting;
+				const meetsLevelReq = !skillData.levelRequirement || hero.level >= skillData.levelRequirement;
+				const mpCost = skillData.mpCost || 0;
+				const rageCost = skillData.rageCost || 0;
+				const staminaCost = skillData.staminaCost || 0;
+				const hasResources = hero.mp.current >= mpCost && hero.stamina.current >= staminaCost && hero.rage.current >= rageCost;
+				const isDisabled = isHeroCasting || isOnCooldown || !meetsLevelReq || !hasResources;
+				const isAutoCasting = hero.autoCastSkillId === skillData.id;
+				const canAutoCast = skillData.autoCastUnlockLevel && hero.level >= skillData.autoCastUnlockLevel;
+				
+				if (!skillCard) {
+					const imageUrl = getImageUrl(skillData);
+					const newCardHtml = `
+						<div
+							id="${skillCardId}"
+							class="relative w-[100px] text-center"
+							data-cast-skill-id="${skillData.id}"
+							data-hero-id="${hero.id}"
+							title="${skillData.name}: ${skillData.description}"
+						>
+							<div class="relative rounded-lg overflow-hidden border-2 border-base-100">
+								<img src="${imageUrl}" alt="${skillData.name}" class="w-full aspect-[3/4] object-cover bg-base-300">
+								<div class="absolute top-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate font-bold">${skillData.name}</div>
+								<div data-cooldown-overlay></div>
 							</div>
-							<div data-autocast-container class="flex-shrink-0 w-24 flex justify-end"></div>
+							${canAutoCast ? `
+							<div class="absolute bottom-1 left-1">
+								<input type="checkbox" class="checkbox checkbox-xs checkbox-primary"
+									   data-autocast-skill-id="${skillData.id}"
+									   data-hero-id="${hero.id}"
+									   title="Toggle Auto-Cast"
+								/>
+							</div>
+							` : ''}
 						</div>
-						<div data-cast-container class="flex-shrink-0" style="width: 360px;"></div>
-					</div>
-				`;
-				listContainer.appendChild(div);
-				skillRowEl = div;
-			}
-			
-			const isAutoCasting = hero.autoCastSkillId === skillData.id;
-			let baseSkill = skillData;
-			while (baseSkill.replaces) {
-				const parent = gameData.skills.find(s => s.id === baseSkill.replaces);
-				if (!parent) break;
-				baseSkill = parent;
-			}
-			const unlockLevel = baseSkill.autoCastUnlockLevel;
-			const canAutoCast = unlockLevel && hero.level >= unlockLevel;
-			
-			let autoButtonHtml = '';
-			if (canAutoCast) {
-				autoButtonHtml = `<button class="btn btn-xs ${isAutoCasting ? 'btn-primary' : 'btn-neutral'}" data-autocast-skill-id="${skillData.id}" data-hero-id="${hero.id}">Auto</button>`;
-			} else if (unlockLevel) {
-				autoButtonHtml = `<div class="tooltip" data-tip="Unlocks at Lvl ${unlockLevel}"><button class="btn btn-xs btn-neutral" disabled>Auto</button></div>`;
-			}
-			
-			const autoCastContainer = skillRowEl.querySelector('[data-autocast-container]');
-			const autoCastStateKey = `${isAutoCasting}-${canAutoCast}`;
-			updateHtmlIfChanged(autoCastContainer, autoButtonHtml, autoCastStateKey);
-			
-			const castContainer = skillRowEl.querySelector('[data-cast-container]');
-			
-			const isCastingThisSkill = hero.casting && hero.casting.skillId === skillData.id;
-			const cooldownEndTime = hero.skillCooldowns[skillData.id] || 0;
-			const isOnCooldown = gameState.time < cooldownEndTime;
-			
-			const meetsLevelReq = !skillData.levelRequirement || hero.level >= skillData.levelRequirement;
-			const mpCost = skillData.mpCost || 0;
-			const rageCost = skillData.rageCost || 0;
-			const staminaCost = skillData.staminaCost || 0; // NEW
-			
-			// MODIFIED: Infer action type from skill data
-			let actionType = skillData.actionType;
-			if (!actionType) {
-				if (skillData.skillClass === 'Healing') actionType = 'heal';
-				else if (skillData.skillClass === 'Tanking' && skillData.name.includes('Taunt')) actionType = 'taunt';
-				else if (skillData.damage) actionType = 'attack';
-			}
-			
-			// MODIFIED: Check all three resources
-			const hasResources = hero.mp.current >= mpCost && hero.stamina.current >= staminaCost && hero.rage.current >= rageCost;
-			
-			let canUseInCurrentState = true;
-			if (actionType === 'attack' || actionType === 'taunt') {
-				canUseInCurrentState = !!hero.targetMonsterId;
-			}
-			
-			const shouldFlash = hero.skillFlash && hero.skillFlash.id === skillData.id && gameState.time < hero.skillFlash.clearAtTime;
-			// NEW: Display the correct resource cost type
-			const costText = rageCost > 0 ? `${rageCost} Rage` : (staminaCost > 0 ? `${staminaCost} Stam` : (mpCost > 0 ? `${mpCost} MP` : ''));
-			
-			if (actionType === 'heal') {
-				if (!castContainer.querySelector('.btn-group-wrapper')) {
-					const buttonHtml = gameState.heroes.map(targetHero => {
-						const buttonContent = `<span class="relative">${targetHero.name.substring(0, 3)} ${costText ? `(${costText})` : ''}</span>`;
-						return `<button class="btn btn-sm border border-base-300 hover:border-base-content" data-skill-id="${skillData.id}" data-hero-id="${hero.id}" data-target-hero-id="${targetHero.id}">${buttonContent}</button>`;
-					}).join('');
-					castContainer.innerHTML = `<div class="btn-group-wrapper flex items-center gap-1 justify-end">${buttonHtml}</div>`;
+					`;
+					skillsContainer.insertAdjacentHTML('beforeend', newCardHtml);
+					skillCard = getEl(skillCardId);
 				}
 				
-				const currentTargetId = hero.skillTargets[skillData.id] || hero.id;
-				const buttons = castContainer.querySelectorAll('button');
-				buttons.forEach((button, index) => {
-					const targetHero = gameState.heroes[index];
-					if (!targetHero) return;
-					
-					const isActive = currentTargetId === targetHero.id;
-					const wasButtonPressed = shouldFlash && hero.skillFlash.targetHeroId === targetHero.id;
-					
-					let progressPercent = 0;
-					let inProgress = false;
-					
+				if (skillCard.hasAttribute('disabled') !== isDisabled) {
+					isDisabled ? skillCard.setAttribute('disabled', '') : skillCard.removeAttribute('disabled');
+				}
+				const imageContainer = skillCard.querySelector('.relative.rounded-lg');
+				if (imageContainer) {
+					imageContainer.classList.toggle('cursor-not-allowed', isDisabled);
+					imageContainer.classList.toggle('grayscale', isDisabled);
+					imageContainer.classList.toggle('cursor-pointer', !isDisabled);
+				}
+				
+				const overlay = skillCard.querySelector('[data-cooldown-overlay]');
+				if (overlay) {
+					// MODIFICATION START: Use alpha for smooth interpolation to fix progress bar bug.
+					let overlayHeightPercent = 0;
 					if (isCastingThisSkill) {
 						const castTime = skillData.castTime;
 						const castEndTime = hero.casting.castEndTime;
 						const remainingCastTime = castEndTime - gameState.time;
 						const smoothRemaining = Math.max(0, remainingCastTime - alpha);
-						const elapsedSmooth = castTime - smoothRemaining;
-						progressPercent = (elapsedSmooth / castTime) * 100;
-						inProgress = true;
+						const elapsed = castTime - smoothRemaining;
+						overlayHeightPercent = (elapsed / castTime) * 100;
 					} else if (isOnCooldown) {
 						const remainingCd = cooldownEndTime - gameState.time;
 						const smoothRemaining = Math.max(0, remainingCd - alpha);
-						progressPercent = (smoothRemaining / skillData.cooldown) * 100;
-						inProgress = true;
+						overlayHeightPercent = (smoothRemaining / skillData.cooldown) * 100;
+					}
+					// MODIFICATION END
+					
+					const targetHeight = `${overlayHeightPercent.toFixed(2)}%`;
+					if (overlay.style.height !== targetHeight) {
+						overlay.style.height = targetHeight;
 					}
 					
-					button.disabled = isHeroCasting || isOnCooldown || !meetsLevelReq || !hasResources || !canUseInCurrentState;
-					button.style.width = '110px';
-					button.style.setProperty('--cooldown-percent', `${progressPercent}%`);
-					button.classList.toggle('btn-secondary', isActive && !inProgress);
-					button.classList.toggle('btn-neutral', !isActive || inProgress);
-					button.classList.toggle('cooldown-progress', inProgress);
-					button.classList.toggle('flash-effect', wasButtonPressed);
-				});
-			} else {
-				if (!castContainer.querySelector('button')) {
-					const buttonContent = `<span class="relative">Cast ${costText ? `(${costText})` : ''}</span>`;
-					castContainer.innerHTML = `<button class="btn btn-sm btn-neutral w-full border border-base-300 hover:border-base-content" data-skill-id="${skillData.id}" data-hero-id="${hero.id}">${buttonContent}</button>`;
+					const targetColor = isCastingThisSkill ? 'rgba(0,255,0,0.5)' : 'rgba(255,0,0,0.5)';
+					if (overlay.style.backgroundColor !== targetColor) {
+						overlay.style.backgroundColor = targetColor;
+					}
 				}
 				
-				const button = castContainer.querySelector('button');
-				let progressPercent = 0;
-				let inProgress = false;
-				
-				if (isCastingThisSkill) {
-					const castTime = skillData.castTime;
-					const castEndTime = hero.casting.castEndTime;
-					const remainingCastTime = castEndTime - gameState.time;
-					const smoothRemaining = Math.max(0, remainingCastTime - alpha);
-					const elapsedSmooth = castTime - smoothRemaining;
-					progressPercent = (elapsedSmooth / castTime) * 100;
-					inProgress = true;
-				} else if (isOnCooldown) {
-					const remainingCd = cooldownEndTime - gameState.time;
-					const smoothRemaining = Math.max(0, remainingCd - alpha);
-					progressPercent = (smoothRemaining / skillData.cooldown) * 100;
-					inProgress = true;
+				const checkbox = skillCard.querySelector('[data-autocast-skill-id]');
+				if (checkbox && checkbox.checked !== isAutoCasting) {
+					checkbox.checked = isAutoCasting;
 				}
-				
-				button.disabled = isHeroCasting || isOnCooldown || !meetsLevelReq || !hasResources || !canUseInCurrentState;
-				button.style.setProperty('--cooldown-percent', `${progressPercent}%`);
-				button.classList.toggle('cooldown-progress', inProgress);
-				button.classList.toggle('flash-effect', shouldFlash);
+			});
+			
+			for (const child of skillsContainer.children) {
+				const skillId = child.id.split('-').pop();
+				if (!activeSkillIds.has(skillId)) {
+					child.remove();
+				}
 			}
-		});
-	});
-	
-	listContainer.querySelectorAll('div[id^="skill-row-"]').forEach(row => {
-		if (!activeSkillRowIds.has(row.id)) {
-			row.remove();
 		}
 	});
 };

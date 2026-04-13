@@ -3,7 +3,7 @@ import { startAction, executeAction } from './hero-actions.js'; // MODIFIED: Imp
 import { addToLog, parseRange } from './utils.js';
 import { handleUseConsumable } from './inventory.js';
 import { handleShopAndPurchaseClicks, renderShopModal } from './shop.js';
-import { renderHeroes, autoEquipBestGear, renderSkillsPanel, recalculateHeroStats } from './heroes.js';
+import { renderHeroes, autoEquipBestGear, recalculateHeroStats } from './heroes.js'; // MODIFIED: Removed renderSkillsPanel
 import { renderMonsters, processMonsterActions } from './monsters.js';
 import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding } from './buildings.js';
 import { renderHeader, renderTabs, renderLog, renderItemsOverview, renderPartyCombat, renderPartyLog } from './ui.js';
@@ -22,11 +22,11 @@ function renderContent (alpha) {
 	switch (activeTab) {
 		case 'Heroes':
 			if (!getEl('heroes-tab-content')) {
+				// MODIFICATION START: Removed skills-panel-container from the template
 				contentArea.innerHTML = `
                     <div id="heroes-tab-content" class="flex flex-col lg:flex-row gap-4">
                         <div class="w-full lg:w-3/4 flex flex-col gap-4">
                             <div id="heroes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-                            <div id="skills-panel-container" class="w-full"></div>
                         </div>
                         <div id="heroes-sidebar" class="w-full lg:w-1/4 flex flex-col gap-4">
                             <div id="mission-control-area" class="card bg-base-200 shadow-md p-4 flex flex-col gap-4"></div>
@@ -35,12 +35,13 @@ function renderContent (alpha) {
                         </div>
                     </div>
                 `;
+				// MODIFICATION END
 			}
 			renderMissionControl(alpha);
 			renderPartyCombat();
 			renderPartyLog();
 			renderHeroes();
-			renderSkillsPanel(alpha);
+			// MODIFIED: Removed call to renderSkillsPanel
 			break;
 		case 'Buildings':
 			renderBuildings(contentArea);
@@ -202,19 +203,18 @@ function processGameTick () {
 				}
 				
 				if (actionType === 'heal') {
+					// MODIFICATION START: Auto-cast heal now uses the global target
 					let shouldCast = false;
-					const options = {};
-					
-					const targetId = hero.skillTargets[skillId] || hero.id;
+					const targetId = gameState.party.healingTargetId;
 					const targetHero = gameState.heroes.find(h => h.id === targetId);
 					if (targetHero && targetHero.hp.current < (targetHero.hp.max * 0.85)) {
 						shouldCast = true;
-						options.targetHeroId = targetId;
 					}
 					
 					if (shouldCast) {
-						startAction(hero.id, skill.id, options);
+						startAction(hero.id, skill.id); // No options needed, it reads global state
 					}
+					// MODIFICATION END
 				} else { // For any other auto-castable action (e.g., attack)
 					if (hero.targetMonsterId) {
 						startAction(hero.id, skill.id);
@@ -520,52 +520,53 @@ async function init () {
 			return;
 		}
 		
-		const autoCastBtn = e.target.closest('[data-autocast-skill-id]');
-		if (autoCastBtn) {
-			const heroId = parseInt(autoCastBtn.dataset.heroId, 10);
-			const skillId = autoCastBtn.dataset.autocastSkillId;
-			const hero = gameState.heroes.find(h => h.id === heroId);
-			if (hero) {
-				hero.autoCastSkillId = hero.autoCastSkillId === skillId ? null : skillId;
-				const skillName = gameData.skills.find(s => s.id === skillId).name;
-				const action = hero.autoCastSkillId ? `set auto-cast to: ${skillName}` : 'disabled auto-cast';
-				addToLog(`${action}.`, hero.id);
-				renderContent(0);
-			}
-			return;
-		}
-		
-		const castSkillBtn = e.target.closest('[data-skill-id]');
-		if (castSkillBtn) {
-			const heroId = parseInt(castSkillBtn.dataset.heroId, 10);
-			const skillId = castSkillBtn.dataset.skillId;
+		// MODIFICATION START: New event handlers for skills and targeting
+		const castSkillCard = e.target.closest('[data-cast-skill-id]');
+		if (castSkillCard) {
+			if (castSkillCard.hasAttribute('disabled')) return;
+			const heroId = parseInt(castSkillCard.dataset.heroId, 10);
+			const skillId = castSkillCard.dataset.castSkillId;
 			const hero = gameState.heroes.find(h => h.id === heroId);
 			
-			// MODIFIED: Entire block updated to disable auto-cast on manual use.
-			if (hero) { // Guard clause to ensure hero exists.
-				const targetHeroId = castSkillBtn.dataset.targetHeroId ? parseInt(castSkillBtn.dataset.targetHeroId, 10) : null;
-				
-				// If the manually cast skill is currently set to auto-cast, disable it.
+			if (hero) {
 				if (hero.autoCastSkillId === skillId) {
 					hero.autoCastSkillId = null;
 					const skillName = gameData.skills.find(s => s.id === skillId)?.name || 'a skill';
 					addToLog(`Manually casting ${skillName}, auto-cast disabled for this skill.`, hero.id);
 				}
-				
-				const options = {};
-				// Save the selected target for multi-target skills.
-				if (targetHeroId) {
-					hero.skillTargets[skillId] = targetHeroId;
-				}
-				// Use the saved target, or default to self if applicable.
-				options.targetHeroId = hero.skillTargets[skillId] || hero.id;
-				startAction(heroId, skillId, options);
+				startAction(heroId, skillId);
 			}
-			// END MODIFICATION
-			
-			renderContent(0);
 			return;
 		}
+		
+		const autoCastCheckbox = e.target.closest('[data-autocast-skill-id]');
+		if (autoCastCheckbox && e.target.tagName === 'INPUT') { // Ensure it's the checkbox itself
+			const heroId = parseInt(autoCastCheckbox.dataset.heroId, 10);
+			const skillId = autoCastCheckbox.dataset.autocastSkillId;
+			const hero = gameState.heroes.find(h => h.id === heroId);
+			if (hero) {
+				const isEnabling = autoCastCheckbox.checked;
+				hero.autoCastSkillId = isEnabling ? skillId : null;
+				const skillName = gameData.skills.find(s => s.id === skillId).name;
+				const action = isEnabling ? `set auto-cast to: ${skillName}` : 'disabled auto-cast';
+				addToLog(`${action}.`, hero.id);
+			}
+			return;
+		}
+		
+		const classBadge = e.target.closest('[data-class-badge]');
+		if (classBadge) {
+			const heroId = parseInt(classBadge.dataset.heroId, 10);
+			if (gameState.party.healingTargetId !== heroId) {
+				gameState.party.healingTargetId = heroId;
+				const hero = gameState.heroes.find(h => h.id === heroId);
+				if (hero) {
+					addToLog(`[SYSTEM]: Healing target set to ${hero.name}.`);
+				}
+			}
+			return;
+		}
+		// MODIFICATION END
 		
 		const enterBuildingBtn = e.target.closest('[data-enter-building-hero]');
 		if (enterBuildingBtn) {

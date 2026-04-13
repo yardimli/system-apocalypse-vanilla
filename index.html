@@ -173,7 +173,9 @@
 				</div>
 				<!-- Container for class and token badges -->
 				<div class="flex flex-col items-end gap-1">
-					<div class="badge" data-class></div>
+					<!-- MODIFICATION START: Added data-class-badge for click handling -->
+					<div class="badge" data-class data-class-badge></div>
+					<!-- MODIFICATION END -->
 				</div>
 			</div>
 			
@@ -208,6 +210,11 @@
 			<div class="flex justify-between items-center my-1" data-rage-container style="display: none;">
 				<span class="label-text text-xs" data-rage-label></span>
 				<progress class="progress progress-error w-[40%]" data-rage-bar></progress>
+			</div>
+			
+			<!-- NEW: Container for skill cards -->
+			<div class="mt-4 flex flex-wrap gap-2 justify-center" data-skills-container>
+				<!-- Skill cards will be rendered here by JS -->
 			</div>
 		</div>
 	</div>

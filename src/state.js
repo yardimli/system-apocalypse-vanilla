@@ -15,7 +15,8 @@ export const gameState = {
 		missionTargetDistance: 0,
 		survivorsAwaitingRescue: 0,
 		pausedMission: null,
-		targetMonsterId: null
+		targetMonsterId: null,
+		healingTargetId: 1 // NEW: Default healing target ID, 1 is Ava.
 	},
 	city: {
 		tokens: 1000,

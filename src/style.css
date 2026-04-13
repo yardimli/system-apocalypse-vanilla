@@ -36,20 +36,15 @@ progress::-moz-progress-bar {
 	animation: flash 0.2s ease-out;
 }
 
-/* Styles for the skill cooldown progress bar inside buttons */
-.cooldown-progress {
-	position: relative;
-	color: white !important;
-	overflow: hidden;
-}
-
-.cooldown-progress::before {
-	content: '';
+/* MODIFICATION START: New styles for skill card cooldown overlay */
+/* This overlay fills from the bottom and is used for both casting and cooldowns. */
+[data-cooldown-overlay] {
 	position: absolute;
-	top: 0;
+	bottom: 0;
 	left: 0;
-	height: 100%;
-	width: var(--cooldown-percent, 0%);
-	background-color: oklch(0.30949 0.036 260.03);
-	opacity: 0.7;
+	right: 0;
+	width: 100%;
+	/* The background-color and height are set dynamically by JavaScript */
+	transition: height 0.1s linear;
 }
+/* MODIFICATION END */

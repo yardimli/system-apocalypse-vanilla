@@ -444,3 +444,10 @@ there is a bug where Roc does Quick Strike in the begining of the game when auto
 all hero's should have stamina, Ava and Jax will use it when they use their bows. add basic bow and 40 arrows to their inventories.
 Jax can also use OneHandBlade he will also know Quick Strike skill and both jax and ava should know Aimed Shot
 when the heros use bow have the Arrows drop in numbers. i've added stackSize to the items.json which should increase quantity when purchased.
+
+
+----
+
+on the party skills show the skills as cards using the skill/spell image that user can click on, overlay progressbar on top of the image. add title label on top of the image. use width 100px for the cards. show the cards under each hero card instead. remove the party skills div.
+for auto cast add a checkbox on the bottom left side of skill/spell the image.
+for healing spells show the cast same as all others. allow the player to select the target by clicking on the hero badge with the hero's class. add a faint border around the selected badge, only one badge can be selected default to aegis (ava).
