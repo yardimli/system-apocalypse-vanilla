@@ -167,6 +167,126 @@ function findEntityById (id) {
 	return gameData.items.find(i => i.id === id);
 }
 
+// NEW: Function to render skill cards for a single hero.
+/**
+ * Renders the skill cards for a single hero.
+ * This function is called by renderHeroes.
+ * @param {object} hero - The hero object.
+ * @param {HTMLElement} card - The hero's card DOM element.
+ * @param {number} alpha - The interpolation factor for smooth animations.
+ */
+function renderHeroSkills (hero, card, alpha) {
+	const skillsContainer = card.querySelector('[data-skills-container]');
+	if (!skillsContainer) return;
+	
+	const learnedSkills = hero.skills
+		.map(hs => gameData.skills.find(s => s.id === hs.id))
+		.filter(Boolean);
+	
+	const activeSkillIds = new Set(learnedSkills.map(s => s.id));
+	
+	learnedSkills.forEach(skillData => {
+		const skillCardId = `skill-card-${hero.id}-${skillData.id}`;
+		let skillCard = getEl(skillCardId);
+		
+		const isCastingThisSkill = hero.casting && hero.casting.skillId === skillData.id;
+		const cooldownEndTime = hero.skillCooldowns[skillData.id] || 0;
+		const isOnCooldown = gameState.time < cooldownEndTime;
+		const isHeroCasting = !!hero.casting;
+		const meetsLevelReq = !skillData.levelRequirement || hero.level >= skillData.levelRequirement;
+		const mpCost = skillData.mpCost || 0;
+		const rageCost = skillData.rageCost || 0;
+		const staminaCost = skillData.staminaCost || 0;
+		const hasResources = hero.mp.current >= mpCost && hero.stamina.current >= staminaCost && hero.rage.current >= rageCost;
+		const isDisabled = isHeroCasting || isOnCooldown || !meetsLevelReq || !hasResources;
+		const isAutoCasting = hero.autoCastSkillId === skillData.id;
+		const canAutoCast = skillData.autoCastUnlockLevel && hero.level >= skillData.autoCastUnlockLevel;
+		const shouldFlash = hero.skillFlash && hero.skillFlash.id === skillData.id && gameState.time < hero.skillFlash.clearAtTime;
+		
+		if (!skillCard) {
+			const imageUrl = getImageUrl(skillData);
+			const newCardHtml = `
+				<div
+					id="${skillCardId}"
+					class="relative w-[100px] text-center"
+					data-cast-skill-id="${skillData.id}"
+					data-hero-id="${hero.id}"
+					title="${skillData.name}: ${skillData.description}"
+				>
+					<div class="relative rounded-lg overflow-hidden border-2 border-base-100">
+						<img src="${imageUrl}" alt="${skillData.name}" class="w-full aspect-[3/4] object-cover bg-base-300">
+						<div class="absolute top-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate font-bold">${skillData.name}</div>
+						<div data-cooldown-overlay></div>
+					</div>
+					${canAutoCast ? `
+					<div class="absolute bottom-1 left-1">
+						<input type="checkbox" class="checkbox checkbox-xs checkbox-primary"
+							   data-autocast-skill-id="${skillData.id}"
+							   data-hero-id="${hero.id}"
+							   title="Toggle Auto-Cast"
+						/>
+					</div>
+					` : ''}
+				</div>
+			`;
+			skillsContainer.insertAdjacentHTML('beforeend', newCardHtml);
+			skillCard = getEl(skillCardId);
+		}
+		
+		if (skillCard.hasAttribute('disabled') !== isDisabled) {
+			isDisabled ? skillCard.setAttribute('disabled', '') : skillCard.removeAttribute('disabled');
+		}
+		const imageContainer = skillCard.querySelector('.relative.rounded-lg');
+		if (imageContainer) {
+			imageContainer.classList.toggle('cursor-not-allowed', isDisabled);
+			imageContainer.classList.toggle('grayscale', isDisabled);
+			imageContainer.classList.toggle('cursor-pointer', !isDisabled);
+		}
+		
+		skillCard.classList.toggle('flash-effect', shouldFlash);
+		
+		const overlay = skillCard.querySelector('[data-cooldown-overlay]');
+		if (overlay) {
+			let overlayHeightPercent = 0;
+			if (isCastingThisSkill) {
+				const castTime = skillData.castTime;
+				const castEndTime = hero.casting.castEndTime;
+				const remainingCastTime = castEndTime - gameState.time;
+				const smoothRemaining = Math.max(0, remainingCastTime - alpha);
+				const elapsed = castTime - smoothRemaining;
+				overlayHeightPercent = (elapsed / castTime) * 100;
+			} else if (isOnCooldown) {
+				const remainingCd = cooldownEndTime - gameState.time;
+				const smoothRemaining = Math.max(0, remainingCd - alpha);
+				overlayHeightPercent = (smoothRemaining / skillData.cooldown) * 100;
+			}
+			
+			const targetHeight = `${overlayHeightPercent.toFixed(2)}%`;
+			if (overlay.style.height !== targetHeight) {
+				overlay.style.height = targetHeight;
+			}
+			
+			const targetColor = isCastingThisSkill ? 'rgba(0,255,0,0.5)' : 'rgba(255,0,0,0.5)';
+			if (overlay.style.backgroundColor !== targetColor) {
+				overlay.style.backgroundColor = targetColor;
+			}
+		}
+		
+		const checkbox = skillCard.querySelector('[data-autocast-skill-id]');
+		if (checkbox && checkbox.checked !== isAutoCasting) {
+			checkbox.checked = isAutoCasting;
+		}
+	});
+	
+	for (const child of skillsContainer.children) {
+		const skillId = child.id.split('-').pop();
+		if (!activeSkillIds.has(skillId)) {
+			child.remove();
+		}
+	}
+}
+
+// MODIFIED: renderHeroes is now split. It handles the main card, and calls renderHeroSkills for the skills part.
 export function renderHeroes (alpha = 0) {
 	const grid = getEl('heroes-grid');
 	if (!grid) return;
@@ -377,113 +497,7 @@ export function renderHeroes (alpha = 0) {
 		}
 		updateHtmlIfChanged(statusArea, statusHtml, statusStateKey);
 		
-		const skillsContainer = card.querySelector('[data-skills-container]');
-		if (skillsContainer) {
-			const learnedSkills = hero.skills
-				.map(hs => gameData.skills.find(s => s.id === hs.id))
-				.filter(Boolean);
-			
-			const activeSkillIds = new Set(learnedSkills.map(s => s.id));
-			
-			learnedSkills.forEach(skillData => {
-				const skillCardId = `skill-card-${hero.id}-${skillData.id}`;
-				let skillCard = getEl(skillCardId);
-				
-				const isCastingThisSkill = hero.casting && hero.casting.skillId === skillData.id;
-				const cooldownEndTime = hero.skillCooldowns[skillData.id] || 0;
-				const isOnCooldown = gameState.time < cooldownEndTime;
-				const isHeroCasting = !!hero.casting;
-				const meetsLevelReq = !skillData.levelRequirement || hero.level >= skillData.levelRequirement;
-				const mpCost = skillData.mpCost || 0;
-				const rageCost = skillData.rageCost || 0;
-				const staminaCost = skillData.staminaCost || 0;
-				const hasResources = hero.mp.current >= mpCost && hero.stamina.current >= staminaCost && hero.rage.current >= rageCost;
-				const isDisabled = isHeroCasting || isOnCooldown || !meetsLevelReq || !hasResources;
-				const isAutoCasting = hero.autoCastSkillId === skillData.id;
-				const canAutoCast = skillData.autoCastUnlockLevel && hero.level >= skillData.autoCastUnlockLevel;
-				const shouldFlash = hero.skillFlash && hero.skillFlash.id === skillData.id && gameState.time < hero.skillFlash.clearAtTime;
-				
-				if (!skillCard) {
-					const imageUrl = getImageUrl(skillData);
-					const newCardHtml = `
-						<div
-							id="${skillCardId}"
-							class="relative w-[100px] text-center"
-							data-cast-skill-id="${skillData.id}"
-							data-hero-id="${hero.id}"
-							title="${skillData.name}: ${skillData.description}"
-						>
-							<div class="relative rounded-lg overflow-hidden border-2 border-base-100">
-								<img src="${imageUrl}" alt="${skillData.name}" class="w-full aspect-[3/4] object-cover bg-base-300">
-								<div class="absolute top-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate font-bold">${skillData.name}</div>
-								<div data-cooldown-overlay></div>
-							</div>
-							${canAutoCast ? `
-							<div class="absolute bottom-1 left-1">
-								<input type="checkbox" class="checkbox checkbox-xs checkbox-primary"
-									   data-autocast-skill-id="${skillData.id}"
-									   data-hero-id="${hero.id}"
-									   title="Toggle Auto-Cast"
-								/>
-							</div>
-							` : ''}
-						</div>
-					`;
-					skillsContainer.insertAdjacentHTML('beforeend', newCardHtml);
-					skillCard = getEl(skillCardId);
-				}
-				
-				if (skillCard.hasAttribute('disabled') !== isDisabled) {
-					isDisabled ? skillCard.setAttribute('disabled', '') : skillCard.removeAttribute('disabled');
-				}
-				const imageContainer = skillCard.querySelector('.relative.rounded-lg');
-				if (imageContainer) {
-					imageContainer.classList.toggle('cursor-not-allowed', isDisabled);
-					imageContainer.classList.toggle('grayscale', isDisabled);
-					imageContainer.classList.toggle('cursor-pointer', !isDisabled);
-				}
-				
-				skillCard.classList.toggle('flash-effect', shouldFlash);
-				
-				const overlay = skillCard.querySelector('[data-cooldown-overlay]');
-				if (overlay) {
-					let overlayHeightPercent = 0;
-					if (isCastingThisSkill) {
-						const castTime = skillData.castTime;
-						const castEndTime = hero.casting.castEndTime;
-						const remainingCastTime = castEndTime - gameState.time;
-						const smoothRemaining = Math.max(0, remainingCastTime - alpha);
-						const elapsed = castTime - smoothRemaining;
-						overlayHeightPercent = (elapsed / castTime) * 100;
-					} else if (isOnCooldown) {
-						const remainingCd = cooldownEndTime - gameState.time;
-						const smoothRemaining = Math.max(0, remainingCd - alpha);
-						overlayHeightPercent = (smoothRemaining / skillData.cooldown) * 100;
-					}
-					
-					const targetHeight = `${overlayHeightPercent.toFixed(2)}%`;
-					if (overlay.style.height !== targetHeight) {
-						overlay.style.height = targetHeight;
-					}
-					
-					const targetColor = isCastingThisSkill ? 'rgba(0,255,0,0.5)' : 'rgba(255,0,0,0.5)';
-					if (overlay.style.backgroundColor !== targetColor) {
-						overlay.style.backgroundColor = targetColor;
-					}
-				}
-				
-				const checkbox = skillCard.querySelector('[data-autocast-skill-id]');
-				if (checkbox && checkbox.checked !== isAutoCasting) {
-					checkbox.checked = isAutoCasting;
-				}
-			});
-			
-			for (const child of skillsContainer.children) {
-				const skillId = child.id.split('-').pop();
-				if (!activeSkillIds.has(skillId)) {
-					child.remove();
-				}
-			}
-		}
+		// MODIFICATION: Call the new function to render skills.
+		renderHeroSkills(hero, card, alpha);
 	});
 };

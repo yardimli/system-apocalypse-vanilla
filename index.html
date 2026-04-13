@@ -168,6 +168,11 @@
 			<div class="flex justify-between items-start">
 				<div>
 					<h2 class="card-title text-lg" data-name></h2>
+					<!-- MODIFICATION: XP bar moved here -->
+					<div class="flex justify-between items-center my-1">
+						<span class="label-text text-xs" data-xp-label></span>
+						<progress class="progress progress-primary w-[40%]" data-xp-bar></progress>
+					</div>
 					<!-- Hero status line -->
 					<p class="text-sm text-gray-400 min-h-5" data-hero-status></p>
 				</div>
@@ -190,10 +195,7 @@
 			</div>
 			
 			<!-- Stat bars -->
-			<div class="flex justify-between items-center my-1">
-				<span class="label-text text-xs" data-xp-label></span>
-				<progress class="progress progress-primary w-[40%]" data-xp-bar></progress>
-			</div>
+			<!-- MODIFICATION: XP bar removed from here -->
 			<div class="flex justify-between items-center my-1">
 				<span class="label-text text-xs" data-hp-label></span>
 				<progress class="progress progress-success w-[40%]" data-hp-bar></progress>
