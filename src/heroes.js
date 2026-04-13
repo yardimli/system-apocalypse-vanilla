@@ -57,46 +57,110 @@ export function recalculateHeroStats(hero) {
 	if (hero.stamina.max > oldMaxStamina) hero.stamina.current += (hero.stamina.max - oldMaxStamina);
 }
 
+// MODIFICATION START: The autoEquipBestGear function has been completely rewritten again.
+// This version fixes the dual-wielding bug and the tank un-equipping bug by using a more robust method
+// for determining which weapons a hero can use and by correctly checking inventory counts.
 export function autoEquipBestGear (hero) {
-	const slots = {
-		mainHand: [],
-		offHand: [],
-		body: []
-	};
-	
-	Object.keys(hero.inventory).forEach(itemId => {
-		const item = gameData.items.find(i => i.id === itemId);
-		if (item && item.equipSlot && slots[item.equipSlot] && hero.inventory[itemId] > 0) {
-			const canUse = !item.class || (Array.isArray(item.class) ? item.class.includes(hero.class) : item.class === hero.class);
-			if (canUse) {
-				slots[item.equipSlot].push(item);
+	// 1. Derive the hero's true allowed weapon types by checking their learnable skills.
+	// This corrects for data inconsistencies where `allowedWeaponTypes` might be too restrictive.
+	const trueAllowedWeaponTypes = new Set(hero.allowedWeaponTypes);
+	hero.skillClasses.forEach(sc => {
+		gameData.skills.forEach(skill => {
+			if (skill.skillClass === sc && skill.requiredWeaponType) {
+				trueAllowedWeaponTypes.add(skill.requiredWeaponType);
 			}
-		}
+		});
 	});
 	
-	for (const slot in slots) {
-		let bestItem = null;
-		if (slots[slot].length > 0) {
-			bestItem = slots[slot].sort((a, b) => b.level - a.level)[0];
-		}
+	// 2. Get a list of all equippable items for the hero from their inventory and current gear.
+	const availableItemIds = new Set(Object.keys(hero.inventory).filter(id => hero.inventory[id] > 0));
+	Object.values(hero.equipment).forEach(itemId => {
+		if (itemId) availableItemIds.add(itemId);
+	});
+	
+	const equippableItems = [...availableItemIds]
+		.map(itemId => gameData.items.find(i => i.id === itemId))
+		.filter(item => {
+			if (!item || !item.equipSlot) return false;
+			// Use the derived `trueAllowedWeaponTypes` for the check.
+			if ((item.type === 'Weapon' || item.type === 'Shield') && item.requiredWeaponType && !trueAllowedWeaponTypes.has(item.requiredWeaponType)) return false;
+			if (item.type === 'Armor' && item.armorType && !hero.allowedArmorTypes.includes(item.armorType)) return false;
+			if (item.class && !(Array.isArray(item.class) ? item.class.includes(hero.class) : item.class === hero.class)) return false;
+			if (item.magicUserOnly && !hero.isMagicUser) return false;
+			return true;
+		});
+	
+	// 3. Separate items by slot and sort by level (best first).
+	const itemsBySlot = {
+		mainHand: equippableItems.filter(i => i.equipSlot === 'mainHand').sort((a, b) => b.level - a.level),
+		offHand: equippableItems.filter(i => i.equipSlot === 'offHand').sort((a, b) => b.level - a.level),
+		body: equippableItems.filter(i => i.equipSlot === 'body').sort((a, b) => b.level - a.level)
+	};
+	
+	const oldEquipment = { ...hero.equipment };
+	const newEquipment = { mainHand: null, offHand: null, body: null };
+	
+	// 4. Determine best body armor.
+	if (itemsBySlot.body.length > 0) {
+		newEquipment.body = itemsBySlot.body[0].id;
+	}
+	
+	// 5. Determine best weapon combination.
+	const bestMainHand = itemsBySlot.mainHand.length > 0 ? itemsBySlot.mainHand[0] : null;
+	
+	if (bestMainHand) {
+		newEquipment.mainHand = bestMainHand.id;
+		// A weapon is considered two-handed if it's a Bow. This could be a flag in item data later.
+		const isTwoHanded = bestMainHand.requiredWeaponType === 'Bow';
 		
-		const bestItemId = bestItem ? bestItem.id : null;
-		const currentItemId = hero.equipment[slot];
-		
-		if (currentItemId !== bestItemId) {
-			const oldItem = gameData.items.find(i => i.id === currentItemId);
-			hero.equipment[slot] = bestItemId;
+		if (!isTwoHanded) {
+			// For one-handed weapons, find the best possible off-hand.
+			// The pool includes dedicated off-hands (shields) and other one-handed main-hand weapons.
+			const potentialOffHands = [
+				...itemsBySlot.offHand,
+				...itemsBySlot.mainHand.filter(i => i.requiredWeaponType !== 'Bow') // Filter to 1H weapons
+			].sort((a, b) => b.level - a.level);
 			
-			if (bestItem && oldItem) {
-				addToLog(`upgraded ${slot}: ${oldItem.name} -> ${bestItem.name}.`, hero.id);
-			} else if (bestItem) {
-				addToLog(`equipped ${bestItem.name} (${slot}).`, hero.id);
+			// Find the best valid off-hand from the sorted pool.
+			for (const candidate of potentialOffHands) {
+				if (candidate.id !== newEquipment.mainHand) {
+					// If the best candidate is a *different* item, we can equip it.
+					newEquipment.offHand = candidate.id;
+					break;
+				} else {
+					// If the best candidate is the *same* item, we must check if the hero has a second one.
+					// This check now correctly uses the total inventory count.
+					if (hero.inventory[candidate.id] >= 2) {
+						newEquipment.offHand = candidate.id;
+						break;
+					}
+					// If not, we continue the loop to find the next-best (different) item.
+				}
+			}
+		}
+	} else if (itemsBySlot.offHand.length > 0) {
+		// If no main-hand is available, the hero can still equip a shield.
+		newEquipment.offHand = itemsBySlot.offHand[0].id;
+	}
+	
+	// 6. Compare new and old equipment, log changes, and apply the new set.
+	for (const slot of ['mainHand', 'offHand', 'body']) {
+		if (newEquipment[slot] !== oldEquipment[slot]) {
+			const newItem = newEquipment[slot] ? gameData.items.find(i => i.id === newEquipment[slot]) : null;
+			const oldItem = oldEquipment[slot] ? gameData.items.find(i => i.id === oldEquipment[slot]) : null;
+			
+			if (newItem && oldItem) {
+				addToLog(`upgraded ${slot}: ${oldItem.name} -> ${newItem.name}.`, hero.id);
+			} else if (newItem) {
+				addToLog(`equipped ${newItem.name} (${slot}).`, hero.id);
 			} else if (oldItem) {
 				addToLog(`unequipped ${oldItem.name} (${slot}).`, hero.id);
 			}
 		}
 	}
+	hero.equipment = newEquipment;
 };
+// MODIFICATION END
 
 function findEntityById (id) {
 	if (!id) return null;
@@ -139,9 +203,14 @@ export function renderHeroes (alpha = 0) {
 		}
 		
 		const equipmentContainer = card.querySelector('[data-equipment-container]');
-		const equippedItems = Object.entries(hero.equipment)
-			.map(([slot, itemId]) => ({ slot, item: findEntityById(itemId) }))
+		// MODIFICATION START: Define a specific order for displaying equipment slots
+		// to ensure a consistent layout (mainHand, offHand, body).
+		const slotOrder = ['mainHand', 'offHand', 'body'];
+		const equippedItems = slotOrder
+			.map(slot => ({ slot, itemId: hero.equipment[slot] }))
+			.map(({ slot, itemId }) => ({ slot, item: findEntityById(itemId) }))
 			.filter(e => e.item);
+		// MODIFICATION END
 		
 		let equipHtml = '';
 		if (equippedItems.length > 0) {
@@ -332,9 +401,7 @@ export function renderHeroes (alpha = 0) {
 				const isDisabled = isHeroCasting || isOnCooldown || !meetsLevelReq || !hasResources;
 				const isAutoCasting = hero.autoCastSkillId === skillData.id;
 				const canAutoCast = skillData.autoCastUnlockLevel && hero.level >= skillData.autoCastUnlockLevel;
-				// MODIFICATION START: Add flash effect check
 				const shouldFlash = hero.skillFlash && hero.skillFlash.id === skillData.id && gameState.time < hero.skillFlash.clearAtTime;
-				// MODIFICATION END
 				
 				if (!skillCard) {
 					const imageUrl = getImageUrl(skillData);
@@ -376,9 +443,7 @@ export function renderHeroes (alpha = 0) {
 					imageContainer.classList.toggle('cursor-pointer', !isDisabled);
 				}
 				
-				// MODIFICATION START: Apply flash effect class
 				skillCard.classList.toggle('flash-effect', shouldFlash);
-				// MODIFICATION END
 				
 				const overlay = skillCard.querySelector('[data-cooldown-overlay]');
 				if (overlay) {
