@@ -5,6 +5,21 @@ import { handleExitBuilding } from './buildings.js';
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
 
+// NEW: Helper to get image URL for monsters, adapted from other rendering modules.
+function getImageUrl (entity) {
+	if (entity && entity.card_images && Array.isArray(entity.card_images)) {
+		const normalImage = entity.card_images.find(img => img.state === 'normal') || entity.card_images[0];
+		if (normalImage) {
+			let folderPath = normalImage.image_folder.replace(/^public/, '');
+			if (!folderPath.startsWith('/')) {
+				folderPath = '/' + folderPath;
+			}
+			return `${folderPath}/thumbnails/${normalImage.image_file_name}`;
+		}
+	}
+	return '/images/placeholder.png'; // Fallback
+}
+
 /**
  * Renders the list of active monsters using a granular update strategy.
  * @param {HTMLElement} contentArea - The main content DOM element.
@@ -14,7 +29,6 @@ export function renderMonsters (contentArea) {
 	if (!container) {
 		contentArea.innerHTML = `
             <div id="monsters-list-container" class="flex flex-col gap-4">
-                <h2 class="text-2xl font-bold">Active Monsters</h2>
                 <div id="monsters-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
         `;
@@ -47,25 +61,32 @@ export function renderMonsters (contentArea) {
 		
 		// If card doesn't exist, create it from a template string.
 		if (!card) {
+			// MODIFICATION: New card layout to be horizontal with an image.
+			const imageUrl = getImageUrl(monster);
 			const cardHtml = `
-                <div class="card bg-base-200 shadow-md p-4" id="monster-card-${monster.id}">
-                    <div class="flex justify-between items-center">
-                        <h3 class="font-bold text-lg" data-name></h3>
-                        <div class="badge badge-error" data-target></div>
+                <div class="card bg-base-200 shadow-md p-4 flex flex-row gap-4 items-start h-full" id="monster-card-${monster.id}">
+                    <img src="${imageUrl}" alt="${monster.name}" class="w-[175px] aspect-[3/4] bg-base-300 rounded flex-shrink-0 object-contain" />
+                    <div class="flex flex-col flex-grow min-w-0 h-full">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-bold text-lg truncate" data-name title="${monster.name}"></h3>
+                            <div class="badge badge-error flex-shrink-0 text-right" data-target></div>
+                        </div>
+                        <div class="text-sm text-warning mt-1" data-distance></div>
+                        <p class="text-xs italic text-gray-400 mt-2 flex-grow">${monster.description || 'A mysterious beast.'}</p>
+                        
+                        <div class="mt-2">
+                            <progress class="progress progress-error w-full" value="0" max="100" data-hp-bar></progress>
+                            <p class="text-xs text-right mt-1" data-hp-label></p>
+                        </div>
+
+                        <div class="mt-2 border-t border-base-300 pt-2">
+                            <h4 class="font-semibold text-sm mb-1">Threat List</h4>
+                            <div data-agro-list class="text-xs"></div>
+                        </div>
+                        
+                        <div class="card-actions justify-end mt-auto pt-2" data-actions></div>
+                        <div class="text-xs text-gray-400 mt-2 text-right" data-age></div>
                     </div>
-                    <!-- Distance from city -->
-                    <div class="text-sm text-warning mt-1" data-distance></div>
-                    <div class="mt-2">
-                        <progress class="progress progress-error w-full" value="0" max="100" data-hp-bar></progress>
-                        <p class="text-xs text-right mt-1" data-hp-label></p>
-                    </div>
-                    <div class="mt-2 border-t border-base-300 pt-2">
-                        <h4 class="font-semibold text-sm mb-1">Threat List</h4>
-                        <div data-agro-list></div>
-                    </div>
-                    <!-- Action button area -->
-                    <div class="card-actions justify-end mt-2" data-actions></div>
-                    <div class="text-xs text-gray-400 mt-2" data-age></div>
                 </div>
             `;
 			grid.insertAdjacentHTML('beforeend', cardHtml);

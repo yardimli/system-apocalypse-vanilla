@@ -86,7 +86,10 @@ function processGameTick () {
 				distanceFromCity: Math.floor(Math.random() * 2001) + 1000,
 				assignedTo: [],
 				targetBuilding: null,
-				agro: {}
+				agro: {},
+				// MODIFICATION: Add card image and description data to monster instances for rendering.
+				card_images: monsterData.card_images,
+				description: monsterData.description
 			};
 			gameState.activeMonsters.push(newMonster);
 			addToLog(`A wild Lv.${newMonster.level} ${newMonster.name} (#${newMonster.id}) has appeared ${newMonster.distanceFromCity}m from the city!`);
@@ -405,7 +408,10 @@ async function init () {
 					distanceFromCity: Math.floor(Math.random() * 2501) + 500,
 					assignedTo: [],
 					targetBuilding: null,
-					agro: {}
+					agro: {},
+					// MODIFICATION: Add card image and description data to monster instances for rendering.
+					card_images: monsterData.card_images,
+					description: monsterData.description
 				};
 				gameState.activeMonsters.push(newMonster);
 			}

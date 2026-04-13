@@ -246,7 +246,10 @@ export function processMissionTick () {
 						assignedTo: [],
 						targetBuilding: null,
 						agro: {},
-						speed: monsterData.speed || 50
+						speed: monsterData.speed || 50,
+						// MODIFICATION: Add card image and description data to monster instances for rendering.
+						card_images: monsterData.card_images,
+						description: monsterData.description
 					};
 					// Set monster distance based on party's current distance.
 					newMonster.distanceFromCity = gameState.party.missionDistance;
