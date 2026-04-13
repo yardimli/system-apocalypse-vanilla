@@ -411,6 +411,32 @@ async function init () {
 		}
 		
 		addToLog('[SYSTEM]: Initial safezone Alpha Base has been established.');
+		
+		// NEW: Spawn initial monsters as requested.
+		const level1Monsters = gameData.monsters.filter(m => m.level === 1);
+		if (level1Monsters.length > 0) {
+			for (let i = 0; i < 3; i++) {
+				const monsterData = level1Monsters[Math.floor(Math.random() * level1Monsters.length)];
+				const newMonster = {
+					id: gameState.nextMonsterId++,
+					spawnTime: gameState.time, // 0 at the start
+					name: monsterData.name,
+					level: monsterData.level,
+					maxHp: monsterData.hp,
+					currentHp: monsterData.hp,
+					damage: monsterData.damage,
+					xp: monsterData.xp,
+					tokens: monsterData.tokens,
+					speed: monsterData.speed || 50,
+					distanceFromCity: Math.floor(Math.random() * 2501) + 500,
+					assignedTo: [],
+					targetBuilding: null,
+					agro: {}
+				};
+				gameState.activeMonsters.push(newMonster);
+			}
+			addToLog('[SYSTEM]: Initial threats detected. 3 monsters are approaching the city from 3000m.');
+		}
 	} catch (error) {
 		console.error('Failed to load game data:', error);
 		contentArea.innerHTML = `<p class="text-error">Error: Could not load game data. Please check the console.</p>`;

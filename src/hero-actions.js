@@ -141,15 +141,26 @@ export function executeAction (hero, skill, options = {}) {
 					}
 				}
 				
-				// Grant XP for successful healing
-				hero.xp.current += 25;
-				if (hero.xp.current >= hero.xp.max) {
-					hero.level++;
-					hero.xp.current -= hero.xp.max;
-					hero.xp.max = Math.ceil(hero.xp.max * 1.5);
-					hero.unspentStatPoints += 3;
-					recalculateHeroStats(hero);
-					addToLog(`reached Level ${hero.level}! Gained 3 Stat Points.`, hero.id);
+				// MODIFIED: XP for healing logic has been changed.
+				// Heals in combat grant XP when the monster is defeated.
+				// Heals outside combat grant a small, reduced amount of XP immediately.
+				const isOutOfCombat = !hero.targetMonsterId && !targetHero.targetMonsterId;
+				
+				if (isOutOfCombat) {
+					const baseXp = 25;
+					const reducedXp = Math.ceil(baseXp * 0.2); // 80% reduction
+					hero.xp.current += reducedXp;
+					addToLog(`gained ${reducedXp} XP for out-of-combat healing.`, hero.id);
+					
+					// Check for level up
+					if (hero.xp.current >= hero.xp.max) {
+						hero.level++;
+						hero.xp.current -= hero.xp.max;
+						hero.xp.max = Math.ceil(hero.xp.max * 1.5);
+						hero.unspentStatPoints += 3;
+						recalculateHeroStats(hero);
+						addToLog(`reached Level ${hero.level}! Gained 3 Stat Points.`, hero.id);
+					}
 				}
 			}
 			break;

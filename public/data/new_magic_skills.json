@@ -766,7 +766,7 @@
     "requiredWeaponType": "None",
     "type": "Active",
     "rageCost": 10,
-    "levelRequirement": 2,
+    "levelRequirement": 1,
     "cooldown": 8,
     "castTime": 0,
     "description": "Forces a single enemy to attack you for 3 seconds.",

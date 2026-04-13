@@ -207,7 +207,31 @@ export function processMonsterActions () {
 				}
 			}
 			
+			// MODIFIED: If no one has agro, the monster attacks a random valid target.
+			// This fixes a bug where combat could stall at the beginning of a fight.
+			if (targetHeroId === null) {
+				const livingAssignedHeroes = monster.assignedTo
+					.map(id => gameState.heroes.find(h => h.id === id))
+					.filter(h => h && h.hp.current > 0);
+				
+				if (livingAssignedHeroes.length > 0) {
+					const randomTarget = livingAssignedHeroes[Math.floor(Math.random() * livingAssignedHeroes.length)];
+					targetHeroId = randomTarget.id;
+					// Give a little agro to start the threat list
+					monster.agro[targetHeroId] = (monster.agro[targetHeroId] || 0) + 1;
+				}
+			}
+			
 			if (targetHeroId) {
+				// NEW: When a monster attacks, all engaged party members gain a small amount of random agro.
+				monster.assignedTo.forEach(heroId => {
+					const hero = gameState.heroes.find(h => h.id === parseInt(heroId, 10));
+					if (hero && hero.hp.current > 0) {
+						const randomAgro = Math.floor(Math.random() * 3) + 1; // 1 to 3
+						monster.agro[heroId] = (monster.agro[heroId] || 0) + randomAgro;
+					}
+				});
+				
 				const targetHero = gameState.heroes.find(h => h.id === targetHeroId);
 				const armor = gameData.items.find(a => a.id === targetHero.equipment.body);
 				const shield = gameData.items.find(s => s.id === targetHero.equipment.offHand);

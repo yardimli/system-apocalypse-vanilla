@@ -456,19 +456,21 @@ export function manageCombatAssignments () {
 		}
 	});
 	
-	if (gameState.party.missionState === 'in_combat') {
-		const isAttackMission = gameState.party.pausedMission && gameState.party.pausedMission.attackTargetId;
+	// MODIFIED: Reworked assignment logic to be more robust.
+	// This ensures that if a hero is in combat, they are always assigned to the correct monster,
+	// fixing the bug where skills might not be usable on the first encounter.
+	if (gameState.party.missionState === 'in_combat' && gameState.party.pausedMission) {
+		const paused = gameState.party.pausedMission;
+		const targetMonsterId = paused.attackTargetId || paused.ambushMonsterId;
 		
-		if (!isAttackMission) {
-			const ambushMonsterId = gameState.party.pausedMission ? gameState.party.pausedMission.ambushMonsterId : null;
-			if (ambushMonsterId) {
-				const targetMonster = gameState.activeMonsters.find(m => m.id === ambushMonsterId);
-				if (targetMonster) {
-					const idleHeroes = combatHeroes.filter(h => !h.targetMonsterId);
-					idleHeroes.forEach(hero => {
-						hero.targetMonsterId = targetMonster.id;
-					});
-				}
+		if (targetMonsterId) {
+			const targetMonster = gameState.activeMonsters.find(m => m.id === targetMonsterId);
+			if (targetMonster) {
+				// Find any hero in combat who doesn't have a target and assign them.
+				const idleHeroes = combatHeroes.filter(h => !h.targetMonsterId);
+				idleHeroes.forEach(hero => {
+					hero.targetMonsterId = targetMonster.id;
+				});
 			}
 		}
 	}
