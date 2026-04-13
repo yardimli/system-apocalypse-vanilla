@@ -540,17 +540,28 @@ async function init () {
 			const heroId = parseInt(castSkillBtn.dataset.heroId, 10);
 			const skillId = castSkillBtn.dataset.skillId;
 			const hero = gameState.heroes.find(h => h.id === heroId);
-			const targetHeroId = castSkillBtn.dataset.targetHeroId ? parseInt(castSkillBtn.dataset.targetHeroId, 10) : null;
 			
-			// MODIFIED: Use the unified startAction function
-			const options = {};
-			// Save the selected target for multi-target skills
-			if (targetHeroId) {
-				hero.skillTargets[skillId] = targetHeroId;
+			// MODIFIED: Entire block updated to disable auto-cast on manual use.
+			if (hero) { // Guard clause to ensure hero exists.
+				const targetHeroId = castSkillBtn.dataset.targetHeroId ? parseInt(castSkillBtn.dataset.targetHeroId, 10) : null;
+				
+				// If the manually cast skill is currently set to auto-cast, disable it.
+				if (hero.autoCastSkillId === skillId) {
+					hero.autoCastSkillId = null;
+					const skillName = gameData.skills.find(s => s.id === skillId)?.name || 'a skill';
+					addToLog(`Manually casting ${skillName}, auto-cast disabled for this skill.`, hero.id);
+				}
+				
+				const options = {};
+				// Save the selected target for multi-target skills.
+				if (targetHeroId) {
+					hero.skillTargets[skillId] = targetHeroId;
+				}
+				// Use the saved target, or default to self if applicable.
+				options.targetHeroId = hero.skillTargets[skillId] || hero.id;
+				startAction(heroId, skillId, options);
 			}
-			// Use the saved target, or default to self if applicable
-			options.targetHeroId = hero.skillTargets[skillId] || hero.id;
-			startAction(heroId, skillId, options);
+			// END MODIFICATION
 			
 			renderContent(0);
 			return;

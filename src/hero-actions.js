@@ -118,12 +118,22 @@ export function executeAction (hero, skill, options = {}) {
 					const ownedCar = gameState.city.cars.find(c => c.ownerId === targetHero.id);
 					if (ownedCar) {
 						targetHero.carId = ownedCar.id;
-						// Any revived hero can re-engage if combat is active
-						if (gameState.activeMonsters.length > 0) {
-							const targetMonster = gameState.activeMonsters[0];
-							targetHero.targetMonsterId = targetMonster.id;
-							addToLog(`${targetHero.name} has re-entered the fight, targeting ${targetMonster.name} (#${targetMonster.id})!`, targetHero.id);
+						
+						// MODIFIED: Logic to re-engage the correct monster after revival.
+						// A revived hero should rejoin the current fight if the party is in combat.
+						if (gameState.party.missionState === 'in_combat' && gameState.party.pausedMission) {
+							const paused = gameState.party.pausedMission;
+							const monsterIdToTarget = paused.attackTargetId || paused.ambushMonsterId;
+							
+							if (monsterIdToTarget) {
+								const targetMonster = gameState.activeMonsters.find(m => m.id === monsterIdToTarget);
+								if (targetMonster) {
+									targetHero.targetMonsterId = targetMonster.id;
+									addToLog(`${targetHero.name} has re-entered the fight, targeting ${targetMonster.name} (#${targetMonster.id})!`, targetHero.id);
+								}
+							}
 						}
+						// END MODIFICATION
 					}
 				}
 				
