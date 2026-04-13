@@ -1,5 +1,5 @@
 import { gameState, gameData } from './state.js';
-import { startCombatAction, startAegisAction, executeCombatEffect, executeAegisEffect } from './hero-actions.js';
+import { startAction, executeAction } from './hero-actions.js'; // MODIFIED: Import new unified functions
 import { addToLog, parseRange } from './utils.js';
 import { handleUseConsumable } from './inventory.js';
 import { handleShopAndPurchaseClicks, renderShopModal } from './shop.js';
@@ -101,15 +101,8 @@ function processGameTick () {
 		if (hero.casting && gameState.time >= hero.casting.castEndTime) {
 			const skill = gameData.skills.find(s => s.id === hero.casting.skillId);
 			if (skill) {
-				if (skill.class === 'Aegis') {
-					// The options (like targetHeroId) were stored in the casting object.
-					executeAegisEffect(hero, skill, hero.casting.options);
-				} else {
-					const monster = gameState.activeMonsters.find(m => m.id === hero.targetMonsterId);
-					if (monster) {
-						executeCombatEffect(hero, skill, monster);
-					}
-				}
+				// MODIFIED: Use the unified executeAction function
+				executeAction(hero, skill, hero.casting.options);
 			}
 			hero.casting = null; // Clear casting state after execution.
 		}
@@ -126,22 +119,20 @@ function processGameTick () {
 			
 			if (hero.hp.current > 0) {
 				hero.hp.current = Math.min(hero.hp.max, hero.hp.current + (hero.hpRegen * regenMultiplier));
-				if (hero.mp) {
-					hero.mp.current = Math.min(hero.mp.max, hero.mp.current + (hero.mpRegen * regenMultiplier));
-				}
+				hero.stamina.current = Math.min(hero.stamina.max, hero.stamina.current + (hero.staminaRegen * regenMultiplier)); // NEW
+				hero.mp.current = Math.min(hero.mp.max, hero.mp.current + (hero.mpRegen * regenMultiplier));
 			}
 			return;
 		}
 		
 		if (hero.hp.current > 0) {
 			hero.hp.current = Math.min(hero.hp.max, hero.hp.current + hero.hpRegen);
-			if (hero.mp) {
-				hero.mp.current = Math.min(hero.mp.max, hero.mp.current + hero.mpRegen);
-			}
+			hero.stamina.current = Math.min(hero.stamina.max, hero.stamina.current + hero.staminaRegen); // NEW
+			hero.mp.current = Math.min(hero.mp.max, hero.mp.current + hero.mpRegen);
 		}
 		
-		// Added check for hero.location to prevent rage decay while in a building.
-		if (hero.class === 'Vanguard' && !hero.targetMonsterId && hero.rage.current > 0 && hero.location === 'field') {
+		// Rage decay
+		if (!hero.targetMonsterId && hero.rage.current > 0 && hero.location === 'field') {
 			hero.rage.current = Math.max(0, hero.rage.current - 10);
 		}
 		
@@ -193,60 +184,40 @@ function processGameTick () {
 			}
 		}
 		
-		// Auto-cast logic now checks if the hero is already casting.
+		// MODIFIED: Auto-cast logic now uses the unified startAction function
 		if (hero.autoCastSkillId && hero.hp.current > 0 && !hero.casting) {
 			const skillId = hero.autoCastSkillId;
 			const skill = gameData.skills.find(s => s.id === skillId);
 			
-			if (skill) {
-				const meetsLevelReq = !skill.levelRequirement || hero.level >= skill.levelRequirement;
-				
-				let baseSkill = skill;
-				while (baseSkill.replaces) {
-					const parent = gameData.skills.find(s => s.id === baseSkill.replaces);
-					if (!parent) break;
-					baseSkill = parent;
+			// BUG FIX: Check if the hero meets the auto-cast level requirement for the skill.
+			const canAutoCast = skill && (!skill.autoCastUnlockLevel || hero.level >= skill.autoCastUnlockLevel);
+			
+			if (skill && canAutoCast) {
+				// Infer action type for auto-cast to correctly route heal vs attack
+				let actionType = skill.actionType;
+				if (!actionType) {
+					if (skill.skillClass === 'Healing') actionType = 'heal';
+					else if (skill.damage) actionType = 'attack';
+					// Add other types as needed
 				}
 				
-				const unlockLevel = baseSkill ? baseSkill.autoCastUnlockLevel : null;
-				const canAutoCast = unlockLevel && hero.level >= unlockLevel;
-				
-				const mpCost = skill.mpCost || 0;
-				const rageCost = skill.rageCost || 0;
-				const hasMp = !mpCost || (hero.mp && hero.mp.current >= mpCost);
-				const hasRage = !rageCost || (hero.rage && hero.rage.current >= rageCost);
-				const hasResources = hasMp && hasRage;
-				
-				const isOnCooldown = (hero.skillCooldowns[skillId] || 0) > gameState.time;
-				
-				if (meetsLevelReq && canAutoCast && hasResources && !isOnCooldown) {
-					// NEW: Infer action type for auto-cast to correctly route heal vs attack
-					let actionType = skill.actionType;
-					if (!actionType) {
-						if (skill.class === 'Healing') actionType = 'heal';
-						else if (skill.class === 'Tanking' && skill.name.includes('Taunt')) actionType = 'taunt';
-						else if (skill.damage) actionType = 'attack';
+				if (actionType === 'heal') {
+					let shouldCast = false;
+					const options = {};
+					
+					const targetId = hero.skillTargets[skillId] || hero.id;
+					const targetHero = gameState.heroes.find(h => h.id === targetId);
+					if (targetHero && targetHero.hp.current < (targetHero.hp.max * 0.85)) {
+						shouldCast = true;
+						options.targetHeroId = targetId;
 					}
 					
-					if (actionType === 'heal') { // MODIFIED: Check actionType instead of hero.class === 'Aegis'
-						let shouldCast = false;
-						const options = {};
-						
-						// NEW: Use the last selected target, or default to self
-						const targetId = hero.skillTargets[skillId] || hero.id;
-						const targetHero = gameState.heroes.find(h => h.id === targetId);
-						if (targetHero && targetHero.hp.current < (targetHero.hp.max * 0.85)) {
-							shouldCast = true;
-							options.targetHeroId = targetId;
-						}
-						
-						if (shouldCast) {
-							startAegisAction(hero.id, skill.id, options);
-						}
-					} else { // For Striker, Vanguard, and Aegis attacks
-						if (hero.targetMonsterId) {
-							startCombatAction(hero.id, skill.id);
-						}
+					if (shouldCast) {
+						startAction(hero.id, skill.id, options);
+					}
+				} else { // For any other auto-castable action (e.g., attack)
+					if (hero.targetMonsterId) {
+						startAction(hero.id, skill.id);
 					}
 				}
 			}
@@ -342,16 +313,19 @@ async function init () {
 			id: hData.id,
 			name: hData.name,
 			class: hData.class,
+			skillClasses: hData.skillClasses || [], // NEW: Added skillClasses
 			isMagicUser: hData.isMagicUser,
 			allowedArmorTypes: hData.allowedArmorTypes,
 			allowedWeaponTypes: hData.allowedWeaponTypes,
 			level: 1,
 			xp: { current: 0, max: 100 },
-			hp: { current: 0, max: 0 }, // Set dynamically by recalculateHeroStats
-			mp: hData.class !== 'Vanguard' ? { current: 0, max: 0 } : null,
-			rage: hData.class === 'Vanguard' ? { current: 0, max: 100 } : null,
+			hp: { current: 0, max: 0 },
+			mp: { current: 0, max: 0 }, // MODIFIED: Always initialize
+			rage: { current: 0, max: 100 }, // MODIFIED: Always initialize
+			stamina: { current: 0, max: 0 }, // NEW: Added stamina
 			hpRegen: 0,
 			mpRegen: 0,
+			staminaRegen: 0, // NEW: Added stamina regen
 			stats: { ...hData.baseStats },
 			unspentStatPoints: 0,
 			equipment: { ...hData.startingEquipment },
@@ -369,11 +343,12 @@ async function init () {
 			tokens: 100
 		}));
 		
-		// Apply derived stats and fill HP/MP to max for start
+		// Apply derived stats and fill HP/MP/Stamina to max for start
 		gameState.heroes.forEach(recalculateHeroStats);
 		gameState.heroes.forEach(h => {
 			h.hp.current = h.hp.max;
-			if (h.mp) h.mp.current = h.mp.max;
+			h.mp.current = h.mp.max;
+			h.stamina.current = h.stamina.max; // NEW
 		});
 		
 		// Populate game state with buildings from the new JSON file.
@@ -539,27 +514,18 @@ async function init () {
 			const heroId = parseInt(castSkillBtn.dataset.heroId, 10);
 			const skillId = castSkillBtn.dataset.skillId;
 			const hero = gameState.heroes.find(h => h.id === heroId);
-			const skillData = gameData.skills.find(s => s.id === skillId);
 			const targetHeroId = castSkillBtn.dataset.targetHeroId ? parseInt(castSkillBtn.dataset.targetHeroId, 10) : null;
 			
-			// NEW: Infer action type to correctly route heal vs attack
-			let actionType = skillData.actionType;
-			if (!actionType) {
-				if (skillData.class === 'Healing') actionType = 'heal';
-				else if (skillData.class === 'Tanking' && skillData.name.includes('Taunt')) actionType = 'taunt';
-				else if (skillData.damage) actionType = 'attack';
+			// MODIFIED: Use the unified startAction function
+			const options = {};
+			// Save the selected target for multi-target skills
+			if (targetHeroId) {
+				hero.skillTargets[skillId] = targetHeroId;
 			}
+			// Use the saved target, or default to self if applicable
+			options.targetHeroId = hero.skillTargets[skillId] || hero.id;
+			startAction(heroId, skillId, options);
 			
-			if (actionType === 'heal') { // MODIFIED: Check actionType instead of skillData.class === 'Aegis'
-				const options = {};
-				if (targetHeroId) {
-					hero.skillTargets[skillId] = targetHeroId; // Save the selected target
-				}
-				options.targetHeroId = hero.skillTargets[skillId] || hero.id; // Use saved target or self
-				startAegisAction(heroId, skillId, options);
-			} else {
-				startCombatAction(heroId, skillId);
-			}
 			renderContent(0);
 			return;
 		}

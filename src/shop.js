@@ -161,7 +161,9 @@ export function handleBuyItem (heroId, itemId) {
 	
 	// Process transaction
 	hero.tokens -= price;
-	hero.inventory[itemId] = (hero.inventory[itemId] || 0) + 1;
+	// MODIFIED: Purchase a full stack of items if stackSize is defined.
+	const qtyToAdd = itemData.stackSize || 1;
+	hero.inventory[itemId] = (hero.inventory[itemId] || 0) + qtyToAdd;
 	
 	addToLog(`bought ${itemData.name} for ${price} tokens.`, hero.id);
 	
@@ -457,10 +459,23 @@ export function renderShopModal ({ heroId, buildingId, defaultTab = 'items' }) {
 		// Items
 		itemsContent.innerHTML = gameData.items.map(entity => {
 			let canUse = true;
+			// Armor type check
 			if (entity.type === 'Armor' && entity.armorType && !hero.allowedArmorTypes.includes(entity.armorType)) canUse = false;
-			if ((entity.type === 'Weapon' || entity.type === 'Shield') && entity.weaponType && !hero.allowedWeaponTypes.includes(entity.weaponType)) canUse = false;
+			
+			// MODIFIED: New logic for weapon purchasing
+			if ((entity.type === 'Weapon' || entity.type === 'Shield')) {
+				const requiredType = entity.requiredWeaponType;
+				if (requiredType) {
+					// Check if the hero can learn any skill that uses this weapon type.
+					const canLearnSkillForWeapon = gameData.skills.some(skill =>
+						skill.requiredWeaponType === requiredType && hero.skillClasses.includes(skill.skillClass)
+					);
+					if (!canLearnSkillForWeapon) canUse = false;
+				}
+			}
+			
+			// Magic user check
 			if (entity.magicUserOnly && !hero.isMagicUser) canUse = false;
-			if (entity.type === 'Consumable' && entity.class && !entity.class.includes(hero.class)) canUse = false;
 			if (!canUse) return '';
 			
 			let details = '';
@@ -516,12 +531,14 @@ export function renderShopModal ({ heroId, buildingId, defaultTab = 'items' }) {
 		
 		// Skills Helper
 		const renderSkillList = (skillList) => skillList.map(skill => {
-			if (skill.class && skill.class !== hero.class) return '';
+			// MODIFIED: Show skill if its class is in the hero's allowed skillClasses
+			if (!hero.skillClasses.includes(skill.skillClass)) return '';
+			
 			const price = getSkillPrice(skill);
 			const canAfford = hero.tokens >= price;
 			const hasSkill = hero.skills.some(s => s.id === skill.id);
 			const imageUrl = getImageUrl(skill);
-			const details = `Req: Lvl ${skill.levelRequirement} | Cost: ${skill.mpCost || skill.rageCost || 0} ${skill.rageCost ? 'Rage' : 'MP'}`;
+			const details = `Req: Lvl ${skill.levelRequirement} | Cost: ${skill.mpCost || skill.rageCost || skill.staminaCost || 0} ${skill.rageCost ? 'Rage' : (skill.staminaCost ? 'Stam' : 'MP')}`;
 			
 			return `
 				<div class="bg-base-300/50 rounded p-2 flex gap-2">

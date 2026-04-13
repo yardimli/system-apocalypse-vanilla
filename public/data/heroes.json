@@ -4,6 +4,11 @@
     "name": "Ava",
     "class": "Aegis",
     "isMagicUser": true,
+    "skillClasses": [
+      "Healing",
+      "DpsElec",
+      "Ranged"
+    ],
     "allowedArmorTypes": [
       "Cloth"
     ],
@@ -26,6 +31,8 @@
     "startingInventory": {
       "ARM001": 1,
       "WAND001": 1,
+      "BOW001": 1,
+      "AMMO001": 40,
       "ITM003": 2,
       "ITM006": 3,
       "ITM016": 4,
@@ -33,7 +40,8 @@
     },
     "startingSkills": [
       "DPS_ELEC_001",
-      "HEA001"
+      "HEA001",
+      "MAR002"
     ],
     "autoCastSkillId": null,
     "card_images": [
@@ -50,6 +58,13 @@
     "name": "Jax",
     "class": "Striker",
     "isMagicUser": true,
+    "skillClasses": [
+      "DpsFire",
+      "DpsFrost",
+      "DpsArcane",
+      "Ranged",
+      "OneHandBlade"
+    ],
     "allowedArmorTypes": [
       "Cloth",
       "Leather"
@@ -73,11 +88,15 @@
     "startingInventory": {
       "ARM001": 1,
       "WAND001": 1,
+      "BOW001": 1,
+      "AMMO001": 40,
       "ITM016": 4,
       "ITM017": 2
     },
     "startingSkills": [
-      "DPS_FIRE_001"
+      "DPS_FIRE_001",
+      "MAR001",
+      "MAR002"
     ],
     "autoCastSkillId": "DPS_FIRE_001",
     "card_images": [
@@ -94,6 +113,10 @@
     "name": "Roc",
     "class": "Vanguard",
     "isMagicUser": false,
+    "skillClasses": [
+      "Tanking",
+      "OneHandBlade"
+    ],
     "allowedArmorTypes": [
       "Cloth",
       "Leather",
@@ -125,7 +148,8 @@
     },
     "startingSkills": [
       "TNK001",
-      "MAR001"
+      "MAR001",
+      "MAR003"
     ],
     "autoCastSkillId": "MAR001",
     "card_images": [

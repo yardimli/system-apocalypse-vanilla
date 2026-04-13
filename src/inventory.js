@@ -16,11 +16,7 @@ export function handleUseConsumable(heroId, itemId) {
 		return false;
 	}
 	
-	// Check for class restrictions on consumables
-	if (itemData.class && !itemData.class.includes(hero.class)) {
-		addToLog(`cannot use ${itemData.name} due to class restrictions.`, hero.id);
-		return false;
-	}
+	// REMOVED: Class restriction check as per new design.
 	
 	const { type, value } = itemData.effect;
 	let used = false;

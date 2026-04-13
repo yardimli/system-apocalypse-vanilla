@@ -5,32 +5,41 @@ import { addToLog, updateTextIfChanged, updateHtmlIfChanged, updateProgressIfCha
 const getEl = (id) => document.getElementById(id);
 
 /**
- * Recalculates derived stats (Max HP, Max MP, Regen) based on the hero's core stats.
- * Endurance boosts HP, Intelligence boosts MP, Spirit boosts Regen.
+ * Recalculates derived stats (Max HP, MP, Stamina, Rage, and Regen rates) based on a hero's core stats.
  * @param {object} hero - The hero object to update.
  */
 export function recalculateHeroStats(hero) {
-	const baseHp = hero.class === 'Vanguard' ? 200 : 100;
-	const baseMp = hero.class === 'Aegis' ? 150 : 100;
-	
+	// MODIFIED: Store old max values to correctly add to current resources on level up/stat increase.
 	const oldMaxHp = hero.hp.max;
-	const oldMaxMp = hero.mp ? hero.mp.max : 0;
+	const oldMaxMp = hero.mp.max;
+	const oldMaxStamina = hero.stamina.max;
 	
-	// Base scaling per level + Stat scaling
-	hero.hp.max = baseHp + (hero.level * 10) + (hero.stats.end * 10);
-	if (hero.class !== 'Vanguard') {
-		hero.mp.max = baseMp + (hero.level * 10) + (hero.stats.int * 5);
-	}
+	// --- STAT FORMULAS ---
+	// HP: Base 100, +10 per level, +10 per END point.
+	hero.hp.max = 100 + (hero.level * 10) + (hero.stats.end * 10);
 	
-	// Spirit increases regeneration rates
-	hero.hpRegen = (hero.class === 'Vanguard' ? 2.0 : 1.0) + (hero.stats.spr * 0.1);
-	if (hero.class !== 'Vanguard') {
-		hero.mpRegen = (hero.class === 'Aegis' ? 2.0 : 1.0) + (hero.stats.spr * 0.1);
-	}
+	// MP: Base 50, +5 per level, +5 per INT point.
+	hero.mp.max = 50 + (hero.level * 5) + (hero.stats.int * 5);
 	
-	// Add the difference to current HP/MP so leveling up/adding stats heals for the gained amount
+	// Stamina: Base 100, +5 per AGI, +3 per END.
+	hero.stamina.max = 100 + (hero.stats.agi * 5) + (hero.stats.end * 3);
+	
+	// Rage: Base 100, +2 per STR.
+	hero.rage.max = 100 + (hero.stats.str * 2);
+	
+	// HP Regen: Base 1.0/s, +0.1 per SPR point.
+	hero.hpRegen = 1.0 + (hero.stats.spr * 0.1);
+	
+	// MP Regen: Base 1.0/s, +0.1 per SPR point.
+	hero.mpRegen = 1.0 + (hero.stats.spr * 0.1);
+	
+	// Stamina Regen: Base 2.0/s, +0.2 per AGI point.
+	hero.staminaRegen = 2.0 + (hero.stats.agi * 0.2);
+	
+	// Add the difference to current resources so leveling up/adding stats heals for the gained amount.
 	if (hero.hp.max > oldMaxHp) hero.hp.current += (hero.hp.max - oldMaxHp);
-	if (hero.mp && hero.mp.max > oldMaxMp) hero.mp.current += (hero.mp.max - oldMaxMp);
+	if (hero.mp.max > oldMaxMp) hero.mp.current += (hero.mp.max - oldMaxMp);
+	if (hero.stamina.max > oldMaxStamina) hero.stamina.current += (hero.stamina.max - oldMaxStamina);
 }
 
 export function autoEquipBestGear (hero) {
@@ -183,18 +192,34 @@ export function renderHeroes () {
 		updateTextIfChanged(card.querySelector('[data-hp-label]'), hpText);
 		updateProgressIfChanged(card.querySelector('[data-hp-bar]'), hero.hp.current, hero.hp.max);
 		
-		const mpContainer = card.querySelector('[data-mp-container]');
-		if (hero.class === 'Vanguard') {
-			mpContainer.style.display = 'none';
+		// NEW: Render Stamina bar
+		const staminaContainer = card.querySelector('[data-stamina-container]');
+		const canUseStamina = hero.skillClasses.some(sc => ['OneHandBlade', 'Ranged', 'TwoHanded'].includes(sc));
+		if (canUseStamina) {
+			staminaContainer.style.display = 'flex';
+			const staminaText = `Stamina: ${Math.floor(hero.stamina.current)}/${hero.stamina.max} (+${formatRegen(hero.staminaRegen)}/s)`;
+			updateTextIfChanged(card.querySelector('[data-stamina-label]'), staminaText);
+			updateProgressIfChanged(card.querySelector('[data-stamina-bar]'), hero.stamina.current, hero.stamina.max);
 		} else {
+			staminaContainer.style.display = 'none';
+		}
+		
+		const mpContainer = card.querySelector('[data-mp-container]');
+		// MODIFIED: Determine if a hero uses MP by checking their available skill classes.
+		const canUseMp = hero.skillClasses.some(sc => ['Healing', 'CrowdControl', 'DpsFire', 'DpsFrost', 'DpsElec', 'DpsArcane'].includes(sc));
+		if (canUseMp) {
 			mpContainer.style.display = 'flex';
 			const mpText = `MP: ${Math.floor(hero.mp.current)}/${hero.mp.max} (+${formatRegen(hero.mpRegen)}/s)`;
 			updateTextIfChanged(card.querySelector('[data-mp-label]'), mpText);
 			updateProgressIfChanged(card.querySelector('[data-mp-bar]'), hero.mp.current, hero.mp.max);
+		} else {
+			mpContainer.style.display = 'none';
 		}
 		
 		const rageContainer = card.querySelector('[data-rage-container]');
-		if (hero.class === 'Vanguard') {
+		// MODIFIED: Determine if a hero uses Rage by checking their available skill classes.
+		const canUseRage = hero.skillClasses.includes('Tanking');
+		if (canUseRage) {
 			rageContainer.style.display = 'flex';
 			const rageText = `Rage: ${Math.floor(hero.rage.current)}/${hero.rage.max}`;
 			updateTextIfChanged(card.querySelector('[data-rage-label]'), rageText);
@@ -348,25 +373,18 @@ export function renderSkillsPanel (alpha = 0) {
 			const meetsLevelReq = !skillData.levelRequirement || hero.level >= skillData.levelRequirement;
 			const mpCost = skillData.mpCost || 0;
 			const rageCost = skillData.rageCost || 0;
+			const staminaCost = skillData.staminaCost || 0; // NEW
 			
-			// INFER ACTION TYPE FROM JSON DATA
+			// MODIFIED: Infer action type from skill data
 			let actionType = skillData.actionType;
 			if (!actionType) {
-				if (skillData.class === 'Healing') actionType = 'heal';
-				else if (skillData.class === 'Tanking' && skillData.name.includes('Taunt')) actionType = 'taunt';
+				if (skillData.skillClass === 'Healing') actionType = 'heal';
+				else if (skillData.skillClass === 'Tanking' && skillData.name.includes('Taunt')) actionType = 'taunt';
 				else if (skillData.damage) actionType = 'attack';
 			}
 			
-			let hasResources;
-			if (hero.class === 'Vanguard') {
-				if (actionType === 'taunt') {
-					hasResources = hero.rage && hero.rage.current >= rageCost;
-				} else {
-					hasResources = true;
-				}
-			} else {
-				hasResources = hero.mp && hero.mp.current >= mpCost;
-			}
+			// MODIFIED: Check all three resources
+			const hasResources = hero.mp.current >= mpCost && hero.stamina.current >= staminaCost && hero.rage.current >= rageCost;
 			
 			let canUseInCurrentState = true;
 			if (actionType === 'attack' || actionType === 'taunt') {
@@ -374,7 +392,8 @@ export function renderSkillsPanel (alpha = 0) {
 			}
 			
 			const shouldFlash = hero.skillFlash && hero.skillFlash.id === skillData.id && gameState.time < hero.skillFlash.clearAtTime;
-			const costText = rageCost > 0 ? `${rageCost} Rage` : (mpCost > 0 ? `${mpCost} MP` : '');
+			// NEW: Display the correct resource cost type
+			const costText = rageCost > 0 ? `${rageCost} Rage` : (staminaCost > 0 ? `${staminaCost} Stam` : (mpCost > 0 ? `${mpCost} MP` : ''));
 			
 			if (actionType === 'heal') {
 				if (!castContainer.querySelector('.btn-group-wrapper')) {

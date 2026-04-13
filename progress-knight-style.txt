@@ -414,3 +414,33 @@ add to the game logic so when a building has a population the population will re
 the party should distribute the survivors across all buildings not just the home bases
 on the buildings page show how many tokens the building has earned
 link the upgrade button on buildings to the shop only show the shop should only show the building upgrades tab and the building should be able to purchase upgrades
+
+-------------------
+in heros.json for each hero add skillClass array they can use defined, the skill classes are
+Healing
+CrowdControl
+DpsFire
+DpsFrost
+DpsElec
+DpsArcane
+Tanking
+OneHandBlade
+Ranged
+TwoHanded
+
+update the casting system to not use hero classes for validation, all heros should be able to cast or use any skill class they have access to as long as they own the skill/spell and have the required weapon for it and also mp, rp and stamina for it.
+
+add stamina to all heros in the ui under the xp bar
+update the code so max hp,mp,rp and stamina is calculated from the heros baseStats define the formula functions in heros.js
+
+update the shop to show all skills and classes for all heros based on their skill classes they are able to use defined in heros.json
+
+i've removed class from items and instead have requiredWeaponType limit purchasing in shop to check if the hero has skills that match the requiredWeaponType in new_magic_skills.json or new_martial_skills.json
+
+
+------
+
+there is a bug where Roc does Quick Strike in the begining of the game when auto cast has not reached the level requirement yet.
+all hero's should have stamina, Ava and Jax will use it when they use their bows. add basic bow and 40 arrows to their inventories.
+Jax can also use OneHandBlade he will also know Quick Strike skill and both jax and ava should know Aimed Shot
+when the heros use bow have the Arrows drop in numbers. i've added stackSize to the items.json which should increase quantity when purchased.

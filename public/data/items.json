@@ -2,7 +2,6 @@
   {
     "id": "ITM002",
     "name": "Medical Supplies",
-    "image": "/images/items/itm002.png",
     "type": "Consumable",
     "description": "Used by Aegis heroes for powerful healing.",
     "effect": {
@@ -23,7 +22,6 @@
   {
     "id": "ITM003",
     "name": "Monster Core Shard",
-    "image": "/images/items/itm003.png",
     "type": "Junk",
     "description": "A fragment of a monster's essence, valuable to the System.",
     "level": 1,
@@ -40,17 +38,12 @@
   {
     "id": "ITM005",
     "name": "Energy Bar",
-    "image": "/images/items/itm005.png",
     "type": "Consumable",
     "description": "Can be used to restore a small amount of MP.",
     "effect": {
       "type": "heal_mp",
       "value": 25
     },
-    "class": [
-      "Aegis",
-      "Striker"
-    ],
     "level": 1,
     "sellPrice": 10,
     "card_images": [
@@ -65,7 +58,6 @@
   {
     "id": "ITM006",
     "name": "Clean Water",
-    "image": "/images/items/itm006.png",
     "type": "Consumable",
     "description": "Essential for survivor well-being. Restores a tiny amount of HP.",
     "effect": {
@@ -86,7 +78,6 @@
   {
     "id": "ITM008",
     "name": "System Shard",
-    "image": "/images/items/itm008.png",
     "type": "Junk",
     "description": "A rare fragment of the System itself.",
     "level": 2,
@@ -103,7 +94,6 @@
   {
     "id": "ITM009",
     "name": "First Aid Kit",
-    "image": "/images/items/itm009.png",
     "type": "Consumable",
     "description": "A better version of Medical Supplies.",
     "effect": {
@@ -124,17 +114,12 @@
   {
     "id": "ITM013",
     "name": "Mana Crystal",
-    "image": "/images/items/itm013.png",
     "type": "Consumable",
     "description": "A crystal humming with energy. Restores MP.",
     "effect": {
       "type": "heal_mp",
       "value": 50
     },
-    "class": [
-      "Aegis",
-      "Striker"
-    ],
     "level": 2,
     "sellPrice": 25,
     "card_images": [
@@ -149,7 +134,6 @@
   {
     "id": "ITM014",
     "name": "Corrupted Data Fragment",
-    "image": "/images/items/itm014.png",
     "type": "Junk",
     "description": "An unstable piece of monster data.",
     "level": 2,
@@ -166,7 +150,6 @@
   {
     "id": "ITM015",
     "name": "Pure Energy Crystal",
-    "image": "/images/items/itm015.png",
     "type": "Junk",
     "description": "A flawless crystal used in high-end items.",
     "level": 3,
@@ -183,7 +166,6 @@
   {
     "id": "ITM016",
     "name": "Lesser Healing Salve",
-    "image": "/images/items/itm016.png",
     "type": "Consumable",
     "description": "A basic salve that restores a small amount of HP.",
     "effect": {
@@ -204,17 +186,12 @@
   {
     "id": "ITM017",
     "name": "Lesser Mana Vial",
-    "image": "/images/items/itm017.png",
     "type": "Consumable",
     "description": "A small vial that restores a bit of MP.",
     "effect": {
       "type": "heal_mp",
       "value": 80
     },
-    "class": [
-      "Aegis",
-      "Striker"
-    ],
     "level": 1,
     "sellPrice": 6,
     "card_images": [
@@ -229,7 +206,6 @@
   {
     "id": "ITM018",
     "name": "Standard Healing Potion",
-    "image": "/images/items/itm018.png",
     "type": "Consumable",
     "description": "Restores a moderate amount of HP.",
     "effect": {
@@ -250,17 +226,12 @@
   {
     "id": "ITM019",
     "name": "Standard Mana Potion",
-    "image": "/images/items/itm019.png",
     "type": "Consumable",
     "description": "Restores a moderate amount of MP.",
     "effect": {
       "type": "heal_mp",
       "value": 200
     },
-    "class": [
-      "Aegis",
-      "Striker"
-    ],
     "level": 2,
     "sellPrice": 20,
     "card_images": [
@@ -275,7 +246,6 @@
   {
     "id": "ITM020",
     "name": "Greater Healing Potion",
-    "image": "/images/items/itm020.png",
     "type": "Consumable",
     "description": "A potent elixir that restores a large amount of HP.",
     "effect": {
@@ -296,17 +266,12 @@
   {
     "id": "ITM021",
     "name": "Greater Mana Potion",
-    "image": "/images/items/itm021.png",
     "type": "Consumable",
     "description": "A potent elixir that restores a large amount of MP.",
     "effect": {
       "type": "heal_mp",
       "value": 400
     },
-    "class": [
-      "Aegis",
-      "Striker"
-    ],
     "level": 3,
     "sellPrice": 60,
     "card_images": [
@@ -321,7 +286,6 @@
   {
     "id": "ARM001",
     "name": "Cloth Armor",
-    "image": "/images/armor/arm001.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Cloth",
@@ -341,7 +305,6 @@
   {
     "id": "ARM002",
     "name": "Leather Armor",
-    "image": "/images/armor/arm002.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Leather",
@@ -361,7 +324,6 @@
   {
     "id": "ARM003",
     "name": "Chainmail Armor",
-    "image": "/images/armor/arm003.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Chainmail",
@@ -381,7 +343,6 @@
   {
     "id": "ARM004",
     "name": "Plate Armor",
-    "image": "/images/armor/arm004.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Plate",
@@ -401,7 +362,6 @@
   {
     "id": "ARM005",
     "name": "Aegis Power Armor",
-    "image": "/images/armor/arm005.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Plate",
@@ -421,7 +381,6 @@
   {
     "id": "ARM002_V",
     "name": "Reinforced Leather",
-    "image": "/images/armor/arm002_V.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Leather",
@@ -441,7 +400,6 @@
   {
     "id": "ARM003_V",
     "name": "Hardened Chainmail",
-    "image": "/images/armor/arm003_V.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Chainmail",
@@ -461,7 +419,6 @@
   {
     "id": "ARM004_V",
     "name": "Masterwork Plate",
-    "image": "/images/armor/arm004_V.png",
     "type": "Armor",
     "equipSlot": "body",
     "armorType": "Plate",
@@ -481,14 +438,9 @@
   {
     "id": "WAND001",
     "name": "Apprentice's Wand",
-    "image": "/images/wands/wand001.png",
     "type": "Weapon",
-    "weaponType": "Wand",
+    "requiredWeaponType": "Wand",
     "equipSlot": "mainHand",
-    "class": [
-      "Striker",
-      "Aegis"
-    ],
     "spellPower": 2,
     "level": 1,
     "sellPrice": 25,
@@ -506,14 +458,9 @@
   {
     "id": "WAND002",
     "name": "Adept's Wand",
-    "image": "/images/wands/wand002.png",
     "type": "Weapon",
-    "weaponType": "Wand",
+    "requiredWeaponType": "Wand",
     "equipSlot": "mainHand",
-    "class": [
-      "Striker",
-      "Aegis"
-    ],
     "spellPower": 3,
     "level": 2,
     "sellPrice": 100,
@@ -531,14 +478,9 @@
   {
     "id": "WAND003",
     "name": "Mage's Scepter",
-    "image": "/images/wands/wand003.png",
     "type": "Weapon",
-    "weaponType": "Wand",
+    "requiredWeaponType": "Wand",
     "equipSlot": "mainHand",
-    "class": [
-      "Striker",
-      "Aegis"
-    ],
     "spellPower": 5,
     "level": 3,
     "sellPrice": 350,
@@ -556,11 +498,9 @@
   {
     "id": "SWD001",
     "name": "Rusted Shortsword",
-    "image": "/images/swords/swd001.png",
     "type": "Weapon",
-    "weaponType": "Sword",
+    "requiredWeaponType": "OneHandBlade",
     "equipSlot": "mainHand",
-    "class": "Vanguard",
     "damage": "3-5",
     "level": 1,
     "sellPrice": 25,
@@ -577,11 +517,9 @@
   {
     "id": "SWD002",
     "name": "Steel Longsword",
-    "image": "/images/swords/swd002.png",
     "type": "Weapon",
-    "weaponType": "Sword",
+    "requiredWeaponType": "OneHandBlade",
     "equipSlot": "mainHand",
-    "class": "Vanguard",
     "damage": "8-12",
     "level": 2,
     "sellPrice": 120,
@@ -598,11 +536,9 @@
   {
     "id": "SWD003",
     "name": "Titanium Greatsword",
-    "image": "/images/swords/swd003.png",
     "type": "Weapon",
-    "weaponType": "Sword",
+    "requiredWeaponType": "TwoHanded",
     "equipSlot": "mainHand",
-    "class": "Vanguard",
     "damage": "15-22",
     "level": 3,
     "sellPrice": 400,
@@ -619,11 +555,9 @@
   {
     "id": "SHD001",
     "name": "Wooden Buckler",
-    "image": "/images/shields/shd001.png",
     "type": "Shield",
-    "weaponType": "Shield",
+    "requiredWeaponType": "Shield",
     "equipSlot": "offHand",
-    "class": "Vanguard",
     "damageMitigation": "2-4",
     "level": 1,
     "sellPrice": 20,
@@ -640,11 +574,9 @@
   {
     "id": "SHD002",
     "name": "Iron Kite Shield",
-    "image": "/images/shields/shd002.png",
     "type": "Shield",
-    "weaponType": "Shield",
+    "requiredWeaponType": "Shield",
     "equipSlot": "offHand",
-    "class": "Vanguard",
     "damageMitigation": "6-10",
     "level": 2,
     "sellPrice": 110,
@@ -661,11 +593,9 @@
   {
     "id": "SHD003",
     "name": "Aegis Barrier",
-    "image": "/images/shields/shd003.png",
     "type": "Shield",
-    "weaponType": "Shield",
+    "requiredWeaponType": "Shield",
     "equipSlot": "offHand",
-    "class": "Vanguard",
     "damageMitigation": "14-20",
     "level": 3,
     "sellPrice": 380,
@@ -682,14 +612,9 @@
   {
     "id": "BOW001",
     "name": "Simple Bow",
-    "image": "/images/bows/bow001.png",
     "type": "Weapon",
-    "weaponType": "Bow",
+    "requiredWeaponType": "Ranged",
     "equipSlot": "mainHand",
-    "class": [
-      "Striker",
-      "Aegis"
-    ],
     "damage": "6-9",
     "level": 2,
     "sellPrice": 100,
@@ -706,14 +631,9 @@
   {
     "id": "BOW002",
     "name": "Advanced Bow",
-    "image": "/images/bows/bow002.png",
     "type": "Weapon",
-    "weaponType": "Bow",
+    "requiredWeaponType": "Ranged",
     "equipSlot": "mainHand",
-    "class": [
-      "Striker",
-      "Aegis"
-    ],
     "damage": "13-18",
     "level": 3,
     "sellPrice": 350,
@@ -730,13 +650,9 @@
   {
     "id": "AMMO001",
     "name": "Arrows (100)",
-    "image": "/images/bows/ammO001.png",
-    "class": [
-      "Striker",
-      "Aegis"
-    ],
     "type": "Consumable",
     "description": "A bundle of 100 simple arrows. Can be sold.",
+    "stackSize": 100,
     "level": 1,
     "sellPrice": 20,
     "card_images": [
