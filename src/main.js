@@ -220,27 +220,30 @@ function processGameTick () {
 				const isOnCooldown = (hero.skillCooldowns[skillId] || 0) > gameState.time;
 				
 				if (meetsLevelReq && canAutoCast && hasResources && !isOnCooldown) {
-					if (hero.class === 'Aegis') { // Check hero.class instead of skill.class
+					// NEW: Infer action type for auto-cast to correctly route heal vs attack
+					let actionType = skill.actionType;
+					if (!actionType) {
+						if (skill.class === 'Healing') actionType = 'heal';
+						else if (skill.class === 'Tanking' && skill.name.includes('Taunt')) actionType = 'taunt';
+						else if (skill.damage) actionType = 'attack';
+					}
+					
+					if (actionType === 'heal') { // MODIFIED: Check actionType instead of hero.class === 'Aegis'
 						let shouldCast = false;
 						const options = {};
 						
-						// INFER ACTION TYPE
-						let actionType = skill.actionType;
-						if (!actionType && skill.class === 'Healing') actionType = 'heal';
-						
-						if (actionType === 'heal') {
-							const targetId = hero.skillTargets[skillId];
-							const targetHero = gameState.heroes.find(h => h.id === targetId);
-							if (targetHero && targetHero.hp.current < (targetHero.hp.max * 0.85)) {
-								shouldCast = true;
-								options.targetHeroId = targetId;
-							}
+						// NEW: Use the last selected target, or default to self
+						const targetId = hero.skillTargets[skillId] || hero.id;
+						const targetHero = gameState.heroes.find(h => h.id === targetId);
+						if (targetHero && targetHero.hp.current < (targetHero.hp.max * 0.85)) {
+							shouldCast = true;
+							options.targetHeroId = targetId;
 						}
 						
 						if (shouldCast) {
 							startAegisAction(hero.id, skill.id, options);
 						}
-					} else { // For Striker and Vanguard
+					} else { // For Striker, Vanguard, and Aegis attacks
 						if (hero.targetMonsterId) {
 							startCombatAction(hero.id, skill.id);
 						}
@@ -539,14 +542,20 @@ async function init () {
 			const skillData = gameData.skills.find(s => s.id === skillId);
 			const targetHeroId = castSkillBtn.dataset.targetHeroId ? parseInt(castSkillBtn.dataset.targetHeroId, 10) : null;
 			
-			if (skillData.class === 'Aegis') {
+			// NEW: Infer action type to correctly route heal vs attack
+			let actionType = skillData.actionType;
+			if (!actionType) {
+				if (skillData.class === 'Healing') actionType = 'heal';
+				else if (skillData.class === 'Tanking' && skillData.name.includes('Taunt')) actionType = 'taunt';
+				else if (skillData.damage) actionType = 'attack';
+			}
+			
+			if (actionType === 'heal') { // MODIFIED: Check actionType instead of skillData.class === 'Aegis'
 				const options = {};
-				if (skillData.actionType === 'heal') {
-					if (targetHeroId) {
-						hero.skillTargets[skillId] = targetHeroId;
-					}
-					options.targetHeroId = hero.skillTargets[skillId];
+				if (targetHeroId) {
+					hero.skillTargets[skillId] = targetHeroId; // Save the selected target
 				}
+				options.targetHeroId = hero.skillTargets[skillId] || hero.id; // Use saved target or self
 				startAegisAction(heroId, skillId, options);
 			} else {
 				startCombatAction(heroId, skillId);

@@ -384,7 +384,8 @@ export function processMissionTick () {
 				addToLog(`The party has reached ${monster.name} and is engaging in combat!`);
 				
 				gameState.heroes.forEach(hero => {
-					if (hero.location === 'field' && (hero.class === 'Striker' || hero.class === 'Vanguard') && hero.hp.current > 0) {
+					// MODIFIED: Removed class restriction so Aegis heroes can also target monsters and use attack skills
+					if (hero.location === 'field' && hero.hp.current > 0) {
 						hero.targetMonsterId = monster.id;
 					}
 				});

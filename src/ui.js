@@ -299,7 +299,6 @@ export function renderPartyCombat () {
 	updateHtmlIfChanged(panel.querySelector('[data-monster-agro-list]'), agroHtml, agroStateKey);
 }
 
-
 /**
  * Renders the consolidated party log from the new universal log structure.
  */
@@ -339,8 +338,8 @@ export function renderPartyLog () {
 	const filteredLogs = gameState.log.filter(entry => {
 		if (showExtraLogs) return true;
 		
-		// Filter out detailed extra damage logs if the toggle is off.
-		const isBattleDamageLog = /attacked.*, dealing|deals \d+ damage/.test(entry.message);
+		// MODIFIED: Filter out detailed extra damage and heal logs if the toggle is off.
+		const isBattleDamageLog = /attacked.*, dealing|deals \d+ damage|healed .* for \d+ HP/.test(entry.message);
 		const isEnterExitLog = /entered|exited|got back in their car/.test(entry.message);
 		return !isBattleDamageLog && !isEnterExitLog;
 	});

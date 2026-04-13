@@ -31,6 +31,7 @@ export function executeCombatEffect (hero, skill, monster) {
 			const totalBoost = levelBoost * statMultiplier;
 			let damageDealt;
 			let agroGenerated;
+			let calcDetails = ''; // NEW: Store calculation details
 			
 			if (hero.class === 'Vanguard') {
 				const baseDamage = skill.damage ? parseRange(skill.damage) : parseRange('1-2');
@@ -50,12 +51,14 @@ export function executeCombatEffect (hero, skill, monster) {
 				
 				damageDealt = Math.ceil(finalDamage * totalBoost);
 				agroGenerated = damageDealt * finalAgroMultiplier;
+				calcDetails = `(Base: ${finalDamage}, Boost: x${totalBoost.toFixed(2)})`; // NEW: Format details
 			} else {
 				const wand = gameData.items.find(i => i.id === hero.equipment.mainHand);
 				const spellPower = wand && wand.spellPower ? wand.spellPower : 1;
 				const baseDamage = parseRange(skill.damage);
 				damageDealt = Math.ceil((baseDamage * spellPower) * totalBoost);
 				agroGenerated = damageDealt * (skill.agroMultiplier || 1.0);
+				calcDetails = `(Base: ${baseDamage}, SP: x${spellPower}, Boost: x${totalBoost.toFixed(2)})`; // NEW: Format details
 			}
 			
 			const car = hero.carId ? gameState.city.cars.find(c => c.id === hero.carId) : null;
@@ -69,6 +72,7 @@ export function executeCombatEffect (hero, skill, monster) {
 					const bonusDamage = Math.ceil(damageDealt * damageBonus);
 					damageDealt += bonusDamage;
 					addToLog(`car provided a ${Math.round(damageBonus * 100)}% damage bonus!`, hero.id);
+					calcDetails = calcDetails.replace(')', `, Car: +${Math.round(damageBonus * 100)}%)`); // NEW: Add car bonus to details
 				}
 			}
 			
@@ -79,7 +83,8 @@ export function executeCombatEffect (hero, skill, monster) {
 				hero.rage.current = Math.min(hero.rage.max, hero.rage.current + skill.rageGen);
 			}
 			
-			addToLog(`deals ${damageDealt} damage to ${monster.name} (#${monster.id}).`, hero.id);
+			// MODIFIED: Include calcDetails in the log
+			addToLog(`deals ${damageDealt} damage ${calcDetails} to ${monster.name} (#${monster.id}).`, hero.id);
 			success = true;
 			break;
 		}
@@ -178,7 +183,11 @@ export function executeAegisEffect (hero, skill, options = {}) {
 				const healAmount = Math.ceil((baseHealAmount * spellPower) * totalBoost);
 				
 				targetHero.hp.current = Math.min(targetHero.hp.max, targetHero.hp.current + healAmount);
-				addToLog(`healed ${targetHero.name} for ${healAmount} HP.`, hero.id);
+				
+				// NEW: Format heal calculation details
+				const calcDetails = `(Base: ${baseHealAmount}, SP: x${spellPower}, Boost: x${totalBoost.toFixed(2)})`;
+				// MODIFIED: Include calcDetails in the log
+				addToLog(`healed ${targetHero.name} for ${healAmount} HP ${calcDetails}.`, hero.id);
 				success = true;
 				
 				if (wasIncapacitated && targetHero.hp.current > 0 && targetHero.location === 'field') {
@@ -186,7 +195,8 @@ export function executeAegisEffect (hero, skill, options = {}) {
 					const ownedCar = gameState.city.cars.find(c => c.ownerId === targetHero.id);
 					if (ownedCar) {
 						targetHero.carId = ownedCar.id;
-						if (gameState.activeMonsters.length > 0 && (targetHero.class === 'Striker' || targetHero.class === 'Vanguard')) {
+						// MODIFIED: Removed class restriction so Aegis heroes also retarget monsters
+						if (gameState.activeMonsters.length > 0) {
 							const targetMonster = gameState.activeMonsters[0];
 							targetHero.targetMonsterId = targetMonster.id;
 							addToLog(`${targetHero.name} has re-entered the fight, targeting ${targetMonster.name} (#${targetMonster.id})!`, targetHero.id);

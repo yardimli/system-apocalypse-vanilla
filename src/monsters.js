@@ -218,6 +218,9 @@ export function processMonsterActions () {
 				const monsterDamage = parseRange(monster.damage);
 				let damageTaken = Math.max(1, monsterDamage - totalMitigation);
 				
+				// NEW: Format mitigation details
+				let mitigationDetails = `(Base Dmg: ${monsterDamage}, Armor: -${armorMitigation}, Shield: -${shieldMitigation}`;
+				
 				const car = targetHero.carId ? gameState.city.cars.find(c => c.id === targetHero.carId) : null;
 				if (car) {
 					const mitigationBonus = car.upgrades
@@ -229,12 +232,15 @@ export function processMonsterActions () {
 						const mitigatedAmount = Math.floor(damageTaken * mitigationBonus);
 						damageTaken -= mitigatedAmount;
 						addToLog(`${targetHero.name}'s car mitigated ${mitigatedAmount} damage!`, targetHero.id);
+						mitigationDetails += `, Car: -${mitigatedAmount}`; // NEW: Add car mitigation to details
 					}
 				}
 				damageTaken = Math.max(1, damageTaken);
+				mitigationDetails += `)`; // NEW: Close details string
 				
 				targetHero.hp.current -= damageTaken;
-				addToLog(`${monster.name} (#${monster.id}) attacked ${targetHero.name}, dealing ${damageTaken} damage!`, targetHero.id);
+				// MODIFIED: Include mitigationDetails in the log
+				addToLog(`${monster.name} (#${monster.id}) attacked ${targetHero.name}, dealing ${damageTaken} damage! ${mitigationDetails}`, targetHero.id);
 				
 				if (targetHero.hp.current <= 0) {
 					targetHero.hp.current = 0;
