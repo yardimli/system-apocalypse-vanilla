@@ -103,7 +103,6 @@ function findEntityById (id) {
 	return gameData.items.find(i => i.id === id);
 }
 
-// MODIFICATION: Added alpha parameter for smooth animations.
 export function renderHeroes (alpha = 0) {
 	const grid = getEl('heroes-grid');
 	if (!grid) return;
@@ -333,6 +332,9 @@ export function renderHeroes (alpha = 0) {
 				const isDisabled = isHeroCasting || isOnCooldown || !meetsLevelReq || !hasResources;
 				const isAutoCasting = hero.autoCastSkillId === skillData.id;
 				const canAutoCast = skillData.autoCastUnlockLevel && hero.level >= skillData.autoCastUnlockLevel;
+				// MODIFICATION START: Add flash effect check
+				const shouldFlash = hero.skillFlash && hero.skillFlash.id === skillData.id && gameState.time < hero.skillFlash.clearAtTime;
+				// MODIFICATION END
 				
 				if (!skillCard) {
 					const imageUrl = getImageUrl(skillData);
@@ -374,9 +376,12 @@ export function renderHeroes (alpha = 0) {
 					imageContainer.classList.toggle('cursor-pointer', !isDisabled);
 				}
 				
+				// MODIFICATION START: Apply flash effect class
+				skillCard.classList.toggle('flash-effect', shouldFlash);
+				// MODIFICATION END
+				
 				const overlay = skillCard.querySelector('[data-cooldown-overlay]');
 				if (overlay) {
-					// MODIFICATION START: Use alpha for smooth interpolation to fix progress bar bug.
 					let overlayHeightPercent = 0;
 					if (isCastingThisSkill) {
 						const castTime = skillData.castTime;
@@ -390,7 +395,6 @@ export function renderHeroes (alpha = 0) {
 						const smoothRemaining = Math.max(0, remainingCd - alpha);
 						overlayHeightPercent = (smoothRemaining / skillData.cooldown) * 100;
 					}
-					// MODIFICATION END
 					
 					const targetHeight = `${overlayHeightPercent.toFixed(2)}%`;
 					if (overlay.style.height !== targetHeight) {

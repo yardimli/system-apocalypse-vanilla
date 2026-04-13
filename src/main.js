@@ -1,9 +1,9 @@
 import { gameState, gameData } from './state.js';
-import { startAction, executeAction } from './hero-actions.js'; // MODIFIED: Import new unified functions
+import { startAction, executeAction } from './hero-actions.js';
 import { addToLog, parseRange } from './utils.js';
 import { handleUseConsumable } from './inventory.js';
 import { handleShopAndPurchaseClicks, renderShopModal } from './shop.js';
-import { renderHeroes, autoEquipBestGear, recalculateHeroStats } from './heroes.js'; // MODIFIED: Removed renderSkillsPanel
+import { renderHeroes, autoEquipBestGear, recalculateHeroStats } from './heroes.js';
 import { renderMonsters, processMonsterActions } from './monsters.js';
 import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding } from './buildings.js';
 import { renderHeader, renderTabs, renderLog, renderItemsOverview, renderPartyCombat, renderPartyLog } from './ui.js';
@@ -22,7 +22,6 @@ function renderContent (alpha) {
 	switch (activeTab) {
 		case 'Heroes':
 			if (!getEl('heroes-tab-content')) {
-				// MODIFICATION START: Removed skills-panel-container from the template
 				contentArea.innerHTML = `
                     <div id="heroes-tab-content" class="flex flex-col lg:flex-row gap-4">
                         <div class="w-full lg:w-3/4 flex flex-col gap-4">
@@ -35,13 +34,12 @@ function renderContent (alpha) {
                         </div>
                     </div>
                 `;
-				// MODIFICATION END
 			}
 			renderMissionControl(alpha);
 			renderPartyCombat();
 			renderPartyLog();
-			renderHeroes();
-			// MODIFIED: Removed call to renderSkillsPanel
+			// MODIFICATION: Pass alpha to renderHeroes for smooth animations.
+			renderHeroes(alpha);
 			break;
 		case 'Buildings':
 			renderBuildings(contentArea);
@@ -102,7 +100,6 @@ function processGameTick () {
 		if (hero.casting && gameState.time >= hero.casting.castEndTime) {
 			const skill = gameData.skills.find(s => s.id === hero.casting.skillId);
 			if (skill) {
-				// MODIFIED: Use the unified executeAction function
 				executeAction(hero, skill, hero.casting.options);
 			}
 			hero.casting = null; // Clear casting state after execution.
@@ -120,7 +117,7 @@ function processGameTick () {
 			
 			if (hero.hp.current > 0) {
 				hero.hp.current = Math.min(hero.hp.max, hero.hp.current + (hero.hpRegen * regenMultiplier));
-				hero.stamina.current = Math.min(hero.stamina.max, hero.stamina.current + (hero.staminaRegen * regenMultiplier)); // NEW
+				hero.stamina.current = Math.min(hero.stamina.max, hero.stamina.current + (hero.staminaRegen * regenMultiplier));
 				hero.mp.current = Math.min(hero.mp.max, hero.mp.current + (hero.mpRegen * regenMultiplier));
 			}
 			return;
@@ -128,7 +125,7 @@ function processGameTick () {
 		
 		if (hero.hp.current > 0) {
 			hero.hp.current = Math.min(hero.hp.max, hero.hp.current + hero.hpRegen);
-			hero.stamina.current = Math.min(hero.stamina.max, hero.stamina.current + hero.staminaRegen); // NEW
+			hero.stamina.current = Math.min(hero.stamina.max, hero.stamina.current + hero.staminaRegen);
 			hero.mp.current = Math.min(hero.mp.max, hero.mp.current + hero.mpRegen);
 		}
 		
@@ -185,25 +182,20 @@ function processGameTick () {
 			}
 		}
 		
-		// MODIFIED: Auto-cast logic now uses the unified startAction function
 		if (hero.autoCastSkillId && hero.hp.current > 0 && !hero.casting) {
 			const skillId = hero.autoCastSkillId;
 			const skill = gameData.skills.find(s => s.id === skillId);
 			
-			// BUG FIX: Check if the hero meets the auto-cast level requirement for the skill.
 			const canAutoCast = skill && (!skill.autoCastUnlockLevel || hero.level >= skill.autoCastUnlockLevel);
 			
 			if (skill && canAutoCast) {
-				// Infer action type for auto-cast to correctly route heal vs attack
 				let actionType = skill.actionType;
 				if (!actionType) {
 					if (skill.skillClass === 'Healing') actionType = 'heal';
 					else if (skill.damage) actionType = 'attack';
-					// Add other types as needed
 				}
 				
 				if (actionType === 'heal') {
-					// MODIFICATION START: Auto-cast heal now uses the global target
 					let shouldCast = false;
 					const targetId = gameState.party.healingTargetId;
 					const targetHero = gameState.heroes.find(h => h.id === targetId);
@@ -212,10 +204,9 @@ function processGameTick () {
 					}
 					
 					if (shouldCast) {
-						startAction(hero.id, skill.id); // No options needed, it reads global state
+						startAction(hero.id, skill.id);
 					}
-					// MODIFICATION END
-				} else { // For any other auto-castable action (e.g., attack)
+				} else {
 					if (hero.targetMonsterId) {
 						startAction(hero.id, skill.id);
 					}
@@ -224,18 +215,15 @@ function processGameTick () {
 		}
 	});
 	
-	// Process building population effects (HP regen and token generation for the city).
 	let totalCityPopulation = 0;
 	gameState.city.buildings.forEach(building => {
 		if (building.owner === 'player' && building.population > 0) {
 			totalCityPopulation += building.population;
-			// Population restores HP to the building.
 			if (building.hp < building.maxHp) {
 				building.hp = Math.min(building.maxHp, building.hp + building.population);
 			}
 		}
 	});
-	// Calculate and add city-wide income based on total population.
 	if (totalCityPopulation > 0) {
 		const incomeThisTick = totalCityPopulation * gameState.city.tokensPerPopulationPerTick;
 		gameState.city.tokens += incomeThisTick;
@@ -247,38 +235,30 @@ function processGameTick () {
 }
 
 function gameLoop (currentTime) {
-	// Initialize lastTickTime on the first frame.
 	if (!lastTickTime) {
 		lastTickTime = currentTime;
 		gameState.lastTickTime = lastTickTime;
 	}
 	
-	// Calculate the time elapsed since the last logic tick.
 	const elapsed = currentTime - lastTickTime;
 	const timePerTick = tickDuration / gameState.gameSettings.speedMultiplier;
 	
-	// Process game logic ticks if enough time has passed.
 	if (elapsed >= timePerTick) {
 		const ticksToProcess = Math.floor(elapsed / timePerTick);
 		for (let i = 0; i < ticksToProcess; i++) {
 			processGameTick();
 		}
-		// Update lastTickTime, ensuring it stays aligned with the tick grid.
 		lastTickTime += ticksToProcess * timePerTick;
 		gameState.lastTickTime = lastTickTime;
 	}
 	
-	// Calculate alpha: the progress (0.0 to 1.0) towards the next game tick.
-	// This is the key to smooth animations.
 	const frameElapsed = currentTime - lastTickTime;
 	const alpha = Math.min(1.0, frameElapsed / timePerTick);
 	
-	// Render the game state on every frame, passing alpha for interpolation.
 	renderHeader();
 	renderTabs(activeTab, TABS);
 	renderContent(alpha);
 	
-	// Request the next frame to continue the loop.
 	requestAnimationFrame(gameLoop);
 }
 
@@ -294,12 +274,12 @@ async function init () {
 			fetch('/data/car_upgrades.json').then(res => res.json()),
 			fetch('/data/cars.json').then(res => res.json()),
 			fetch('/data/buildings.json').then(res => res.json()),
-			fetch('/data/heroes.json').then(res => res.json()) // Load heroes
+			fetch('/data/heroes.json').then(res => res.json())
 		]);
 		gameData.items = items;
 		gameData.magic_skills = magicSkills;
 		gameData.martial_skills = martialSkills;
-		gameData.skills = [...magicSkills, ...martialSkills]; // Combine for combat logic
+		gameData.skills = [...magicSkills, ...martialSkills];
 		gameData.cards = cards;
 		gameData.monsters = monsters;
 		gameData.building_upgrades = buildingUpgrades;
@@ -308,24 +288,23 @@ async function init () {
 		gameData.buildings = buildings;
 		gameData.heroes = heroes;
 		
-		// Initialize Heroes from JSON data
 		gameState.heroes = gameData.heroes.map(hData => ({
 			id: hData.id,
 			name: hData.name,
 			class: hData.class,
-			skillClasses: hData.skillClasses || [], // NEW: Added skillClasses
+			skillClasses: hData.skillClasses || [],
 			isMagicUser: hData.isMagicUser,
 			allowedArmorTypes: hData.allowedArmorTypes,
 			allowedWeaponTypes: hData.allowedWeaponTypes,
 			level: 1,
 			xp: { current: 0, max: 100 },
 			hp: { current: 0, max: 0 },
-			mp: { current: 0, max: 0 }, // MODIFIED: Always initialize
-			rage: { current: 0, max: 100 }, // MODIFIED: Always initialize
-			stamina: { current: 0, max: 0 }, // NEW: Added stamina
+			mp: { current: 0, max: 0 },
+			rage: { current: 0, max: 100 },
+			stamina: { current: 0, max: 0 },
 			hpRegen: 0,
 			mpRegen: 0,
-			staminaRegen: 0, // NEW: Added stamina regen
+			staminaRegen: 0,
 			stats: { ...hData.baseStats },
 			unspentStatPoints: 0,
 			equipment: { ...hData.startingEquipment },
@@ -343,18 +322,16 @@ async function init () {
 			tokens: 100
 		}));
 		
-		// Apply derived stats and fill HP/MP/Stamina to max for start
 		gameState.heroes.forEach(recalculateHeroStats);
 		gameState.heroes.forEach(h => {
 			h.hp.current = h.hp.max;
 			h.mp.current = h.mp.max;
-			h.stamina.current = h.stamina.max; // NEW
+			h.stamina.current = h.stamina.max;
 		});
 		
-		// Populate game state with buildings from the new JSON file.
 		gameState.city.buildings = gameData.buildings.map(buildingData => ({
-			...buildingData, // Spread properties from JSON file.
-			owner: null, // Add dynamic properties not in the file.
+			...buildingData,
+			owner: null,
 			isSafezone: false,
 			heroesInside: []
 		}));
@@ -390,7 +367,6 @@ async function init () {
 			const building = potentialSafezoneBuildings[0];
 			building.owner = 'player';
 			building.name = 'Alpha Base';
-			// These properties are now set to higher "safezone" values upon purchase/setup.
 			building.maxHp = 1000;
 			building.hp = 1000;
 			building.maxShieldHp = 1000;
@@ -399,7 +375,6 @@ async function init () {
 			firstBaseId = building.id;
 		}
 		
-		// Ensure all heroes start in the single base.
 		if (firstBaseId) {
 			gameState.heroes.forEach(hero => {
 				hero.location = firstBaseId;
@@ -412,14 +387,13 @@ async function init () {
 		
 		addToLog('[SYSTEM]: Initial safezone Alpha Base has been established.');
 		
-		// NEW: Spawn initial monsters as requested.
 		const level1Monsters = gameData.monsters.filter(m => m.level === 1);
 		if (level1Monsters.length > 0) {
 			for (let i = 0; i < 3; i++) {
 				const monsterData = level1Monsters[Math.floor(Math.random() * level1Monsters.length)];
 				const newMonster = {
 					id: gameState.nextMonsterId++,
-					spawnTime: gameState.time, // 0 at the start
+					spawnTime: gameState.time,
 					name: monsterData.name,
 					level: monsterData.level,
 					maxHp: monsterData.hp,
@@ -443,7 +417,6 @@ async function init () {
 		return;
 	}
 	
-	// Initial render before the loop starts.
 	renderHeader();
 	renderTabs(activeTab, TABS);
 	renderContent(0);
@@ -464,14 +437,12 @@ async function init () {
 			const newTab = tabBtn.dataset.tab;
 			if (newTab !== activeTab) {
 				activeTab = newTab;
-				// Re-render content immediately on tab switch.
 				renderContent(0);
 			}
 			return;
 		}
 		
 		if (handleShopAndPurchaseClicks(e)) {
-			// Re-render content immediately after a shop action.
 			renderContent(0);
 			return;
 		}
@@ -514,33 +485,41 @@ async function init () {
 				if (newName && newName.trim() !== '') {
 					addToLog(`Renamed ${building.name} to ${newName.trim()}.`);
 					building.name = newName.trim();
-					renderContent(0); // Re-render to show new name.
+					renderContent(0);
 				}
 			}
 			return;
 		}
 		
-		// MODIFICATION START: New event handlers for skills and targeting
+		// MODIFICATION START: Reworked skill/autocast click logic
 		const castSkillCard = e.target.closest('[data-cast-skill-id]');
 		if (castSkillCard) {
-			if (castSkillCard.hasAttribute('disabled')) return;
-			const heroId = parseInt(castSkillCard.dataset.heroId, 10);
-			const skillId = castSkillCard.dataset.castSkillId;
-			const hero = gameState.heroes.find(h => h.id === heroId);
-			
-			if (hero) {
-				if (hero.autoCastSkillId === skillId) {
-					hero.autoCastSkillId = null;
-					const skillName = gameData.skills.find(s => s.id === skillId)?.name || 'a skill';
-					addToLog(`Manually casting ${skillName}, auto-cast disabled for this skill.`, hero.id);
+			// If the actual click target is the checkbox, do nothing.
+			// This prevents casting the skill when trying to toggle auto-cast.
+			if (e.target.closest('[data-autocast-skill-id]')) {
+				// Let the checkbox handler below manage the event.
+			} else {
+				// Otherwise, the click was on the main card area, so cast the skill.
+				if (castSkillCard.hasAttribute('disabled')) return;
+				const heroId = parseInt(castSkillCard.dataset.heroId, 10);
+				const skillId = castSkillCard.dataset.castSkillId;
+				const hero = gameState.heroes.find(h => h.id === heroId);
+				
+				if (hero) {
+					if (hero.autoCastSkillId === skillId) {
+						hero.autoCastSkillId = null;
+						const skillName = gameData.skills.find(s => s.id === skillId)?.name || 'a skill';
+						addToLog(`Manually casting ${skillName}, auto-cast disabled for this skill.`, hero.id);
+					}
+					startAction(heroId, skillId);
 				}
-				startAction(heroId, skillId);
+				return; // Action handled.
 			}
-			return;
 		}
 		
 		const autoCastCheckbox = e.target.closest('[data-autocast-skill-id]');
-		if (autoCastCheckbox && e.target.tagName === 'INPUT') { // Ensure it's the checkbox itself
+		if (autoCastCheckbox) {
+			// This logic now only runs for clicks on the checkbox itself.
 			const heroId = parseInt(autoCastCheckbox.dataset.heroId, 10);
 			const skillId = autoCastCheckbox.dataset.autocastSkillId;
 			const hero = gameState.heroes.find(h => h.id === heroId);
@@ -551,7 +530,7 @@ async function init () {
 				const action = isEnabling ? `set auto-cast to: ${skillName}` : 'disabled auto-cast';
 				addToLog(`${action}.`, hero.id);
 			}
-			return;
+			return; // Action handled.
 		}
 		
 		const classBadge = e.target.closest('[data-class-badge]');
@@ -630,7 +609,7 @@ async function init () {
 			if (hero && hero.unspentStatPoints > 0) {
 				hero.stats[stat]++;
 				hero.unspentStatPoints--;
-				recalculateHeroStats(hero); // Update max HP/MP if END/INT changed
+				recalculateHeroStats(hero);
 				addToLog(`increased ${stat.toUpperCase()} to ${hero.stats[stat]}.`, hero.id);
 				renderContent(0);
 			}
