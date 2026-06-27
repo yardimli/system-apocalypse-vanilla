@@ -168,20 +168,24 @@
 			<div class="flex justify-between items-start">
 				<div>
 					<h2 class="card-title text-lg" data-name></h2>
-					<!-- MODIFICATION: XP bar moved here -->
-					<div class="flex justify-between items-center my-1">
-						<span class="label-text text-xs" data-xp-label></span>
-						<progress class="progress progress-primary w-[40%]" data-xp-bar></progress>
-					</div>
-					<!-- Hero status line -->
-					<p class="text-sm text-gray-400 min-h-5" data-hero-status></p>
 				</div>
-				<!-- Container for class and token badges -->
-				<div class="flex flex-col items-end gap-1">
-					<!-- MODIFICATION START: Added data-class-badge for click handling -->
-					<div class="badge" data-class data-class-badge></div>
-					<!-- MODIFICATION END -->
+				<!-- MODIFICATION: Container for class badge, now fully rendered by JS to prevent refreshing -->
+				<div class="flex flex-col items-end gap-1" data-class-container>
+					<!-- Badge will be rendered here by JS -->
 				</div>
+			</div>
+			
+			<!-- NEW: Separate container for XP bar -->
+			<div class="my-1">
+				<div class="flex justify-between items-center">
+					<span class="label-text text-xs" data-xp-label></span>
+					<progress class="progress progress-primary w-[60%]" data-xp-bar></progress>
+				</div>
+			</div>
+			
+			<!-- NEW: Separate container for hero status line -->
+			<div>
+				<p class="text-sm text-gray-400 min-h-5" data-hero-status></p>
 			</div>
 			
 			<!-- Container for multi-slot equipment (now shows images) -->
@@ -195,7 +199,6 @@
 			</div>
 			
 			<!-- Stat bars -->
-			<!-- MODIFICATION: XP bar removed from here -->
 			<div class="flex justify-between items-center my-1">
 				<span class="label-text text-xs" data-hp-label></span>
 				<progress class="progress progress-success w-[40%]" data-hp-bar></progress>

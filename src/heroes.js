@@ -306,21 +306,20 @@ export function renderHeroes (alpha = 0) {
 		const nameText = `${hero.name} | Lv. ${hero.level}`;
 		updateTextIfChanged(card.querySelector('[data-name]'), nameText);
 		
-		const classEl = card.querySelector('[data-class]');
-		if (classEl) {
-			updateTextIfChanged(classEl, hero.class);
-			const newClassName = `badge ${hero.class === 'Aegis' ? 'badge-info' : hero.class === 'Striker' ? 'badge-error' : 'badge-success'}`;
-			if (classEl.className !== newClassName) {
-				classEl.className = newClassName;
-			}
+		// MODIFICATION START: Replaced direct DOM manipulation with a state-keyed HTML update to prevent constant refreshing.
+		const classContainer = card.querySelector('[data-class-container]');
+		if (classContainer) {
 			const isHealingTarget = gameState.party.healingTargetId === hero.id;
-			classEl.classList.toggle('border-2', isHealingTarget);
-			classEl.classList.toggle('border-info', isHealingTarget);
-			classEl.classList.toggle('cursor-pointer', true); // Always show as clickable
-			if (classEl.dataset.heroId !== String(hero.id)) {
-				classEl.dataset.heroId = hero.id;
-			}
+			const stateKey = `${hero.class}-${isHealingTarget}`;
+			
+			const badgeClass = `badge ${hero.class === 'Aegis' ? 'badge-info' : hero.class === 'Striker' ? 'badge-error' : 'badge-success'}`;
+			const borderClass = isHealingTarget ? 'border-2 border-info' : '';
+			// The data-class-badge attribute is kept for the click handler in main.js
+			const newHtml = `<div class="${badgeClass} ${borderClass} cursor-pointer" data-class data-class-badge data-hero-id="${hero.id}">${hero.class}</div>`;
+			
+			updateHtmlIfChanged(classContainer, newHtml, stateKey);
 		}
+		// MODIFICATION END
 		
 		const equipmentContainer = card.querySelector('[data-equipment-container]');
 		// MODIFICATION START: Define a specific order for displaying equipment slots
