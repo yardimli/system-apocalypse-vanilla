@@ -62,6 +62,11 @@ function getActiveShopTab () {
 	return checkedTab?.id?.replace('shop-tab-', '') || 'items';
 }
 
+function markUpgradeButtonInstalled (button) {
+	button.disabled = true;
+	button.textContent = 'Installed';
+}
+
 /**
  * Centralized handler for all shop and major purchase-related click events.
  * This function is called from the main event listener in main.js.
@@ -120,8 +125,11 @@ export async function handleShopAndPurchaseClicks (e) {
 		const buildingId = buyUpgradeBtn.dataset.buildingId ? parseInt(buyUpgradeBtn.dataset.buildingId, 10) : null;
 		
 		if (buildingId) {
-			await handleBuyUpgrade({ buildingId, upgradeId });
-			renderShopModal({ buildingId, defaultTab: activeShopTab }); // Re-render shop for building
+			const didBuy = await handleBuyUpgrade({ buildingId, upgradeId });
+			if (didBuy) {
+				markUpgradeButtonInstalled(buyUpgradeBtn);
+				updateTokenAmountIfChanged(getEl('shop-modal-header')?.querySelector('[data-shop-balance]'), Math.floor(gameState.city.tokens), { label: 'Tokens:' });
+			}
 		} else if (heroId) {
 			await handleBuyUpgrade({ heroId, upgradeId });
 			renderShopModal({ heroId, defaultTab: activeShopTab }); // Re-render shop for hero
@@ -296,7 +304,7 @@ export async function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 	const upgrade = gameData.building_upgrades.find(u => u.id === upgradeId) || gameData.car_upgrades.find(u => u.id === upgradeId);
 	if (!upgrade) {
 		addToLog(`Shop Error: Upgrade with ID ${upgradeId} not found.`);
-		return;
+		return false;
 	}
 	
 	const isCarUpgrade = upgrade.id.startsWith('CAR_');
@@ -307,17 +315,17 @@ export async function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 		const building = gameState.city.buildings.find(b => b.id === buildingId);
 		if (!building) {
 			addToLog(`Shop Error: Building #${buildingId} not found.`);
-			return;
+			return false;
 		}
 		
 		if (gameState.city.tokens < cost) {
 			addToLog(`The city doesn't have enough tokens to buy ${upgrade.name} for ${building.name}. (Need ${cost})`, null);
-			return;
+			return false;
 		}
 		
 		if (building.upgrades.includes(upgradeId)) {
 			addToLog(`${building.name} already has the ${upgrade.name} upgrade.`, null);
-			return;
+			return false;
 		}
 		
 		// Process transaction
@@ -355,7 +363,7 @@ export async function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 			}
 		}
 		addToLog(`${building.name} purchased the ${upgrade.name} upgrade for ${cost} tokens! (Paid by city)`, null);
-		return;
+		return true;
 	}
 	
 	// Case 2: A hero is buying a car upgrade.
@@ -363,33 +371,36 @@ export async function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 		const hero = gameState.heroes.find(h => h.id === heroId);
 		if (!hero) {
 			addToLog(`Shop Error: Hero #${heroId} not found.`);
-			return;
+			return false;
 		}
 		
 		if (hero.tokens < cost) {
 			addToLog(`doesn't have enough tokens to buy ${upgrade.name}. (Need ${cost})`, hero.id);
-			return;
+			return false;
 		}
 		
 		if (isCarUpgrade) {
 			const targetAsset = hero.carId ? gameState.city.cars.find(c => c.id === hero.carId && c.ownerId === heroId) : null;
 			if (!targetAsset) {
 				addToLog('has no car to upgrade.', hero.id);
-				return;
+				return false;
 			}
 			
 			if (targetAsset.upgrades.includes(upgradeId)) {
 				addToLog(`${targetAsset.name} already has the ${upgrade.name} upgrade.`, hero.id);
-				return;
+				return false;
 			}
 			
 			hero.tokens -= cost;
 			targetAsset.upgrades.push(upgradeId);
 			addToLog(`purchased ${upgrade.name} for ${targetAsset.name} for ${cost} tokens!`, hero.id);
+			return true;
 		} else {
 			addToLog('Heroes can no longer purchase building upgrades directly. The building must purchase it with its own tokens.', hero.id);
+			return false;
 		}
 	}
+	return false;
 }
 
 /**

@@ -104,32 +104,32 @@ export function renderMissionControl (alpha = 0) {
 		let buttonsHtml = '';
 		if (partyState.missionState === 'in_combat') {
 			buttonsHtml += '<button id="flee-btn" class="btn btn-warning">Flee</button>';
+		} else {
+			buttonsHtml += `
+	            <button id="mission-btn" class="btn btn-primary" ${buttonDisabled ? 'disabled' : ''}>
+	                ${buttonText}
+	            </button>
+	        `;
+			
+			buttonsHtml += `
+				<div class="dropdown dropdown-top">
+					<div tabindex="0" role="button" class="btn btn-error" ${!canFight ? 'disabled' : ''}>Fight</div>
+					<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-72 max-h-60 overflow-y-auto">
+						${activeMonsters.map(monster => `
+							<li>
+								<a data-attack-monster-id="${monster.id}" class="justify-between">
+									<div>
+										<div>Lv.${monster.level} ${monster.name}</div>
+										<div class="text-xs opacity-60">${Math.floor(monster.currentHp)}/${monster.maxHp} HP</div>
+									</div>
+									<div class="badge badge-ghost">${Math.floor(monster.distanceFromCity)}m</div>
+								</a>
+							</li>
+						`).join('')}
+					</ul>
+				</div>
+			`;
 		}
-		
-		buttonsHtml += `
-            <button id="mission-btn" class="btn btn-primary" ${buttonDisabled ? 'disabled' : ''}>
-                ${buttonText}
-            </button>
-        `;
-		
-		buttonsHtml += `
-			<div class="dropdown dropdown-top">
-				<div tabindex="0" role="button" class="btn btn-error" ${!canFight ? 'disabled' : ''}>Fight</div>
-				<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-72 max-h-60 overflow-y-auto">
-					${activeMonsters.map(monster => `
-						<li>
-							<a data-attack-monster-id="${monster.id}" class="justify-between">
-								<div>
-									<div>Lv.${monster.level} ${monster.name}</div>
-									<div class="text-xs opacity-60">${Math.floor(monster.currentHp)}/${monster.maxHp} HP</div>
-								</div>
-								<div class="badge badge-ghost">${Math.floor(monster.distanceFromCity)}m</div>
-							</a>
-						</li>
-					`).join('')}
-				</ul>
-			</div>
-		`;
 		
 		buttonsEl.innerHTML = buttonsHtml;
 		buttonsEl.setAttribute('data-prev-state', buttonsStateKey);
