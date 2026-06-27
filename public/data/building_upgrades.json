@@ -52,5 +52,116 @@
         "image_folder": "public/images/new_building_upgrades"
       }
     ]
+  },
+  {
+    "id": "UPG_WALLS_2",
+    "name": "Concrete Overplate",
+    "description": "Greatly increases maximum HP and reduces incoming monster damage.",
+    "cost": 700,
+    "effect": {
+      "type": "fortify",
+      "maxHp": 150,
+      "damageReduction": 2
+    },
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "Greatly increases maximum HP and reduces incoming monster damage.",
+        "image_file_name": "upg_walls_1_reinforce_walls_normal.png",
+        "image_folder": "public/images/new_building_upgrades"
+      }
+    ]
+  },
+  {
+    "id": "UPG_BARRICADE_1",
+    "name": "Spike Barricades",
+    "description": "Passive defense. Deals 8 retaliation damage whenever a monster attacks this building.",
+    "cost": 450,
+    "effect": {
+      "type": "passive_defense",
+      "damage": 8
+    },
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "Passive defense. Deals 8 retaliation damage whenever a monster attacks this building.",
+        "image_file_name": "upg_barricade_1_spike_barricades_normal.png",
+        "image_folder": "public/images/new_building_upgrades"
+      }
+    ]
+  },
+  {
+    "id": "UPG_MURDER_HOLES_1",
+    "name": "Murder Holes",
+    "description": "Passive defense. Deals 15 retaliation damage whenever a monster attacks this building.",
+    "cost": 900,
+    "effect": {
+      "type": "passive_defense",
+      "damage": 15
+    },
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "Passive defense. Deals 15 retaliation damage whenever a monster attacks this building.",
+        "image_file_name": "upg_murder_holes_1_murder_holes_normal.png",
+        "image_folder": "public/images/new_building_upgrades"
+      }
+    ]
+  },
+  {
+    "id": "UPG_TURRET_1",
+    "name": "Automated Turret",
+    "description": "Active defense. Click Fire to deal 55 damage to a monster attacking this building. Cooldown: 15 seconds.",
+    "cost": 1200,
+    "effect": {
+      "type": "active_defense",
+      "damage": 55,
+      "cooldown": 15
+    },
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "Active defense. Click Fire to deal 55 damage to a monster attacking this building. Cooldown: 15 seconds.",
+        "image_file_name": "upg_turret_1_automated_turret_normal.png",
+        "image_folder": "public/images/new_building_upgrades"
+      }
+    ]
+  },
+  {
+    "id": "UPG_ARC_THROWER_1",
+    "name": "Arc Thrower",
+    "description": "Active defense. Click Fire to deal 95 damage to a monster attacking this building. Cooldown: 25 seconds.",
+    "cost": 2200,
+    "effect": {
+      "type": "active_defense",
+      "damage": 95,
+      "cooldown": 25
+    },
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "Active defense. Click Fire to deal 95 damage to a monster attacking this building. Cooldown: 25 seconds.",
+        "image_file_name": "upg_arc_1_arc_thrower_normal.png",
+        "image_folder": "public/images/new_building_upgrades"
+      }
+    ]
+  },
+  {
+    "id": "UPG_REPAIR_DRONES_1",
+    "name": "Repair Drones",
+    "description": "Adds 4 automatic HP repair per tick while the building is functional.",
+    "cost": 1600,
+    "effect": {
+      "type": "repair_per_tick",
+      "value": 4
+    },
+    "card_images": [
+      {
+        "state": "normal",
+        "description": "Adds 4 automatic HP repair per tick while the building is functional.",
+        "image_file_name": "upg_repair_1_repair_drones_normal.png",
+        "image_folder": "public/images/new_building_upgrades"
+      }
+    ]
   }
 ]

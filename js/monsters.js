@@ -1,6 +1,6 @@
 import { gameState, gameData } from './state.js';
 import { updateTextIfChanged, updateHtmlIfChanged, updateProgressIfChanged, addToLog, parseRange } from './utils.js';
-import { handleExitBuilding } from './buildings.js';
+import { damageMonsterFromBuilding, getBuildingDefenseStats, handleExitBuilding } from './buildings.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
@@ -179,33 +179,62 @@ export function processMonsterActions () {
 				if (monster.targetBuilding) {
 					const bldg = gameState.city.buildings.find(b => b.id === monster.targetBuilding);
 					if (bldg && bldg.state !== 'ruined') {
-						const monsterDamage = parseRange(monster.damage);
-						if (bldg.shieldHp > 0) {
-							const damageToShield = Math.min(bldg.shieldHp, monsterDamage);
-							bldg.shieldHp -= damageToShield;
-							if (bldg.owner === 'player' && bldg.shieldHp < 1) bldg.shieldHp = 1;
-							addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToShield} damage to the shield on ${bldg.name || `Building #${bldg.id}`}.`);
-							if (bldg.shieldHp === 0 || (bldg.owner === 'player' && bldg.shieldHp === 1)) {
-								addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) effectively destroyed the shield on ${bldg.name || `Building #${bldg.id}`}!`);
+						if (!monster.buildingAttack || monster.buildingAttack.buildingId !== bldg.id) {
+							monster.buildingAttack = {
+								buildingId: bldg.id,
+								startTime: gameState.time,
+								endsAt: gameState.time + 30,
+								nextAttackTime: gameState.time
+							};
+							addToLog(`${monster.name} (#${monster.id}) began a 30 second attack on ${bldg.name || `Building #${bldg.id}`}.`);
+						}
+						
+						if (gameState.time >= monster.buildingAttack.endsAt) {
+							addToLog(`${monster.name} (#${monster.id}) ended its attack on ${bldg.name || `Building #${bldg.id}`}.`);
+							monster.targetBuilding = null;
+							monster.buildingAttack = null;
+							return;
+						}
+						
+						if (gameState.time >= monster.buildingAttack.nextAttackTime) {
+							const defenseStats = getBuildingDefenseStats(bldg);
+							const rawDamage = parseRange(monster.damage);
+							const monsterDamage = Math.max(1, rawDamage - defenseStats.damageReduction);
+							monster.buildingAttack.nextAttackTime = gameState.time + 5;
+							
+							if (bldg.shieldHp > 0) {
+								const damageToShield = Math.min(bldg.shieldHp, monsterDamage);
+								bldg.shieldHp -= damageToShield;
+								if (bldg.owner === 'player' && bldg.shieldHp < 1) bldg.shieldHp = 1;
+								addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToShield} damage to the shield on ${bldg.name || `Building #${bldg.id}`}.`);
+								if (bldg.shieldHp === 0 || (bldg.owner === 'player' && bldg.shieldHp === 1)) {
+									addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) effectively destroyed the shield on ${bldg.name || `Building #${bldg.id}`}!`);
+								}
+							} else {
+								const damageToHp = Math.min(bldg.hp, monsterDamage);
+								bldg.hp -= damageToHp;
+								if (bldg.owner === 'player' && bldg.hp < 1) bldg.hp = 1;
+								addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToHp} damage to ${bldg.name || `Building #${bldg.id}`}.`);
+								if (bldg.hp <= 0 && bldg.owner !== 'player') {
+									bldg.hp = 0;
+									bldg.state = 'ruined';
+									bldg.population = 0;
+									monster.targetBuilding = null;
+									monster.buildingAttack = null;
+									addToLog(`${bldg.name || `Building #${bldg.id}`} was ruined by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
+								} else if (bldg.hp <= 5 && bldg.state === 'functional') {
+									bldg.state = 'damaged';
+									addToLog(`${bldg.name || `Building #${bldg.id}`} was damaged by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
+								}
 							}
-						} else {
-							const damageToHp = Math.min(bldg.hp, monsterDamage);
-							bldg.hp -= damageToHp;
-							if (bldg.owner === 'player' && bldg.hp < 1) bldg.hp = 1;
-							addToLog(`Lv.${monster.level} ${monster.name} (#${monster.id}) dealt ${damageToHp} damage to ${bldg.name || `Building #${bldg.id}`}.`);
-							if (bldg.hp <= 0 && bldg.owner !== 'player') {
-								bldg.hp = 0;
-								bldg.state = 'ruined';
-								bldg.population = 0;
-								monster.targetBuilding = null;
-								addToLog(`${bldg.name || `Building #${bldg.id}`} was ruined by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
-							} else if (bldg.hp <= 5 && bldg.state === 'functional') {
-								bldg.state = 'damaged';
-								addToLog(`${bldg.name || `Building #${bldg.id}`} was damaged by Lv.${monster.level} ${monster.name} (#${monster.id})!`);
+							
+							if (monster.currentHp > 0 && defenseStats.passiveDamage > 0 && monster.targetBuilding === bldg.id) {
+								damageMonsterFromBuilding(monster, bldg, defenseStats.passiveDamage, 'passive defenses');
 							}
 						}
 					} else {
 						monster.targetBuilding = null;
+						monster.buildingAttack = null;
 					}
 				}
 			}

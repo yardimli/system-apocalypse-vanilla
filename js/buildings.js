@@ -5,6 +5,91 @@ import { requestTextInput } from './dialogs.js';
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
 
+function getUpgradeImageUrl (upgrade) {
+	if (upgrade?.card_images && Array.isArray(upgrade.card_images)) {
+		const normalImage = upgrade.card_images.find(img => img.state === 'normal') || upgrade.card_images[0];
+		if (normalImage) return `${normalImage.image_folder}/thumbnails/${normalImage.image_file_name}`;
+	}
+	return '';
+}
+
+export function getBuildingDefenseStats (building) {
+	const stats = {
+		passiveDamage: 0,
+		activeDefenses: [],
+		damageReduction: building.damageReduction || 0,
+		repairPerTick: building.repairPerTick || 0
+	};
+	
+	(building.upgrades || []).forEach(upgradeId => {
+		const upgrade = gameData.building_upgrades.find(u => u.id === upgradeId);
+		const effect = upgrade?.effect;
+		if (!effect) return;
+		
+		if (effect.type === 'passive_defense') {
+			stats.passiveDamage += effect.damage || 0;
+		} else if (effect.type === 'active_defense') {
+			stats.activeDefenses.push({
+				id: upgrade.id,
+				name: upgrade.name,
+				damage: effect.damage || 0,
+				cooldown: effect.cooldown || 15
+			});
+		} else if (effect.type === 'damage_reduction') {
+			stats.damageReduction += effect.value || 0;
+		}
+	});
+	
+	return stats;
+}
+
+function getMonsterImageUrl (monster) {
+	if (monster?.card_images && Array.isArray(monster.card_images)) {
+		const normalImage = monster.card_images.find(img => img.state === 'normal') || monster.card_images[0];
+		if (normalImage) return `${normalImage.image_folder}/thumbnails/${normalImage.image_file_name}`;
+	}
+	return '';
+}
+
+export function makeMonsterFleeBuilding (monster, building, reason = 'defenses') {
+	monster.targetBuilding = null;
+	monster.buildingAttack = null;
+	monster.distanceFromCity = Math.max(monster.distanceFromCity || 0, 500);
+	addToLog(`${monster.name} (#${monster.id}) retreated from ${building.name || `Building #${building.id}`} after taking heavy ${reason} damage!`);
+}
+
+export function damageMonsterFromBuilding (monster, building, damage, sourceName) {
+	if (!monster || !building || damage <= 0) return;
+	
+	monster.currentHp = Math.max(0, monster.currentHp - damage);
+	addToLog(`${building.name || `Building #${building.id}`} hit ${monster.name} (#${monster.id}) with ${sourceName} for ${damage} damage.`);
+	
+	if (monster.currentHp > 0 && monster.currentHp <= monster.maxHp * 0.3) {
+		makeMonsterFleeBuilding(monster, building, sourceName);
+	}
+}
+
+export function handleFireBuildingDefense (buildingId, defenseId) {
+	const building = gameState.city.buildings.find(b => b.id === buildingId);
+	if (!building) return;
+	
+	const monster = gameState.activeMonsters.find(m => m.buildingAttack?.buildingId === building.id || m.targetBuilding === building.id);
+	if (!monster) {
+		addToLog(`${building.name} has no attacking monster to fire at.`);
+		return;
+	}
+	
+	const defense = getBuildingDefenseStats(building).activeDefenses.find(d => d.id === defenseId);
+	if (!defense) return;
+	
+	if (!building.activeDefenseCooldowns) building.activeDefenseCooldowns = {};
+	const readyAt = building.activeDefenseCooldowns[defense.id] || 0;
+	if (gameState.time < readyAt) return;
+	
+	building.activeDefenseCooldowns[defense.id] = gameState.time + defense.cooldown;
+	damageMonsterFromBuilding(monster, building, defense.damage, defense.name);
+}
+
 /**
  * Calculates the price for the next building purchase.
  * Price starts at 300 and increases by 30% for each subsequent building.
@@ -164,6 +249,9 @@ export function renderBuildings(contentArea) {
 								<div data-hp></div>
 								<div data-shield class="text-info"></div>
 								<div data-pop class="text-success mt-1"></div>
+								<div data-defense-summary class="text-warning mt-1"></div>
+								<div data-upgrade-icons class="flex flex-wrap gap-1 mt-2"></div>
+								<div data-attacker class="mt-2"></div>
 								<div class="mt-2">
 									<p class="font-semibold">Heroes Inside:</p>
 									<p data-heroes-inside class="text-gray-400 truncate"></p>
@@ -236,16 +324,58 @@ export function renderBuildings(contentArea) {
 			updateTextIfChanged(cardContent.querySelector('[data-shield]'), `Shield: ${b.shieldHp || 0}/${b.maxShieldHp || 0}`);
 			updateTextIfChanged(cardContent.querySelector('[data-pop]'), `Pop: ${b.population}/${b.maxPopulation}`);
 			
+			const defenseStats = getBuildingDefenseStats(b);
+			const defenseSummary = [
+				defenseStats.damageReduction ? `Mitigation: ${defenseStats.damageReduction}` : null,
+				defenseStats.passiveDamage ? `Passive: ${defenseStats.passiveDamage} dmg/attack` : null,
+				defenseStats.activeDefenses.length ? `Active: ${defenseStats.activeDefenses.length}` : null,
+				defenseStats.repairPerTick ? `Repair: +${defenseStats.repairPerTick}/tick` : null
+			].filter(Boolean).join(' | ') || 'Defenses: none';
+			updateTextIfChanged(cardContent.querySelector('[data-defense-summary]'), defenseSummary);
+			
+			const upgradeIconHtml = (b.upgrades || []).map(upgradeId => {
+				const upgrade = gameData.building_upgrades.find(u => u.id === upgradeId);
+				if (!upgrade) return '';
+				const imageUrl = getUpgradeImageUrl(upgrade);
+				return `
+					<div class="tooltip" data-tip="${upgrade.name}: ${upgrade.description || ''}">
+						<img src="${imageUrl}" alt="${upgrade.name}" class="w-[40px] aspect-[3/4] bg-base-300 rounded object-contain border border-base-300" />
+					</div>
+				`;
+			}).join('') || '<span class="text-xs italic text-gray-500">No upgrades installed</span>';
+			updateHtmlIfChanged(cardContent.querySelector('[data-upgrade-icons]'), upgradeIconHtml, (b.upgrades || []).join(','));
+			
+			const attacker = gameState.activeMonsters.find(m => m.buildingAttack?.buildingId === b.id);
+			const attackerImage = getMonsterImageUrl(attacker);
+			const attackHtml = attacker ? `
+				<div class="bg-base-300 rounded p-2 flex gap-2 items-start border border-error">
+					<img src="${attackerImage}" alt="${attacker.name}" class="w-[60px] aspect-[3/4] bg-base-200 rounded object-contain flex-shrink-0" />
+					<div class="min-w-0 flex-grow">
+						<div class="font-semibold text-error truncate">Attacked by Lv.${attacker.level} ${attacker.name}</div>
+						<div class="text-xs">Monster HP: ${Math.ceil(attacker.currentHp)}/${attacker.maxHp}</div>
+						<div class="text-xs">Siege: ${Math.max(0, attacker.buildingAttack.endsAt - gameState.time)}s left</div>
+						<div class="text-xs">Next hit: ${Math.max(0, attacker.buildingAttack.nextAttackTime - gameState.time)}s</div>
+					</div>
+				</div>
+			` : '';
+			const attackerStateKey = attacker ? `${attacker.id}-${Math.ceil(attacker.currentHp)}-${attacker.buildingAttack.endsAt - gameState.time}-${attacker.buildingAttack.nextAttackTime - gameState.time}` : 'none';
+			updateHtmlIfChanged(cardContent.querySelector('[data-attacker]'), attackHtml, attackerStateKey);
+			
 			const heroesInside = b.heroesInside.map(id => gameState.heroes.find(h => h.id === id)?.name).join(', ') || 'None';
 			updateTextIfChanged(cardContent.querySelector('[data-heroes-inside]'), heroesInside);
 			
 			const btnContainer = cardContent.querySelector('[data-btn-container]');
 			const heroesInsideIds = b.heroesInside.join(',');
 			const heroesOutsideIds = heroesOutside.map(h => h.id).join(',');
-			const btnStateKey = `${heroesInsideIds}-${heroesOutsideIds}`;
+			const activeDefenseState = defenseStats.activeDefenses.map(defense => `${defense.id}:${Math.max(0, (b.activeDefenseCooldowns?.[defense.id] || 0) - gameState.time)}`).join(',');
+			const btnStateKey = `${heroesInsideIds}-${heroesOutsideIds}-${attacker?.id || 'none'}-${activeDefenseState}`;
 			
 			const newButtonsHtml = `
                 <button class="btn btn-sm btn-secondary" data-open-shop-for-building="${b.id}">Upgrade</button>
+                ${attacker ? defenseStats.activeDefenses.map(defense => {
+					const remaining = Math.max(0, (b.activeDefenseCooldowns?.[defense.id] || 0) - gameState.time);
+					return `<button class="btn btn-sm btn-error" data-fire-building-defense="${defense.id}" data-building-id="${b.id}" ${remaining > 0 ? 'disabled' : ''}>Fire ${defense.name}${remaining > 0 ? ` (${remaining}s)` : ''}</button>`;
+				}).join('') : ''}
                 ${heroesOutside.map(h => `<button class="btn btn-sm btn-ghost" data-enter-building-hero="${h.id}" data-enter-building-bldg="${b.id}">Enter: ${h.name}</button>`).join('')}
                 ${b.heroesInside.map(id => `<button class="btn btn-sm btn-ghost" data-exit-building-hero="${id}">Exit: ${gameState.heroes.find(h => h.id === id)?.name}</button>`).join('')}
             `;

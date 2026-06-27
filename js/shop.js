@@ -324,6 +324,16 @@ export async function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 			} else if (effect.type === 'increase_max_hp') {
 				building.maxHp += effect.value;
 				building.hp += effect.value;
+			} else if (effect.type === 'increase_regen_multiplier') {
+				building.regenMultiplier = (building.regenMultiplier || 10) + effect.value;
+			} else if (effect.type === 'fortify') {
+				building.maxHp += effect.maxHp || 0;
+				building.hp += effect.maxHp || 0;
+				building.damageReduction = (building.damageReduction || 0) + (effect.damageReduction || 0);
+			} else if (effect.type === 'damage_reduction') {
+				building.damageReduction = (building.damageReduction || 0) + (effect.value || 0);
+			} else if (effect.type === 'repair_per_tick') {
+				building.repairPerTick = (building.repairPerTick || 0) + (effect.value || 0);
 			}
 		}
 		addToLog(`${building.name} purchased the ${upgrade.name} upgrade for ${cost} tokens! (Paid by city)`, null);
@@ -444,16 +454,20 @@ export function renderShopModal ({ heroId, buildingId, defaultTab = 'items' }) {
 			const cost = upgrade.price || upgrade.cost || 0;
 			const canAfford = gameState.city.tokens >= cost;
 			const hasUpgrade = building.upgrades.includes(upgrade.id);
+			const imageUrl = getImageUrl(upgrade);
 			return `
-				<div class="bg-base-300/50 rounded p-2 flex flex-col gap-1">
-					<div class="flex justify-between items-center gap-2">
-						<span class="font-bold text-sm truncate" title="${upgrade.name}">${upgrade.name}</span>
-						<span class="badge badge-warning flex-shrink-0">${cost} T</span>
+				<div class="bg-base-300/50 rounded p-2 flex gap-2">
+					<div class="flex-shrink-0"><img src="${imageUrl}" alt="${upgrade.name}" class="w-[100px] aspect-[3/4] bg-base-300 rounded flex-shrink-0 object-contain" /></div>
+					<div class="flex-grow flex flex-col justify-between gap-1 min-w-0">
+						<div class="flex justify-between items-center gap-2">
+							<span class="font-bold text-sm truncate" title="${upgrade.name}">${upgrade.name}</span>
+							<span class="badge badge-warning flex-shrink-0">${cost} T</span>
+						</div>
+						<p class="text-xs mt-1 flex-grow">${upgrade.description || ''}</p>
+						<button class="btn btn-sm btn-accent w-full mt-1" data-buy-upgrade-id="${upgrade.id}" data-building-id="${building.id}" ${!canAfford || hasUpgrade ? 'disabled' : ''}>
+							${hasUpgrade ? 'Installed' : 'Buy & Install'}
+						</button>
 					</div>
-					<p class="text-xs mt-1 flex-grow">${upgrade.description || ''}</p>
-					<button class="btn btn-sm btn-accent w-full mt-1" data-buy-upgrade-id="${upgrade.id}" data-building-id="${building.id}" ${!canAfford || hasUpgrade ? 'disabled' : ''}>
-						${hasUpgrade ? 'Installed' : 'Buy & Install'}
-					</button>
 				</div>
 			`;
 		}).join('') || '<p class="text-xs italic text-center text-gray-500 col-span-full">No building upgrades for sale.</p>';

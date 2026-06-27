@@ -5,7 +5,7 @@ import { handleUseConsumable } from './inventory.js';
 import { handleShopAndPurchaseClicks, renderShopModal } from './shop.js';
 import { renderHeroes, autoEquipBestGear, recalculateHeroStats } from './heroes.js';
 import { renderMonsters, processMonsterActions } from './monsters.js';
-import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding } from './buildings.js';
+import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuilding, handleFireBuildingDefense } from './buildings.js';
 import { renderHeader, renderTabs, renderLog, renderItemsOverview, renderPartyCombat, renderPartyLog } from './ui.js';
 import { renderCars, initiateCarPurchase } from './cars.js';
 import { renderMissionControl, handleStartMission, handleFlee, processMissionTick, handleStartAttackMission, manageCombatAssignments, handleMonsterDefeat } from './missions.js';
@@ -230,6 +230,9 @@ function processGameTick () {
 				building.hp = Math.min(building.maxHp, building.hp + building.population);
 			}
 		}
+		if (building.owner === 'player' && building.state === 'functional' && building.repairPerTick && building.hp < building.maxHp) {
+			building.hp = Math.min(building.maxHp, building.hp + building.repairPerTick);
+		}
 	});
 	if (totalCityPopulation > 0) {
 		const incomeThisTick = totalCityPopulation * gameState.city.tokensPerPopulationPerTick;
@@ -341,7 +344,10 @@ async function init () {
 			...buildingData,
 			owner: null,
 			isSafezone: false,
-			heroesInside: []
+			heroesInside: [],
+			damageReduction: buildingData.damageReduction || 0,
+			repairPerTick: buildingData.repairPerTick || 0,
+			activeDefenseCooldowns: buildingData.activeDefenseCooldowns || {}
 		}));
 		
 		gameState.city.cars = gameData.cars.map(carData => ({
@@ -505,6 +511,14 @@ async function init () {
 			const buildingId = parseInt(openShopForBuildingBtn.dataset.openShopForBuilding, 10);
 			renderShopModal({ buildingId, defaultTab: 'building-upgrades' });
 			if (document.activeElement) document.activeElement.blur();
+			return;
+		}
+		
+		const fireBuildingDefenseBtn = e.target.closest('[data-fire-building-defense]');
+		if (fireBuildingDefenseBtn) {
+			const buildingId = parseInt(fireBuildingDefenseBtn.dataset.buildingId, 10);
+			handleFireBuildingDefense(buildingId, fireBuildingDefenseBtn.dataset.fireBuildingDefense);
+			renderContent(0);
 			return;
 		}
 		
