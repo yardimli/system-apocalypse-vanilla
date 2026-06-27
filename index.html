@@ -4,8 +4,8 @@
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>System Apocalypse: Idle Defender</title>
-	<link href="/src/style.css" rel="stylesheet" />
-	<script type="module" src="/src/main.js"></script>
+	<link href="css/apache.css" rel="stylesheet" />
+	<script type="module" src="js/main.js"></script>
 </head>
 <body class="bg-base-100">
 <div id="app" class="container mx-auto p-4 font-sans">
@@ -92,6 +92,35 @@
 </dialog>
 
 
+<!-- Text Input Modal -->
+<dialog id="text-input-modal" class="modal">
+	<div class="modal-box w-11/12 max-w-md">
+		<h3 class="font-bold text-lg" data-text-dialog-title></h3>
+		<p class="py-4" data-text-dialog-message></p>
+		<input class="input input-bordered w-full" data-text-dialog-input />
+		<div class="modal-action">
+			<button class="btn btn-primary" data-text-dialog-confirm>Confirm</button>
+			<button class="btn" data-text-dialog-cancel>Cancel</button>
+		</div>
+	</div>
+</dialog>
+
+
+<!-- Reset Progress Modal -->
+<dialog id="reset-progress-modal" class="modal">
+	<div class="modal-box w-11/12 max-w-md">
+		<h3 class="font-bold text-lg text-error">Reset Progress?</h3>
+		<p class="py-4">This will permanently clear your saved game and start over from the beginning.</p>
+		<div class="modal-action">
+			<button class="btn btn-error" data-confirm-reset-progress>Reset Progress</button>
+			<form method="dialog">
+				<button class="btn">Cancel</button>
+			</form>
+		</div>
+	</div>
+</dialog>
+
+
 <!-- Building Upgrade Modal -->
 <dialog id="building-upgrade-modal" class="modal">
 	<div class="modal-box w-11/12 max-w-3xl">
@@ -152,12 +181,6 @@
 			<button class="btn btn-sm" data-speed="1">1x</button>
 			<button class="btn btn-sm" data-speed="2">2x</button>
 			<button class="btn btn-sm" data-speed="4">4x</button>
-		</div>
-		<div class="dropdown dropdown-end">
-			<div tabindex="0" role="button" class="btn btn-accent">System Shop</div>
-			<ul tabindex="0" id="header-shop-dropdown-list" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-				<!-- Hero list for the shop will be injected here by JS -->
-			</ul>
 		</div>
 	</div>
 </template>

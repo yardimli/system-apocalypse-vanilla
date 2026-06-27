@@ -3,6 +3,7 @@ import { addToLog } from './utils.js';
 import { autoEquipBestGear } from './heroes.js';
 import { handleBuyBuilding } from './buildings.js';
 import { initiateCarPurchase } from './cars.js';
+import { requestTextInput } from './dialogs.js';
 
 /**
  * Helper to get the correct image URL from the new card_images structure.
@@ -13,10 +14,7 @@ function getImageUrl(entity) {
 	if (entity && entity.card_images && Array.isArray(entity.card_images)) {
 		const normalImage = entity.card_images.find(img => img.state === 'normal') || entity.card_images[0];
 		if (normalImage) {
-			let folderPath = normalImage.image_folder.replace(/^public/, '');
-			if (!folderPath.startsWith('/')) {
-				folderPath = '/' + folderPath;
-			}
+			let folderPath = normalImage.image_folder;
 			return `${folderPath}/thumbnails/${normalImage.image_file_name}`;
 		}
 	}
@@ -57,7 +55,7 @@ const getEl = (id) => document.getElementById(id);
  * @param {Event} e - The click event object.
  * @returns {boolean} - True if an action was handled, indicating a re-render may be needed.
  */
-export function handleShopAndPurchaseClicks (e) {
+export async function handleShopAndPurchaseClicks (e) {
 	const sellBtn = e.target.closest('[data-sell-item-id]');
 	if (sellBtn) {
 		const heroId = parseInt(sellBtn.dataset.heroId, 10);
@@ -104,10 +102,10 @@ export function handleShopAndPurchaseClicks (e) {
 		const buildingId = buyUpgradeBtn.dataset.buildingId ? parseInt(buyUpgradeBtn.dataset.buildingId, 10) : null;
 		
 		if (buildingId) {
-			handleBuyUpgrade({ buildingId, upgradeId });
+			await handleBuyUpgrade({ buildingId, upgradeId });
 			renderShopModal({ buildingId, defaultTab: 'building-upgrades' }); // Re-render shop for building
 		} else if (heroId) {
-			handleBuyUpgrade({ heroId, upgradeId });
+			await handleBuyUpgrade({ heroId, upgradeId });
 			renderShopModal({ heroId }); // Re-render shop for hero
 		}
 		return true; // Handled, re-render needed
@@ -116,7 +114,7 @@ export function handleShopAndPurchaseClicks (e) {
 	const buyBuildingBtn = e.target.closest('[data-buy-building-id]');
 	if (buyBuildingBtn) {
 		const buildingId = parseInt(buyBuildingBtn.dataset.buyBuildingId, 10);
-		handleBuyBuilding(buildingId);
+		await handleBuyBuilding(buildingId);
 		return true; // Handled, re-render needed
 	}
 	
@@ -276,7 +274,7 @@ export function handleSellItem (heroId, itemId) {
  * @param {number} [options.buildingId] - The ID of the building buying the upgrade for itself.
  * @param {string} options.upgradeId - The ID of the upgrade to buy.
  */
-export function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
+export async function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 	const upgrade = gameData.building_upgrades.find(u => u.id === upgradeId) || gameData.car_upgrades.find(u => u.id === upgradeId);
 	if (!upgrade) {
 		addToLog(`Shop Error: Upgrade with ID ${upgradeId} not found.`);
@@ -353,15 +351,21 @@ export function handleBuyUpgrade ({ heroId, buildingId, upgradeId }) {
 			}
 			
 			const validIds = ownedAssets.map(a => a.id).join(', ');
-			const targetIdStr = prompt(`Enter the ID of the car to apply "${upgrade.name}" to.\nYour valid car IDs: ${validIds}`);
-			if (!targetIdStr) {
+			const targetIdStr = await requestTextInput({
+				title: 'Choose Vehicle',
+				message: `Enter the ID of the car to apply "${upgrade.name}" to. Valid car IDs: ${validIds}`,
+				defaultValue: ownedAssets[0]?.id || '',
+				confirmText: 'Apply Upgrade'
+			});
+			const trimmedTargetId = targetIdStr?.trim();
+			if (!trimmedTargetId) {
 				addToLog('Upgrade purchase cancelled.', hero.id);
 				return;
 			}
 			
-			const targetAsset = ownedAssets.find(a => a.id === targetIdStr);
+			const targetAsset = ownedAssets.find(a => a.id === trimmedTargetId);
 			if (!targetAsset) {
-				addToLog(`Invalid ID. No valid car with ID #${targetIdStr} found for ${hero.name}.`, hero.id);
+				addToLog(`Invalid ID. No valid car with ID #${trimmedTargetId} found for ${hero.name}.`, hero.id);
 				return;
 			}
 			

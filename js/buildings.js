@@ -1,5 +1,6 @@
 import { gameState, gameData } from './state.js';
 import { addToLog, updateTextIfChanged, updateHtmlIfChanged } from './utils.js';
+import { requestTextInput } from './dialogs.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
@@ -80,7 +81,7 @@ export function handleExitBuilding(heroId) {
  * Handles the purchase of a building by the player party.
  * @param {number} buildingId - The ID of the building to purchase.
  */
-export function handleBuyBuilding(buildingId) {
+export async function handleBuyBuilding(buildingId) {
 	const building = gameState.city.buildings.find(b => b.id === buildingId);
 	if (!building || building.owner === 'player') return;
 	
@@ -90,8 +91,14 @@ export function handleBuyBuilding(buildingId) {
 		return;
 	}
 	
-	const buildingName = prompt(`You are purchasing Building #${buildingId} for ${price} tokens.\nPlease enter a name for your new safezone:`, `Safezone ${gameState.city.buildings.filter(b => b.owner === 'player').length + 1}`);
-	if (!buildingName) {
+	const buildingName = await requestTextInput({
+		title: 'Name Safezone',
+		message: `You are purchasing Building #${buildingId} for ${price} tokens. Enter a name for your new safezone.`,
+		defaultValue: `Safezone ${gameState.city.buildings.filter(b => b.owner === 'player').length + 1}`,
+		confirmText: 'Buy Building'
+	});
+	const trimmedName = buildingName?.trim();
+	if (!trimmedName) {
 		addToLog('Building purchase cancelled.');
 		return;
 	}
@@ -99,7 +106,7 @@ export function handleBuyBuilding(buildingId) {
 	gameState.city.tokens -= price;
 	
 	building.owner = 'player';
-	building.name = buildingName;
+	building.name = trimmedName;
 	building.state = 'functional';
 	building.maxHp = 1000;
 	building.hp = 1000;
@@ -200,10 +207,7 @@ export function renderBuildings(contentArea) {
 			if (b.card_images && Array.isArray(b.card_images)) {
 				const imgData = b.card_images.find(img => img.state === targetState) || b.card_images.find(img => img.state === 'normal');
 				if (imgData) {
-					let folderPath = imgData.image_folder.replace(/^public/, '');
-					if (!folderPath.startsWith('/')) {
-						folderPath = '/' + folderPath;
-					}
+					let folderPath = imgData.image_folder;
 					imageUrl = `${folderPath}/thumbnails/${imgData.image_file_name}`;
 				}
 			} else {
@@ -212,10 +216,10 @@ export function renderBuildings(contentArea) {
 				if (targetState === 'damaged') stateChar = 'd';
 				if (targetState === 'ruined') stateChar = 'r';
 				if (targetState === 'shielded') stateChar = 's';
-				imageUrl = `/images/buildings/${b.type}-${stateChar}.png`;
+				imageUrl = `public/images/buildings/${b.type}-${stateChar}.png`;
 			}
 			
-			if (imgEl.src !== window.location.origin + imageUrl && imageUrl !== '') {
+			if (imageUrl !== '' && imgEl.src !== new URL(imageUrl, document.baseURI).href) {
 				imgEl.src = imageUrl;
 				imgEl.alt = `${b.name} - ${targetState}`;
 			}

@@ -19,6 +19,16 @@ function formatLogTime (time) {
 	return `[Day ${day}, Tick ${tick}]`;
 }
 
+function getImageUrl (entity) {
+	if (entity && entity.card_images && Array.isArray(entity.card_images)) {
+		const normalImage = entity.card_images.find(img => img.state === 'normal') || entity.card_images[0];
+		if (normalImage) {
+			return `${normalImage.image_folder}/thumbnails/${normalImage.image_file_name}`;
+		}
+	}
+	return '';
+}
+
 /**
  * Renders the main game header with current stats.
  */
@@ -69,7 +79,6 @@ export function renderHeader () {
 		}
 	}
 	
-	renderShopDropdown();
 }
 
 /**
@@ -106,7 +115,10 @@ export function renderLog (contentArea) {
 	if (!getEl('log-container')) {
 		contentArea.innerHTML = `
         <div class="card bg-base-200 shadow-xl p-6">
-            <h2 class="text-2xl font-bold mb-4">Game Log</h2>
+            <div class="flex justify-between items-center gap-4 mb-4">
+                <h2 class="text-2xl font-bold">Game Log</h2>
+                <button class="btn btn-error btn-sm" data-reset-progress>Reset Progress</button>
+            </div>
             <div id="log-container" class="bg-base-100 rounded-box p-4 h-96 overflow-y-scroll flex flex-col font-mono text-sm">
             </div>
         </div>`;
@@ -185,11 +197,7 @@ export function renderItemsOverview (contentArea) {
 		if (item.card_images && Array.isArray(item.card_images)) {
 			const normalImage = item.card_images.find(img => img.state === 'normal');
 			if (normalImage) {
-				// Remove 'public' from the beginning of the folder path if it exists
-				let folderPath = normalImage.image_folder.replace(/^public/, '');
-				if (!folderPath.startsWith('/')) {
-					folderPath = '/' + folderPath;
-				}
+				let folderPath = normalImage.image_folder;
 				imageUrl = `${folderPath}/thumbnails/${normalImage.image_file_name}`;
 			}
 		}
@@ -210,29 +218,13 @@ export function renderItemsOverview (contentArea) {
 }
 
 /**
- * Renders the dropdown menu for accessing each hero's shop.
- */
-export function renderShopDropdown () {
-	const list = getEl('header-shop-dropdown-list');
-	if (!list) return;
-	
-	const stateKey = gameState.heroes.map(h => h.id + h.name).join(',');
-	if (list.getAttribute('data-prev-state') === stateKey) return;
-	
-	list.innerHTML = gameState.heroes.map(hero => `
-		<li><a data-open-shop-for-hero="${hero.id}">${hero.name}'s Shop</a></li>
-	`).join('');
-	
-	list.setAttribute('data-prev-state', stateKey);
-}
-
-/**
  * Renders the shared combat panel for the party using granular updates.
  * This prevents the entire panel from re-rendering, allowing CSS transitions to work.
  */
 export function renderPartyCombat () {
 	const container = getEl('party-combat-area');
 	if (!container) return;
+	const partyLog = getEl('party-log-area');
 	
 	// Find the first monster being targeted by any hero.
 	const primaryTargetMonster = gameState.activeMonsters.find(m =>
@@ -241,18 +233,21 @@ export function renderPartyCombat () {
 	
 	// If no monster is being fought, ensure the container is empty and then exit.
 	if (!primaryTargetMonster) {
+		if (partyLog) partyLog.classList.remove('hidden');
 		if (container.getAttribute('data-prev-state') !== 'no-combat') {
 			container.innerHTML = '';
 			container.setAttribute('data-prev-state', 'no-combat');
 		}
 		return;
 	}
+	if (partyLog) partyLog.classList.add('hidden');
 	
 	// If a monster is being fought, ensure the panel's static HTML structure exists.
 	let panel = container.querySelector('[data-combat-panel]');
 	if (!panel) {
 		container.innerHTML = `
 			<div class="card bg-base-200 shadow-md p-4" data-combat-panel>
+				<img src="" alt="" class="w-full max-h-60 aspect-[3/4] object-contain bg-base-300 rounded-lg mb-2" data-monster-image />
 				<div class="flex justify-between items-center mb-2">
 					<h3 class="font-bold text-lg text-error" data-monster-name></h3>
 				</div>
@@ -271,6 +266,16 @@ export function renderPartyCombat () {
 	const monster = primaryTargetMonster;
 	
 	// Granularly update the panel's content.
+	const imageUrl = getImageUrl(monster);
+	const imageEl = panel.querySelector('[data-monster-image]');
+	if (imageEl) {
+		if (imageUrl && imageEl.src !== new URL(imageUrl, document.baseURI).href) {
+			imageEl.src = imageUrl;
+		} else if (!imageUrl && imageEl.getAttribute('src') !== '') {
+			imageEl.src = '';
+		}
+		imageEl.alt = imageUrl ? `${monster.name} card` : '';
+	}
 	updateTextIfChanged(panel.querySelector('[data-monster-name]'), `Fighting: Lv.${monster.level} ${monster.name}`);
 	updateProgressIfChanged(panel.querySelector('[data-monster-hp-bar]'), monster.currentHp, monster.maxHp);
 	updateTextIfChanged(panel.querySelector('[data-monster-hp-label]'), `${Math.floor(monster.currentHp)}/${monster.maxHp} HP`);

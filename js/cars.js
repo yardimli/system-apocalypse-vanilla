@@ -85,11 +85,7 @@ export function renderCars(contentArea) {
 		if (carData.card_images && Array.isArray(carData.card_images)) {
 			const normalImage = carData.card_images.find(img => img.state === 'normal');
 			if (normalImage) {
-				// Remove 'public' from the beginning of the folder path if it exists
-				let folderPath = normalImage.image_folder.replace(/^public/, '');
-				if (!folderPath.startsWith('/')) {
-					folderPath = '/' + folderPath;
-				}
+				let folderPath = normalImage.image_folder;
 				imageUrl = `${folderPath}/thumbnails/${normalImage.image_file_name}`;
 			}
 		}

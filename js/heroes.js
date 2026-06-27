@@ -9,14 +9,11 @@ function getImageUrl (entity) {
 	if (entity && entity.card_images && Array.isArray(entity.card_images)) {
 		const normalImage = entity.card_images.find(img => img.state === 'normal') || entity.card_images[0];
 		if (normalImage) {
-			let folderPath = normalImage.image_folder.replace(/^public/, '');
-			if (!folderPath.startsWith('/')) {
-				folderPath = '/' + folderPath;
-			}
+			let folderPath = normalImage.image_folder;
 			return `${folderPath}/thumbnails/${normalImage.image_file_name}`;
 		}
 	}
-	return entity?.image || '/images/placeholder.png'; // Fallback for entities without card_images
+	return entity?.image || ''; // Fallback for entities without card_images
 }
 
 /**
@@ -208,7 +205,7 @@ function renderHeroSkills (hero, card, alpha) {
 			const newCardHtml = `
 				<div
 					id="${skillCardId}"
-					class="relative w-[100px] text-center"
+					class="relative w-[80px] text-center"
 					data-cast-skill-id="${skillData.id}"
 					data-hero-id="${hero.id}"
 					title="${skillData.name}: ${skillData.description}"
@@ -315,7 +312,12 @@ export function renderHeroes (alpha = 0) {
 			const badgeClass = `badge ${hero.class === 'Aegis' ? 'badge-info' : hero.class === 'Striker' ? 'badge-error' : 'badge-success'}`;
 			const borderClass = isHealingTarget ? 'border-2 border-info' : '';
 			// The data-class-badge attribute is kept for the click handler in main.js
-			const newHtml = `<div class="${badgeClass} ${borderClass} cursor-pointer" data-class data-class-badge data-hero-id="${hero.id}">${hero.class}</div>`;
+			const newHtml = `
+				<div class="flex items-center justify-end gap-1">
+					<div class="${badgeClass} ${borderClass} cursor-pointer" data-class data-class-badge data-hero-id="${hero.id}">${hero.class}</div>
+					<button class="btn btn-xs btn-accent" data-open-shop-for-hero="${hero.id}">Shop</button>
+				</div>
+			`;
 			
 			updateHtmlIfChanged(classContainer, newHtml, stateKey);
 		}
@@ -343,10 +345,7 @@ export function renderHeroes (alpha = 0) {
 				if (item.card_images && Array.isArray(item.card_images)) {
 					const normalImage = item.card_images.find(img => img.state === 'normal');
 					if (normalImage) {
-						let folderPath = normalImage.image_folder.replace(/^public/, '');
-						if (!folderPath.startsWith('/')) {
-							folderPath = '/' + folderPath;
-						}
+						let folderPath = normalImage.image_folder;
 						imageUrl = `${folderPath}/thumbnails/${normalImage.image_file_name}`;
 					}
 				}

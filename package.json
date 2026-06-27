@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/build-apache-css.mjs",
     "preview": "vite preview"
   },
   "keywords": [],

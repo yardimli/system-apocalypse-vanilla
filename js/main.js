@@ -9,9 +9,13 @@ import { renderBuildings, handleBuyBuilding, handleEnterBuilding, handleExitBuil
 import { renderHeader, renderTabs, renderLog, renderItemsOverview, renderPartyCombat, renderPartyLog } from './ui.js';
 import { renderCars, initiateCarPurchase } from './cars.js';
 import { renderMissionControl, handleStartMission, handleFlee, processMissionTick, handleStartAttackMission, manageCombatAssignments, handleMonsterDefeat } from './missions.js';
+import { beginNewGameReset, loadGame, saveGame } from './persistence.js';
+import { requestTextInput } from './dialogs.js';
 
 const TABS = ['Heroes', 'Buildings', 'Cars', 'Monsters', 'Items', 'Log'];
 let activeTab = 'Heroes';
+let isResettingProgress = false;
+const dataUrl = (fileName) => new URL(`../public/data/${fileName}`, import.meta.url);
 
 // --- DOM ELEMENTS ---
 const getEl = (id) => document.getElementById(id);
@@ -235,6 +239,7 @@ function processGameTick () {
 	processMonsterActions();
 	
 	handleMonsterDefeat();
+	saveGame();
 }
 
 function gameLoop (currentTime) {
@@ -268,16 +273,16 @@ function gameLoop (currentTime) {
 async function init () {
 	try {
 		const [items, magicSkills, martialSkills, cards, monsters, buildingUpgrades, carUpgrades, cars, buildings, heroes] = await Promise.all([
-			fetch('/data/items.json').then(res => res.json()),
-			fetch('/data/new_magic_skills.json').then(res => res.json()),
-			fetch('/data/new_martial_skills.json').then(res => res.json()),
-			fetch('/data/new_cards.json').then(res => res.json()),
-			fetch('/data/monsters.json').then(res => res.json()),
-			fetch('/data/building_upgrades.json').then(res => res.json()),
-			fetch('/data/car_upgrades.json').then(res => res.json()),
-			fetch('/data/cars.json').then(res => res.json()),
-			fetch('/data/buildings.json').then(res => res.json()),
-			fetch('/data/heroes.json').then(res => res.json())
+			fetch(dataUrl('items.json')).then(res => res.json()),
+			fetch(dataUrl('new_magic_skills.json')).then(res => res.json()),
+			fetch(dataUrl('new_martial_skills.json')).then(res => res.json()),
+			fetch(dataUrl('new_cards.json')).then(res => res.json()),
+			fetch(dataUrl('monsters.json')).then(res => res.json()),
+			fetch(dataUrl('building_upgrades.json')).then(res => res.json()),
+			fetch(dataUrl('car_upgrades.json')).then(res => res.json()),
+			fetch(dataUrl('cars.json')).then(res => res.json()),
+			fetch(dataUrl('buildings.json')).then(res => res.json()),
+			fetch(dataUrl('heroes.json')).then(res => res.json())
 		]);
 		gameData.items = items;
 		gameData.magic_skills = magicSkills;
@@ -417,6 +422,12 @@ async function init () {
 			}
 			addToLog('[SYSTEM]: Initial threats detected. 3 monsters are approaching the city from 3000m.');
 		}
+		
+		if (loadGame()) {
+			addToLog('[SYSTEM]: Saved progress loaded.');
+		} else {
+			saveGame();
+		}
 	} catch (error) {
 		console.error('Failed to load game data:', error);
 		contentArea.innerHTML = `<p class="text-error">Error: Could not load game data. Please check the console.</p>`;
@@ -427,7 +438,7 @@ async function init () {
 	renderTabs(activeTab, TABS);
 	renderContent(0);
 	
-	document.body.addEventListener('click', (e) => {
+	document.body.addEventListener('click', async (e) => {
 		const speedBtn = e.target.closest('[data-speed]');
 		if (speedBtn) {
 			const newSpeed = parseFloat(speedBtn.dataset.speed);
@@ -435,6 +446,21 @@ async function init () {
 				gameState.gameSettings.speedMultiplier = newSpeed;
 				addToLog(`[SYSTEM]: Game speed set to ${newSpeed}x.`);
 			}
+			return;
+		}
+		
+		const resetProgressBtn = e.target.closest('[data-reset-progress]');
+		if (resetProgressBtn) {
+			const modal = getEl('reset-progress-modal');
+			if (modal) modal.showModal();
+			return;
+		}
+		
+		const confirmResetProgressBtn = e.target.closest('[data-confirm-reset-progress]');
+		if (confirmResetProgressBtn) {
+			isResettingProgress = true;
+			beginNewGameReset();
+			location.reload();
 			return;
 		}
 		
@@ -448,7 +474,7 @@ async function init () {
 			return;
 		}
 		
-		if (handleShopAndPurchaseClicks(e)) {
+		if (await handleShopAndPurchaseClicks(e)) {
 			renderContent(0);
 			return;
 		}
@@ -487,10 +513,16 @@ async function init () {
 			const buildingId = parseInt(renameBuildingBtn.dataset.renameBuildingId, 10);
 			const building = gameState.city.buildings.find(b => b.id === buildingId);
 			if (building && building.owner === 'player') {
-				const newName = prompt(`Enter a new name for ${building.name}:`, building.name);
-				if (newName && newName.trim() !== '') {
-					addToLog(`Renamed ${building.name} to ${newName.trim()}.`);
-					building.name = newName.trim();
+				const newName = await requestTextInput({
+					title: 'Rename Building',
+					message: `Enter a new name for ${building.name}.`,
+					defaultValue: building.name,
+					confirmText: 'Rename'
+				});
+				const trimmedName = newName?.trim();
+				if (trimmedName) {
+					addToLog(`Renamed ${building.name} to ${trimmedName}.`);
+					building.name = trimmedName;
 					renderContent(0);
 				}
 			}
@@ -623,6 +655,9 @@ async function init () {
 		}
 	});
 	
+	window.addEventListener('beforeunload', () => {
+		if (!isResettingProgress) saveGame();
+	});
 	requestAnimationFrame(gameLoop);
 }
 

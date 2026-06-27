@@ -10,14 +10,11 @@ function getImageUrl (entity) {
 	if (entity && entity.card_images && Array.isArray(entity.card_images)) {
 		const normalImage = entity.card_images.find(img => img.state === 'normal') || entity.card_images[0];
 		if (normalImage) {
-			let folderPath = normalImage.image_folder.replace(/^public/, '');
-			if (!folderPath.startsWith('/')) {
-				folderPath = '/' + folderPath;
-			}
+			let folderPath = normalImage.image_folder;
 			return `${folderPath}/thumbnails/${normalImage.image_file_name}`;
 		}
 	}
-	return '/images/placeholder.png'; // Fallback
+	return ''; // Fallback
 }
 
 /**
