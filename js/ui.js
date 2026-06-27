@@ -1,5 +1,5 @@
 import { gameState, gameData } from './state.js';
-import { updateTextIfChanged, updateProgressIfChanged, updateHtmlIfChanged } from './utils.js';
+import { tokenAmountHtml, updateTextIfChanged, updateProgressIfChanged, updateHtmlIfChanged, updateTokenAmountIfChanged } from './utils.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
@@ -60,8 +60,8 @@ export function renderHeader () {
 	
 	const cityTokens = Math.floor(gameState.city.tokens);
 	const incomePerDay = (totalPop * gameState.city.tokensPerPopulationPerTick * 10).toFixed(1);
-	updateTextIfChanged(headerContainer.querySelector('[data-stat="city-tokens"]'), cityTokens);
-	updateTextIfChanged(headerContainer.querySelector('[data-stat="city-income"]'), `+${incomePerDay}`);
+	updateTokenAmountIfChanged(headerContainer.querySelector('[data-stat="city-tokens"]'), cityTokens);
+	updateTokenAmountIfChanged(headerContainer.querySelector('[data-stat="city-income"]'), incomePerDay, { label: '+' });
 	
 	const speed = gameState.gameSettings.speedMultiplier;
 	const speedControls = headerContainer.querySelector('#speed-controls');
@@ -117,7 +117,10 @@ export function renderLog (contentArea) {
         <div class="card bg-base-200 shadow-xl p-6">
             <div class="flex justify-between items-center gap-4 mb-4">
                 <h2 class="text-2xl font-bold">Game Log</h2>
-                <button class="btn btn-error btn-sm" data-reset-progress>Reset Progress</button>
+                <div class="flex gap-2">
+                    <button class="btn btn-warning btn-sm" data-cheat-hero-tokens>Cheat Tokens</button>
+                    <button class="btn btn-error btn-sm" data-reset-progress>Reset Progress</button>
+                </div>
             </div>
             <div id="log-container" class="bg-base-100 rounded-box p-4 h-96 overflow-y-scroll flex flex-col font-mono text-sm">
             </div>
@@ -177,7 +180,7 @@ export function renderItemsOverview (contentArea) {
 		const details = [];
 		if (item.type) details.push(`<strong>Type:</strong> ${item.type}`);
 		if (item.level) details.push(`<strong>Level:</strong> ${item.level}`);
-		if (item.sellPrice) details.push(`<strong>Sell Price:</strong> ${item.sellPrice} Tokens`);
+		if (item.sellPrice) details.push(`<strong>Sell Price:</strong> ${tokenAmountHtml(item.sellPrice)}`);
 		
 		if (item.effect) {
 			const { type, value } = item.effect;

@@ -1,5 +1,5 @@
 import { gameState, gameData } from './state.js';
-import { addToLog, updateTextIfChanged, updateHtmlIfChanged } from './utils.js';
+import { addToLog, tokenAmountHtml, updateTextIfChanged, updateHtmlIfChanged } from './utils.js';
 import { requestTextInput } from './dialogs.js';
 
 // Helper function to get an element by its ID.
@@ -238,7 +238,10 @@ export function renderBuildings(contentArea) {
 			if (isPlayerOwned) {
 				card.innerHTML = `
                     <div class="card bg-base-200 shadow-md p-4 flex flex-row gap-4 items-start border border-primary h-full">
-						<img data-building-image src="" alt="Building Image" class="w-[175px] aspect-[3/4] bg-base-300 rounded flex-shrink-0 object-contain" />
+						<div class="w-[175px] flex-shrink-0 flex flex-col gap-2">
+							<img data-building-image src="" alt="Building Image" class="w-full aspect-[3/4] bg-base-300 rounded object-contain" />
+							<div data-attacker></div>
+						</div>
                         <div class="flex flex-col flex-grow min-w-0 h-full">
 							<div class="flex justify-between items-start">
 								<h3 data-name class="font-bold text-lg truncate text-primary" title="Building Name"></h3>
@@ -251,7 +254,6 @@ export function renderBuildings(contentArea) {
 								<div data-pop class="text-success mt-1"></div>
 								<div data-defense-summary class="text-warning mt-1"></div>
 								<div data-upgrade-icons class="flex flex-wrap gap-1 mt-2"></div>
-								<div data-attacker class="mt-2"></div>
 								<div class="mt-2">
 									<p class="font-semibold">Heroes Inside:</p>
 									<p data-heroes-inside class="text-gray-400 truncate"></p>
@@ -346,20 +348,40 @@ export function renderBuildings(contentArea) {
 			updateHtmlIfChanged(cardContent.querySelector('[data-upgrade-icons]'), upgradeIconHtml, (b.upgrades || []).join(','));
 			
 			const attacker = gameState.activeMonsters.find(m => m.buildingAttack?.buildingId === b.id);
-			const attackerImage = getMonsterImageUrl(attacker);
-			const attackHtml = attacker ? `
-				<div class="bg-base-300 rounded p-2 flex gap-2 items-start border border-error">
-					<img src="${attackerImage}" alt="${attacker.name}" class="w-[60px] aspect-[3/4] bg-base-200 rounded object-contain flex-shrink-0" />
-					<div class="min-w-0 flex-grow">
-						<div class="font-semibold text-error truncate">Attacked by Lv.${attacker.level} ${attacker.name}</div>
-						<div class="text-xs">Monster HP: ${Math.ceil(attacker.currentHp)}/${attacker.maxHp}</div>
-						<div class="text-xs">Siege: ${Math.max(0, attacker.buildingAttack.endsAt - gameState.time)}s left</div>
-						<div class="text-xs">Next hit: ${Math.max(0, attacker.buildingAttack.nextAttackTime - gameState.time)}s</div>
-					</div>
-				</div>
-			` : '';
-			const attackerStateKey = attacker ? `${attacker.id}-${Math.ceil(attacker.currentHp)}-${attacker.buildingAttack.endsAt - gameState.time}-${attacker.buildingAttack.nextAttackTime - gameState.time}` : 'none';
-			updateHtmlIfChanged(cardContent.querySelector('[data-attacker]'), attackHtml, attackerStateKey);
+			const attackerContainer = cardContent.querySelector('[data-attacker]');
+			if (attackerContainer) {
+				if (!attacker) {
+					if (attackerContainer.getAttribute('data-attacker-id') !== 'none') {
+						attackerContainer.innerHTML = '';
+						attackerContainer.setAttribute('data-attacker-id', 'none');
+					}
+				} else {
+					if (attackerContainer.getAttribute('data-attacker-id') !== String(attacker.id)) {
+						attackerContainer.innerHTML = `
+							<div class="bg-base-300 rounded p-2 border border-error">
+								<img data-attacker-image src="" alt="" class="w-full aspect-[3/4] bg-base-200 rounded object-contain" />
+								<div class="font-semibold text-error text-xs mt-1" data-attacker-name></div>
+								<div class="text-xs" data-attacker-hp></div>
+								<div class="text-xs" data-attacker-siege></div>
+								<div class="text-xs" data-attacker-next-hit></div>
+							</div>
+						`;
+						attackerContainer.setAttribute('data-attacker-id', String(attacker.id));
+					}
+					
+					const attackerImage = getMonsterImageUrl(attacker);
+					const attackerImgEl = attackerContainer.querySelector('[data-attacker-image]');
+					if (attackerImgEl && attackerImage && attackerImgEl.src !== new URL(attackerImage, document.baseURI).href) {
+						attackerImgEl.src = attackerImage;
+						attackerImgEl.alt = `${attacker.name} card`;
+					}
+					
+					updateTextIfChanged(attackerContainer.querySelector('[data-attacker-name]'), `Lv.${attacker.level} ${attacker.name}`);
+					updateTextIfChanged(attackerContainer.querySelector('[data-attacker-hp]'), `HP: ${Math.ceil(attacker.currentHp)}/${attacker.maxHp}`);
+					updateTextIfChanged(attackerContainer.querySelector('[data-attacker-siege]'), `Siege: ${Math.max(0, attacker.buildingAttack.endsAt - gameState.time)}s`);
+					updateTextIfChanged(attackerContainer.querySelector('[data-attacker-next-hit]'), `Next hit: ${Math.max(0, attacker.buildingAttack.nextAttackTime - gameState.time)}s`);
+				}
+			}
 			
 			const heroesInside = b.heroesInside.map(id => gameState.heroes.find(h => h.id === id)?.name).join(', ') || 'None';
 			updateTextIfChanged(cardContent.querySelector('[data-heroes-inside]'), heroesInside);
@@ -368,10 +390,11 @@ export function renderBuildings(contentArea) {
 			const heroesInsideIds = b.heroesInside.join(',');
 			const heroesOutsideIds = heroesOutside.map(h => h.id).join(',');
 			const activeDefenseState = defenseStats.activeDefenses.map(defense => `${defense.id}:${Math.max(0, (b.activeDefenseCooldowns?.[defense.id] || 0) - gameState.time)}`).join(',');
-			const btnStateKey = `${heroesInsideIds}-${heroesOutsideIds}-${attacker?.id || 'none'}-${activeDefenseState}`;
+			const btnStateKey = `${heroesInsideIds}-${heroesOutsideIds}-${attacker?.id || 'none'}-${gameState.party.missionState}-${activeDefenseState}`;
 			
 			const newButtonsHtml = `
                 <button class="btn btn-sm btn-secondary" data-open-shop-for-building="${b.id}">Upgrade</button>
+                ${attacker ? `<button class="btn btn-sm btn-primary" data-defend-building-monster-id="${attacker.id}" ${gameState.party.missionState !== 'idle' ? 'disabled' : ''}>Defend Building</button>` : ''}
                 ${attacker ? defenseStats.activeDefenses.map(defense => {
 					const remaining = Math.max(0, (b.activeDefenseCooldowns?.[defense.id] || 0) - gameState.time);
 					return `<button class="btn btn-sm btn-error" data-fire-building-defense="${defense.id}" data-building-id="${b.id}" ${remaining > 0 ? 'disabled' : ''}>Fire ${defense.name}${remaining > 0 ? ` (${remaining}s)` : ''}</button>`;
@@ -392,7 +415,7 @@ export function renderBuildings(contentArea) {
 			
 			const buyBtn = cardContent.querySelector('[data-buy-building-id]');
 			const canAfford = gameState.city.tokens >= nextPrice;
-			updateTextIfChanged(buyBtn, `Buy (${nextPrice} T)`);
+			updateHtmlIfChanged(buyBtn, `Buy (${tokenAmountHtml(nextPrice)})`, `buy-${nextPrice}`);
 			if (buyBtn.disabled !== !canAfford) {
 				buyBtn.disabled = !canAfford;
 			}

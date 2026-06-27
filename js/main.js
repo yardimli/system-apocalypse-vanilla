@@ -462,6 +462,18 @@ async function init () {
 			return;
 		}
 		
+		const cheatHeroTokensBtn = e.target.closest('[data-cheat-hero-tokens]');
+		if (cheatHeroTokensBtn) {
+			gameState.heroes.forEach(hero => {
+				hero.tokens += 500;
+			});
+			gameState.city.tokens += 5000;
+			addToLog('[SYSTEM]: Cheat added 500 tokens to each hero and 5000 tokens to the city budget.');
+			renderContent(0);
+			renderHeader();
+			return;
+		}
+		
 		const confirmResetProgressBtn = e.target.closest('[data-confirm-reset-progress]');
 		if (confirmResetProgressBtn) {
 			isResettingProgress = true;
@@ -622,6 +634,17 @@ async function init () {
 			handleStartAttackMission(monsterId);
 			
 			if (activeTab === 'Monsters') {
+				activeTab = 'Heroes';
+			}
+			return;
+		}
+		
+		const defendBuildingBtn = e.target.closest('[data-defend-building-monster-id]');
+		if (defendBuildingBtn) {
+			const monsterId = parseInt(defendBuildingBtn.dataset.defendBuildingMonsterId, 10);
+			handleStartAttackMission(monsterId);
+			
+			if (activeTab === 'Buildings') {
 				activeTab = 'Heroes';
 			}
 			return;

@@ -1,5 +1,5 @@
 import { gameState, gameData } from './state.js';
-import { addToLog } from './utils.js';
+import { addToLog, tokenAmountHtml } from './utils.js';
 
 // Helper function to get an element by its ID.
 const getEl = (id) => document.getElementById(id);
@@ -10,11 +10,12 @@ const getEl = (id) => document.getElementById(id);
  */
 export function initiateCarPurchase(carId) {
 	const carData = gameData.cars.find(c => c.id === carId);
+	const car = gameState.city.cars.find(c => c.id === carId);
 	const modal = getEl('car-purchase-modal');
 	const header = getEl('car-purchase-modal-header');
 	const heroList = getEl('car-purchase-heroes-list');
 	
-	if (!carData || !modal || !header || !heroList) {
+	if (!carData || !car || !modal || !header || !heroList) {
 		addToLog('Error: Could not open car purchase dialog.');
 		console.error('Missing car data or modal elements.');
 		return;
@@ -23,36 +24,81 @@ export function initiateCarPurchase(carId) {
 	// Populate the modal header with car name and price
 	header.innerHTML = `
 		<h3 class="font-bold text-lg">Buy ${carData.name}?</h3>
-		<span class="badge badge-warning">${carData.price} Tokens</span>
+		<span class="badge badge-warning">${tokenAmountHtml(carData.price)}</span>
 	`;
 	
-	// Check which heroes already own a car.
-	const heroesWithCars = gameState.city.cars.filter(c => c.ownerId !== null).map(c => c.ownerId);
-	
-	// Generate a button for each hero, indicating if they can afford the car or already own one.
+	// Generate a button for each hero, indicating if they can afford the car.
 	heroList.innerHTML = gameState.heroes.map(hero => {
 		const canAfford = hero.tokens >= carData.price;
-		const ownsCar = heroesWithCars.includes(hero.id);
-		const isDisabled = !canAfford || ownsCar;
+		const alreadyOwnsThisCar = hero.carId === carId;
+		const isDisabled = !canAfford || alreadyOwnsThisCar || !!car.ownerId;
 		let disabledText = '';
-		if (ownsCar) {
-			disabledText = ' (Owns a Car)';
+		if (alreadyOwnsThisCar) {
+			disabledText = ' (Current Car)';
+		} else if (car.ownerId) {
+			disabledText = ' (Already Sold)';
 		} else if (!canAfford) {
 			disabledText = ' (Insuff. Tokens)';
+		} else if (hero.carId) {
+			disabledText = ' (Replaces Current Car)';
 		}
 		
 		return `
-			<button class="btn ${canAfford && !ownsCar ? 'btn-primary' : ''}"
+			<button class="btn ${canAfford && !alreadyOwnsThisCar && !car.ownerId ? 'btn-primary' : ''}"
 					data-confirm-buy-car="true"
 					data-hero-id="${hero.id}"
 					data-car-id="${carId}"
 					${isDisabled ? 'disabled' : ''}>
-				${hero.name} <span class="badge badge-ghost">${hero.tokens} T</span>${disabledText}
+				${hero.name} <span class="badge badge-ghost">${tokenAmountHtml(hero.tokens)}</span>${disabledText}
 			</button>
 		`;
 	}).join('');
 	
 	modal.showModal();
+}
+
+export function handleBuyCar(heroId, carId) {
+	const hero = gameState.heroes.find(h => h.id === heroId);
+	const newCar = gameState.city.cars.find(c => c.id === carId);
+	const newCarData = gameData.cars.find(c => c.id === carId);
+	
+	if (!hero || !newCar || !newCarData) {
+		addToLog('Car purchase failed: hero or car not found.');
+		return false;
+	}
+	
+	if (newCar.ownerId && newCar.ownerId !== heroId) {
+		addToLog(`${newCar.name} has already been purchased by another hero.`, hero.id);
+		return false;
+	}
+	
+	if (hero.carId === carId) {
+		addToLog(`${newCar.name} is already this hero's current car.`, hero.id);
+		return false;
+	}
+	
+	if (hero.tokens < newCarData.price) {
+		addToLog(`does not have enough tokens to buy ${newCarData.name}.`, hero.id);
+		return false;
+	}
+	
+	const oldCar = hero.carId ? gameState.city.cars.find(c => c.id === hero.carId) : null;
+	const carriedUpgrades = oldCar ? [...oldCar.upgrades] : [];
+	
+	hero.tokens -= newCarData.price;
+	
+	if (oldCar) {
+		const oldCarData = gameData.cars.find(c => c.id === oldCar.id);
+		oldCar.ownerId = null;
+		oldCar.upgrades = [...(oldCarData?.upgrades || [])];
+	}
+	
+	newCar.ownerId = hero.id;
+	newCar.upgrades = [...new Set([...(newCar.upgrades || []), ...carriedUpgrades])];
+	hero.carId = newCar.id;
+	
+	addToLog(`bought ${newCar.name} for ${newCarData.price} tokens${oldCar ? ` and moved upgrades from ${oldCar.name}.` : '.'}`, hero.id);
+	return true;
 }
 
 
@@ -130,7 +176,7 @@ export function renderCars(contentArea) {
 					<div class="flex flex-col flex-grow min-w-0 h-full">
 						<div class="flex justify-between items-center">
 							<h3 class="font-bold text-lg truncate" title="${carData.name}">${carData.name}</h3>
-							<span class="badge badge-warning flex-shrink-0">${carData.price} T</span>
+							<span class="badge badge-warning flex-shrink-0">${tokenAmountHtml(carData.price)}</span>
 						</div>
 						<p class="text-xs italic text-gray-400 mt-2 flex-grow">${carData.description}</p>
 						
